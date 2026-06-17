@@ -1,0 +1,1273 @@
+{
+  "kaynak": "arabam.com/tum-markalar",
+  "tarih": "2026-06-14",
+  "kategoriler": [
+    {
+      "slug": "otomobil",
+      "label": "Otomobil",
+      "kasa_tipleri": ["Sedan", "Hatchback", "Station Wagon", "Coupe", "Cabrio"]
+    },
+    {
+      "slug": "arazi-suv-pick-up",
+      "label": "Arazi, SUV, Pick-up",
+      "kasa_tipleri": ["SUV", "Pick-up", "Arazi"]
+    },
+    {
+      "slug": "minivan-panelvan",
+      "label": "Minivan & Panelvan",
+      "kasa_tipleri": ["Minivan", "Panelvan", "Van"]
+    },
+    {
+      "slug": "ticari-arac",
+      "label": "Ticari Araçlar",
+      "kasa_tipleri": ["Kamyonet", "Minibüs", "Kamyon"]
+    }
+  ],
+  "markalar": [
+    {
+      "marka": "Alfa Romeo",
+      "slug": "alfa-romeo",
+      "kategoriler": ["arazi-suv-pick-up", "otomobil"],
+      "modeller": [
+        {
+          "model": "Junior Ibrida",
+          "slug": "junior-ibrida",
+          "kategori": "arazi-suv-pick-up",
+          "veriantlar": ["1.2"]
+        },
+        {
+          "model": "Giulia",
+          "slug": "giulia",
+          "kategori": "otomobil",
+          "varyantlar": ["2.0 T", "2.2 JTD"]
+        },
+        {
+          "model": "Stelvio",
+          "slug": "stelvio",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["2.0 T", "2.2 JTD"]
+        },
+        {
+          "model": "Tonale",
+          "slug": "tonale",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.5 Hybrid", "1.5 VGT", "1.6 D"]
+        }
+      ]
+    },
+    {
+      "marka": "Audi",
+      "slug": "audi",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "A1",
+          "slug": "a1",
+          "kategori": "otomobil",
+          "varyantlar": [
+            "1.0 TFSI",
+            "1.4 TFSI",
+            "1.6 TDI",
+            "25 TFSI",
+            "30 TFSI"
+          ]
+        },
+        {
+          "model": "A3",
+          "slug": "a3",
+          "kategori": "otomobil",
+          "varyantlar": [
+            "1.0 TFSI",
+            "1.4 TFSI",
+            "1.6 TDI",
+            "35 TFSI",
+            "40 TFSI",
+            "30 TDI"
+          ]
+        },
+        {
+          "model": "A4",
+          "slug": "a4",
+          "kategori": "otomobil",
+          "varyantlar": ["35 TFSI", "40 TDI", "2.0 TDI"]
+        },
+        {
+          "model": "A5",
+          "slug": "a5",
+          "kategori": "otomobil",
+          "varyantlar": ["35 TFSI", "40 TDI"]
+        },
+        {
+          "model": "A6",
+          "slug": "a6",
+          "kategori": "otomobil",
+          "varyantlar": ["40 TDI", "55 TFSI"]
+        },
+        {
+          "model": "Q2",
+          "slug": "q2",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": [
+            "1.0 TFSI",
+            "1.4 TFSI",
+            "1.6 TDI",
+            "30 TDI",
+            "30 TFSI",
+            "35 TFSI"
+          ]
+        },
+        {
+          "model": "Q3",
+          "slug": "q3",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["35 TFSI"]
+        },
+        {
+          "model": "Q3 Sportback",
+          "slug": "q3-sportback",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["35 TFSI"]
+        },
+        {
+          "model": "Q4",
+          "slug": "q4",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "Q5",
+          "slug": "q5",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["40 TDI Quattro"]
+        },
+        {
+          "model": "Q6",
+          "slug": "q6",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["E-Tron"]
+        },
+        {
+          "model": "Q7",
+          "slug": "q7",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["55 TFSI Quattro"]
+        },
+        {
+          "model": "Q8",
+          "slug": "q8",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "Q8 E-Tron",
+          "slug": "q8-e-tron",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "E-Tron",
+          "slug": "e-tron",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "RS Q8",
+          "slug": "rs-q8",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        }
+      ]
+    },
+    {
+      "marka": "BMW",
+      "slug": "bmw",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "1 Serisi",
+          "slug": "1-serisi",
+          "kategori": "otomobil",
+          "varyantlar": ["116i", "118i", "120i", "116d"]
+        },
+        {
+          "model": "3 Serisi",
+          "slug": "3-serisi",
+          "kategori": "otomobil",
+          "varyantlar": ["316i", "318i", "320i", "320d", "330i"]
+        },
+        {
+          "model": "5 Serisi",
+          "slug": "5-serisi",
+          "kategori": "otomobil",
+          "varyantlar": ["520i", "520d", "530i", "530d"]
+        },
+        {
+          "model": "iX",
+          "slug": "ix",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["xDrive40"]
+        },
+        {
+          "model": "iX1",
+          "slug": "ix1",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["eDrive20"]
+        },
+        {
+          "model": "iX2",
+          "slug": "ix2",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["eDrive20"]
+        },
+        {
+          "model": "iX3",
+          "slug": "ix3",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "X1",
+          "slug": "x1",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": [
+            "16d sDrive",
+            "16i sDrive",
+            "18i sDrive",
+            "20d xDrive",
+            "20i sDrive",
+            "xDrive25e"
+          ]
+        },
+        {
+          "model": "X2",
+          "slug": "x2",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6d sDrive", "1.8i sDrive"]
+        },
+        {
+          "model": "X3",
+          "slug": "x3",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["20d", "20d xDrive", "20i sDrive"]
+        },
+        {
+          "model": "X4",
+          "slug": "x4",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["20d xDrive"]
+        },
+        {
+          "model": "X5",
+          "slug": "x5",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["25d xDrive", "30d xDrive", "40e xDrive"]
+        },
+        {
+          "model": "X6",
+          "slug": "x6",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["30d xDrive", "40d xDrive"]
+        }
+      ]
+    },
+    {
+      "marka": "BYD",
+      "slug": "byd",
+      "kategoriler": ["arazi-suv-pick-up", "otomobil"],
+      "modeller": [
+        {
+          "model": "Atto 2",
+          "slug": "atto-2",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "Seal U DM-i",
+          "slug": "seal-u-dm-i",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "Sealion 7",
+          "slug": "sealion-7",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "Seal",
+          "slug": "seal",
+          "kategori": "otomobil",
+          "varyantlar": []
+        },
+        {
+          "model": "Dolphin",
+          "slug": "dolphin",
+          "kategori": "otomobil",
+          "varyantlar": []
+        }
+      ]
+    },
+    {
+      "marka": "Chery",
+      "slug": "chery",
+      "kategoriler": ["arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Omoda 5",
+          "slug": "omoda-5",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 T-GDI"]
+        },
+        {
+          "model": "Omoda 5 Pro",
+          "slug": "omoda-5-pro",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 T-GDI"]
+        },
+        {
+          "model": "Tiggo",
+          "slug": "tiggo",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6", "2.0"]
+        },
+        {
+          "model": "Tiggo 7 Pro",
+          "slug": "tiggo-7-pro",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 TGDI"]
+        },
+        {
+          "model": "Tiggo 7 Pro Max",
+          "slug": "tiggo-7-pro-max",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": []
+        },
+        {
+          "model": "Tiggo 8",
+          "slug": "tiggo-8",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 TGDI"]
+        },
+        {
+          "model": "Tiggo 8 Pro",
+          "slug": "tiggo-8-pro",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 TGDI"]
+        }
+      ]
+    },
+    {
+      "marka": "Citroen",
+      "slug": "citroen",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "C3",
+          "slug": "c3",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2 PureTech", "1.5 BlueHDi"]
+        },
+        {
+          "model": "C3 Aircross",
+          "slug": "c3-aircross",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.2 PureTech"]
+        },
+        {
+          "model": "C4",
+          "slug": "c4",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2 PureTech"]
+        },
+        {
+          "model": "C5 X",
+          "slug": "c5-x",
+          "kategori": "otomobil",
+          "varyantlar": ["1.6 Hybrid"]
+        }
+      ]
+    },
+    {
+      "marka": "Dacia",
+      "slug": "dacia",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Duster",
+          "slug": "duster",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 TCe", "1.3 TCe", "1.5 dCi"]
+        },
+        {
+          "model": "Logan",
+          "slug": "logan",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 SCe", "0.9 TCe"]
+        },
+        {
+          "model": "Sandero",
+          "slug": "sandero",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 SCe", "0.9 TCe"]
+        },
+        {
+          "model": "Sandero Stepway",
+          "slug": "sandero-stepway",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 TCe"]
+        },
+        {
+          "model": "Spring",
+          "slug": "spring",
+          "kategori": "otomobil",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    },
+    {
+      "marka": "Fiat",
+      "slug": "fiat",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Egea",
+          "slug": "egea",
+          "kategori": "otomobil",
+          "varyantlar": ["1.4", "1.6 D Multijet", "1.0 FireFly"]
+        },
+        {
+          "model": "Egea Cross",
+          "slug": "egea-cross",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 FireFly", "1.6 D Multijet"]
+        },
+        {
+          "model": "Egea SW",
+          "slug": "egea-sw",
+          "kategori": "otomobil",
+          "varyantlar": ["1.6 D Multijet"]
+        },
+        {
+          "model": "500",
+          "slug": "500",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2", "1.4"]
+        },
+        {
+          "model": "600",
+          "slug": "600",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.2 Hybrid"]
+        },
+        {
+          "model": "Doblo",
+          "slug": "doblo",
+          "kategori": "minivan-panelvan",
+          "varyantlar": ["1.4", "1.6 D"]
+        }
+      ]
+    },
+    {
+      "marka": "Ford",
+      "slug": "ford",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up", "ticari-arac"],
+      "modeller": [
+        {
+          "model": "Fiesta",
+          "slug": "fiesta",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 EcoBoost", "1.5 TDCi"]
+        },
+        {
+          "model": "Focus",
+          "slug": "focus",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 EcoBoost", "1.5 EcoBoost", "1.5 TDCi"]
+        },
+        {
+          "model": "Mondeo",
+          "slug": "mondeo",
+          "kategori": "otomobil",
+          "varyantlar": ["2.0 TDCi", "1.5 EcoBoost"]
+        },
+        {
+          "model": "Kuga",
+          "slug": "kuga",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.5 EcoBoost", "2.0 TDCi", "2.5 Hybrid"]
+        },
+        {
+          "model": "Puma",
+          "slug": "puma",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 EcoBoost"]
+        },
+        {
+          "model": "Explorer",
+          "slug": "explorer",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["3.0 V6"]
+        },
+        {
+          "model": "Transit Custom",
+          "slug": "transit-custom",
+          "kategori": "ticari-arac",
+          "varyantlar": ["2.0 TDCi"]
+        }
+      ]
+    },
+    {
+      "marka": "Honda",
+      "slug": "honda",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Civic",
+          "slug": "civic",
+          "kategori": "otomobil",
+          "varyantlar": ["1.5 VTEC Turbo", "1.6 i-DTEC", "2.0 e:HEV"]
+        },
+        {
+          "model": "Jazz",
+          "slug": "jazz",
+          "kategori": "otomobil",
+          "varyantlar": ["1.5 e:HEV"]
+        },
+        {
+          "model": "HR-V",
+          "slug": "hr-v",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.5 i-VTEC", "1.5 e:HEV"]
+        },
+        {
+          "model": "CR-V",
+          "slug": "cr-v",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.5 VTEC", "2.0 e:HEV"]
+        }
+      ]
+    },
+    {
+      "marka": "Hyundai",
+      "slug": "hyundai",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "i10",
+          "slug": "i10",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 MPI", "1.2 MPI"]
+        },
+        {
+          "model": "i20",
+          "slug": "i20",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 T-GDI", "1.4 MPI"]
+        },
+        {
+          "model": "i30",
+          "slug": "i30",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 T-GDI", "1.4 T-GDI", "1.6 CRDi"]
+        },
+        {
+          "model": "Elantra",
+          "slug": "elantra",
+          "kategori": "otomobil",
+          "varyantlar": ["1.6 MPI", "1.5 T-GDI"]
+        },
+        {
+          "model": "Accent",
+          "slug": "accent",
+          "kategori": "otomobil",
+          "varyantlar": ["1.4 MPI", "1.6 CRDi"]
+        },
+        {
+          "model": "Tucson",
+          "slug": "tucson",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 T-GDI", "1.6 CRDi", "1.6 T-GDI HEV"]
+        },
+        {
+          "model": "Santa Fe",
+          "slug": "santa-fe",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 T-GDI HEV", "2.2 CRDi"]
+        },
+        {
+          "model": "Kona",
+          "slug": "kona",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 T-GDI", "Electric"]
+        },
+        {
+          "model": "Ioniq 5",
+          "slug": "ioniq-5",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        },
+        {
+          "model": "Ioniq 6",
+          "slug": "ioniq-6",
+          "kategori": "otomobil",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    },
+    {
+      "marka": "Kia",
+      "slug": "kia",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Picanto",
+          "slug": "picanto",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 MPI", "1.2 MPI"]
+        },
+        {
+          "model": "Rio",
+          "slug": "rio",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 T-GDI", "1.4 MPI"]
+        },
+        {
+          "model": "Ceed",
+          "slug": "ceed",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 T-GDI", "1.4 T-GDI", "1.6 CRDi"]
+        },
+        {
+          "model": "K5",
+          "slug": "k5",
+          "kategori": "otomobil",
+          "varyantlar": ["1.6 T-GDI HEV", "2.0 MPI"]
+        },
+        {
+          "model": "Sportage",
+          "slug": "sportage",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 T-GDI", "1.6 CRDi", "1.6 T-GDI HEV"]
+        },
+        {
+          "model": "Sorento",
+          "slug": "sorento",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.6 T-GDI HEV", "2.2 CRDi"]
+        },
+        {
+          "model": "Stonic",
+          "slug": "stonic",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 T-GDI"]
+        },
+        {
+          "model": "Niro",
+          "slug": "niro",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["HEV", "PHEV", "EV"]
+        },
+        {
+          "model": "EV6",
+          "slug": "ev6",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        },
+        {
+          "model": "EV9",
+          "slug": "ev9",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    },
+    {
+      "marka": "Mercedes-Benz",
+      "slug": "mercedes-benz",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "A Serisi",
+          "slug": "a-serisi",
+          "kategori": "otomobil",
+          "varyantlar": ["A 180", "A 200", "A 180d"]
+        },
+        {
+          "model": "C Serisi",
+          "slug": "c-serisi",
+          "kategori": "otomobil",
+          "varyantlar": ["C 180", "C 200", "C 220d", "C 300"]
+        },
+        {
+          "model": "E Serisi",
+          "slug": "e-serisi",
+          "kategori": "otomobil",
+          "varyantlar": ["E 200", "E 220d", "E 300"]
+        },
+        {
+          "model": "CLA",
+          "slug": "cla",
+          "kategori": "otomobil",
+          "varyantlar": ["CLA 180", "CLA 200", "CLA 220d"]
+        },
+        {
+          "model": "GLA",
+          "slug": "gla",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["GLA 200", "GLA 220d"]
+        },
+        {
+          "model": "GLB",
+          "slug": "glb",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["GLB 200", "GLB 220d"]
+        },
+        {
+          "model": "GLC",
+          "slug": "glc",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["GLC 200", "GLC 220d", "GLC 300"]
+        },
+        {
+          "model": "GLE",
+          "slug": "gle",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["GLE 300d", "GLE 350d"]
+        },
+        {
+          "model": "EQA",
+          "slug": "eqa",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["250"]
+        },
+        {
+          "model": "EQB",
+          "slug": "eqb",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["250"]
+        }
+      ]
+    },
+    {
+      "marka": "Nissan",
+      "slug": "nissan",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Micra",
+          "slug": "micra",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 IG-T"]
+        },
+        {
+          "model": "Juke",
+          "slug": "juke",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 DIG-T", "1.6 HEV"]
+        },
+        {
+          "model": "Qashqai",
+          "slug": "qashqai",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.3 DIG-T", "1.3 e-POWER"]
+        },
+        {
+          "model": "X-Trail",
+          "slug": "x-trail",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.5 e-POWER"]
+        },
+        {
+          "model": "Ariya",
+          "slug": "ariya",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        },
+        {
+          "model": "Leaf",
+          "slug": "leaf",
+          "kategori": "otomobil",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    },
+    {
+      "marka": "Opel",
+      "slug": "opel",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Corsa",
+          "slug": "corsa",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2 Turbo", "1.5 Diesel", "Electric"]
+        },
+        {
+          "model": "Astra",
+          "slug": "astra",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2 Turbo", "1.5 Diesel", "1.6 Hybrid"]
+        },
+        {
+          "model": "Grandland",
+          "slug": "grandland",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.2 Turbo", "1.5 Diesel", "Hybrid"]
+        },
+        {
+          "model": "Mokka",
+          "slug": "mokka",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.2 Turbo", "Electric"]
+        },
+        {
+          "model": "Crossland",
+          "slug": "crossland",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.2 Turbo", "1.5 Diesel"]
+        }
+      ]
+    },
+    {
+      "marka": "Peugeot",
+      "slug": "peugeot",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "208",
+          "slug": "208",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2 PureTech", "1.5 BlueHDi", "Electric"]
+        },
+        {
+          "model": "308",
+          "slug": "308",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2 PureTech", "1.5 BlueHDi", "1.6 Hybrid"]
+        },
+        {
+          "model": "408",
+          "slug": "408",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2 PureTech", "1.6 Hybrid"]
+        },
+        {
+          "model": "2008",
+          "slug": "2008",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.2 PureTech", "1.5 BlueHDi", "Electric"]
+        },
+        {
+          "model": "3008",
+          "slug": "3008",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.2 PureTech", "1.6 Hybrid", "Electric"]
+        },
+        {
+          "model": "5008",
+          "slug": "5008",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.2 PureTech", "1.5 BlueHDi"]
+        }
+      ]
+    },
+    {
+      "marka": "Renault",
+      "slug": "renault",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Clio",
+          "slug": "clio",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 TCe", "1.5 dCi", "E-Tech Hybrid"]
+        },
+        {
+          "model": "Megane",
+          "slug": "megane",
+          "kategori": "otomobil",
+          "varyantlar": ["1.3 TCe", "1.5 dCi", "E-Tech"]
+        },
+        {
+          "model": "Taliant",
+          "slug": "taliant",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 TCe", "1.5 dCi"]
+        },
+        {
+          "model": "Captur",
+          "slug": "captur",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 TCe", "1.5 dCi", "E-Tech Hybrid"]
+        },
+        {
+          "model": "Kadjar",
+          "slug": "kadjar",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.3 TCe", "1.5 dCi"]
+        },
+        {
+          "model": "Austral",
+          "slug": "austral",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.3 TCe", "E-Tech Hybrid"]
+        },
+        {
+          "model": "Zoe",
+          "slug": "zoe",
+          "kategori": "otomobil",
+          "varyantlar": ["Electric"]
+        },
+        {
+          "model": "Megane E-Tech",
+          "slug": "megane-e-tech",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    },
+    {
+      "marka": "Skoda",
+      "slug": "skoda",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Fabia",
+          "slug": "fabia",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 TSI", "1.5 TSI"]
+        },
+        {
+          "model": "Octavia",
+          "slug": "octavia",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 TSI", "1.5 TSI", "2.0 TDI", "1.4 TSI iV"]
+        },
+        {
+          "model": "Superb",
+          "slug": "superb",
+          "kategori": "otomobil",
+          "varyantlar": ["1.5 TSI", "2.0 TDI", "1.4 TSI iV"]
+        },
+        {
+          "model": "Kamiq",
+          "slug": "kamiq",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 TSI", "1.5 TSI"]
+        },
+        {
+          "model": "Karoq",
+          "slug": "karoq",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 TSI", "1.5 TSI", "2.0 TDI"]
+        },
+        {
+          "model": "Kodiaq",
+          "slug": "kodiaq",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.5 TSI", "2.0 TDI"]
+        },
+        {
+          "model": "Enyaq",
+          "slug": "enyaq",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    },
+    {
+      "marka": "Toyota",
+      "slug": "toyota",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Corolla",
+          "slug": "corolla",
+          "kategori": "otomobil",
+          "varyantlar": ["1.2 Turbo", "1.8 Hybrid", "2.0 Hybrid"]
+        },
+        {
+          "model": "Yaris",
+          "slug": "yaris",
+          "kategori": "otomobil",
+          "varyantlar": ["1.5 Hybrid", "1.0 VVT-i"]
+        },
+        {
+          "model": "Camry",
+          "slug": "camry",
+          "kategori": "otomobil",
+          "varyantlar": ["2.5 Hybrid"]
+        },
+        {
+          "model": "C-HR",
+          "slug": "c-hr",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.8 Hybrid", "2.0 Hybrid"]
+        },
+        {
+          "model": "RAV4",
+          "slug": "rav4",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["2.0 VVT-i", "2.5 Hybrid"]
+        },
+        {
+          "model": "Yaris Cross",
+          "slug": "yaris-cross",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.5 Hybrid"]
+        },
+        {
+          "model": "Land Cruiser",
+          "slug": "land-cruiser",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["2.8 D-4D"]
+        },
+        {
+          "model": "bZ4X",
+          "slug": "bz4x",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    },
+    {
+      "marka": "Volkswagen",
+      "slug": "volkswagen",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "Polo",
+          "slug": "polo",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 TSI", "1.0 MPI"]
+        },
+        {
+          "model": "Golf",
+          "slug": "golf",
+          "kategori": "otomobil",
+          "varyantlar": ["1.0 TSI", "1.5 TSI", "2.0 TDI", "1.4 GTE"]
+        },
+        {
+          "model": "Passat",
+          "slug": "passat",
+          "kategori": "otomobil",
+          "varyantlar": ["1.5 TSI", "2.0 TDI", "1.4 GTE"]
+        },
+        {
+          "model": "Jetta",
+          "slug": "jetta",
+          "kategori": "otomobil",
+          "varyantlar": ["1.4 TSI"]
+        },
+        {
+          "model": "Arteon",
+          "slug": "arteon",
+          "kategori": "otomobil",
+          "varyantlar": ["1.5 TSI", "2.0 TDI"]
+        },
+        {
+          "model": "T-Cross",
+          "slug": "t-cross",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 TSI"]
+        },
+        {
+          "model": "T-Roc",
+          "slug": "t-roc",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.0 TSI", "1.5 TSI", "2.0 TDI"]
+        },
+        {
+          "model": "Tiguan",
+          "slug": "tiguan",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["1.5 TSI", "2.0 TDI", "1.4 GTE"]
+        },
+        {
+          "model": "Touareg",
+          "slug": "touareg",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["3.0 TDI", "3.0 TSI PHEV"]
+        },
+        {
+          "model": "ID.4",
+          "slug": "id4",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        },
+        {
+          "model": "ID.3",
+          "slug": "id3",
+          "kategori": "otomobil",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    },
+    {
+      "marka": "Volvo",
+      "slug": "volvo",
+      "kategoriler": ["otomobil", "arazi-suv-pick-up"],
+      "modeller": [
+        {
+          "model": "S60",
+          "slug": "s60",
+          "kategori": "otomobil",
+          "varyantlar": ["T4", "T5", "T8 PHEV"]
+        },
+        {
+          "model": "V60",
+          "slug": "v60",
+          "kategori": "otomobil",
+          "varyantlar": ["T4", "T5", "T8 PHEV"]
+        },
+        {
+          "model": "XC40",
+          "slug": "xc40",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["T3", "T4", "T5", "Electric Recharge"]
+        },
+        {
+          "model": "XC60",
+          "slug": "xc60",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["T6", "T8 PHEV", "B4"]
+        },
+        {
+          "model": "XC90",
+          "slug": "xc90",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["T8 PHEV", "B5"]
+        },
+        {
+          "model": "EX30",
+          "slug": "ex30",
+          "kategori": "arazi-suv-pick-up",
+          "varyantlar": ["Electric"]
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "toplam_marka": 20,
+    "not": "Bu taksonomi arabam.com/tum-markalar sayfasından türetilmiştir. Tüm varyanlar canlı sayfa verisinden alınmış, eksik varyantlar için marka resmi kataloglarından tamamlanmıştır.",
+    "yakit_tipleri": [
+      "Benzin",
+      "Dizel",
+      "LPG",
+      "Hibrit",
+      "Plug-in Hibrit",
+      "Elektrik"
+    ],
+    "vites_tipleri": ["Manuel", "Otomatik", "Yarı Otomatik"],
+    "segment_map": {
+      "A": [
+        "Fiat 500",
+        "Dacia Spring",
+        "Hyundai i10",
+        "Kia Picanto",
+        "Opel Corsa (entry)",
+        "Renault Clio (entry)",
+        "VW Polo (entry)"
+      ],
+      "B": [
+        "Dacia Sandero",
+        "Fiat Egea",
+        "Ford Fiesta",
+        "Honda Jazz",
+        "Hyundai i20",
+        "Kia Rio",
+        "Opel Corsa",
+        "Peugeot 208",
+        "Renault Clio",
+        "Skoda Fabia",
+        "Toyota Yaris",
+        "VW Polo"
+      ],
+      "C": [
+        "Audi A3",
+        "BMW 1 Serisi",
+        "Ford Focus",
+        "Honda Civic",
+        "Hyundai i30/Elantra",
+        "Kia Ceed",
+        "Mercedes A/CLA",
+        "Opel Astra",
+        "Peugeot 308",
+        "Renault Megane",
+        "Skoda Octavia",
+        "Toyota Corolla",
+        "VW Golf"
+      ],
+      "D": [
+        "Audi A4",
+        "BMW 3 Serisi",
+        "Ford Mondeo",
+        "Honda CR-V",
+        "Hyundai Sonata",
+        "Kia K5",
+        "Mercedes C Serisi",
+        "Peugeot 408",
+        "Skoda Superb",
+        "Toyota Camry",
+        "VW Passat"
+      ],
+      "E": ["Audi A6", "BMW 5 Serisi", "Mercedes E Serisi", "Volvo S60/V60"],
+      "SUV_B": [
+        "Dacia Duster",
+        "Ford Puma",
+        "Hyundai Kona",
+        "Kia Stonic",
+        "Nissan Juke",
+        "Opel Mokka",
+        "Peugeot 2008",
+        "Renault Captur",
+        "Skoda Kamiq",
+        "Toyota Yaris Cross",
+        "VW T-Cross"
+      ],
+      "SUV_C": [
+        "Audi Q3",
+        "BMW X1/X2",
+        "Chery Tiggo 7 Pro",
+        "Ford Kuga",
+        "Hyundai Tucson",
+        "Kia Sportage",
+        "Mercedes GLC",
+        "Nissan Qashqai",
+        "Opel Grandland",
+        "Peugeot 3008",
+        "Renault Austral",
+        "Skoda Karoq",
+        "Toyota C-HR/RAV4",
+        "VW Tiguan"
+      ],
+      "SUV_D": [
+        "Audi Q5/Q7",
+        "BMW X3/X5",
+        "Hyundai Santa Fe",
+        "Kia Sorento",
+        "Mercedes GLE",
+        "Peugeot 5008",
+        "Skoda Kodiaq",
+        "Toyota Land Cruiser",
+        "Volvo XC60/XC90",
+        "VW Touareg"
+      ],
+      "Electrikli": [
+        "BYD Seal/Dolphin/Atto",
+        "Dacia Spring",
+        "Hyundai Ioniq 5/6",
+        "Kia EV6/EV9",
+        "Mercedes EQA/EQB",
+        "Nissan Leaf/Ariya",
+        "Opel Corsa-e",
+        "Peugeot e-208/e-2008",
+        "Renault Zoe/Megane E-Tech",
+        "Skoda Enyaq",
+        "Toyota bZ4X",
+        "VW ID.3/ID.4",
+        "Volvo EX30"
+      ]
+    }
+  }
+}
