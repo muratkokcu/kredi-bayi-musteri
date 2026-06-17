@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/tanstack"
+  ],
+  "overrides": [
+    {
+      // shadcn/ui primitives are vendored — we own them but don't hold them to
+      // our authored-code lint rules. Formatting still applies.
+      "includes": ["src/components/ui/**"],
+      "linter": { "enabled": false }
+    }
+  ]
+}
