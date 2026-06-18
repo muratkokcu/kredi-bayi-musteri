@@ -4,7 +4,6 @@ import { createColumnHelper, flexRender } from "@tanstack/react-table";
 import {
   ArrowRight,
   ArrowUpDown,
-  Car,
   ChevronDown,
   ChevronUp,
   Download,
@@ -22,7 +21,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Select,
@@ -32,27 +31,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getMarka, kategoriLabel } from "@/data/arac-taksonomisi";
+import type { StockStatus, StockVehicle } from "@/data/stock";
+import { useStock } from "@/queries/stock";
+import {
+  EmptyState,
+  ErrorState,
+  TableSkeleton,
+  TableStateRow,
+} from "@/ui/async-states";
 import { Badge } from "@/ui/badge";
 import { Card } from "@/ui/card";
 import { useDataTable } from "@/ui/use-data-table";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { DealerShell } from "../dealer-shell";
 
-type StockStatus = "Stokta" | "Rezerve" | "Satıldı";
-
-interface StockVehicle {
-  durum: StockStatus;
-  fiyat: string;
-  id: string;
-  km: string;
-  marka: string;
-  markaSlug: string;
-  model: string;
-  plaka: string;
-  segment: string;
-  varyant: string;
-  yakit: string;
-  yil: number;
-}
+// StockVehicle type + seed live in src/data/stock.ts; rows arrive via useStock().
 
 function segmentLabel(markaSlug: string, model: string, fallback: string) {
   const found = getMarka(markaSlug)?.modeller.find((m) => m.model === model);
@@ -62,131 +55,11 @@ function segmentLabel(markaSlug: string, model: string, fallback: string) {
   return fallback;
 }
 
-const VEHICLES: StockVehicle[] = [
-  {
-    id: "1",
-    markaSlug: "volkswagen",
-    marka: "Volkswagen",
-    model: "Tiguan",
-    varyant: "1.5 TSI e-TSI Life DSG",
-    plaka: "34 ABC 123",
-    segment: "SUV",
-    fiyat: "₺1.250.000",
-    yil: 2020,
-    km: "45.000 km",
-    yakit: "Benzin",
-    durum: "Stokta",
-  },
-  {
-    id: "2",
-    markaSlug: "toyota",
-    marka: "Toyota",
-    model: "Corolla",
-    varyant: "1.8 Vision",
-    plaka: "34 DEF 456",
-    segment: "Sedan",
-    fiyat: "₺980.000",
-    yil: 2020,
-    km: "38.000 km",
-    yakit: "Hibrit",
-    durum: "Stokta",
-  },
-  {
-    id: "3",
-    markaSlug: "peugeot",
-    marka: "Peugeot",
-    model: "3008",
-    varyant: "1.5 BlueHDi Active",
-    plaka: "34 GHI 789",
-    segment: "SUV",
-    fiyat: "₺1.180.000",
-    yil: 2021,
-    km: "52.000 km",
-    yakit: "Dizel",
-    durum: "Stokta",
-  },
-  {
-    id: "4",
-    markaSlug: "renault",
-    marka: "Renault",
-    model: "Clio",
-    varyant: "1.0 TCe Joy",
-    plaka: "34 JKL 012",
-    segment: "Hatchback",
-    fiyat: "₺650.000",
-    yil: 2019,
-    km: "61.000 km",
-    yakit: "Benzin",
-    durum: "Rezerve",
-  },
-  {
-    id: "5",
-    markaSlug: "honda",
-    marka: "Honda",
-    model: "Civic",
-    varyant: "1.6 i-VTEC Eco",
-    plaka: "34 MNO 345",
-    segment: "Sedan",
-    fiyat: "₺890.000",
-    yil: 2018,
-    km: "72.000 km",
-    yakit: "Benzin",
-    durum: "Stokta",
-  },
-  {
-    id: "6",
-    markaSlug: "nissan",
-    marka: "Nissan",
-    model: "Qashqai",
-    varyant: "1.3 DIG-T SkyPack",
-    plaka: "34 PRS 678",
-    segment: "SUV",
-    fiyat: "₺750.000",
-    yil: 2017,
-    km: "85.000 km",
-    yakit: "Benzin",
-    durum: "Satıldı",
-  },
-  {
-    id: "7",
-    markaSlug: "skoda",
-    marka: "Skoda",
-    model: "Octavia",
-    varyant: "1.5 TSI Premium",
-    plaka: "34 TUV 901",
-    segment: "Sedan",
-    fiyat: "₺920.000",
-    yil: 2020,
-    km: "49.000 km",
-    yakit: "Benzin",
-    durum: "Stokta",
-  },
-  {
-    id: "8",
-    markaSlug: "hyundai",
-    marka: "Hyundai",
-    model: "i20",
-    varyant: "1.4 MPI Jump",
-    plaka: "34 XYZ 234",
-    segment: "Hatchback",
-    fiyat: "₺620.000",
-    yil: 2019,
-    km: "58.000 km",
-    yakit: "Benzin",
-    durum: "Stokta",
-  },
-];
-
 const STATUS_TONE: Record<StockStatus, "success" | "warn" | "neutral"> = {
   Stokta: "success",
   Rezerve: "warn",
   Satıldı: "neutral",
 };
-
-// Distinct values present in the data — guarantees column filters match.
-const SEGMENTS = [...new Set(VEHICLES.map((v) => v.segment))];
-const DURUMLAR = [...new Set(VEHICLES.map((v) => v.durum))];
-const YAKITLAR = [...new Set(VEHICLES.map((v) => v.yakit))];
 
 interface FilterDef {
   /** table column id this filter drives; omitted = visual only */
@@ -195,16 +68,24 @@ interface FilterDef {
   options: string[];
 }
 
-const FILTERS: FilterDef[] = [
-  { label: "Segment", options: SEGMENTS, column: "segment" },
-  { label: "Araç Tipi", options: ["Otomobil", "Arazi/SUV", "Minivan"] },
-  // "Yakıt Tipi" drives the price column via a custom filterFn that reads
-  // row.original.yakit — no extra column needed, layout unchanged.
-  { label: "Yakıt Tipi", options: YAKITLAR, column: "fiyat" },
-  { label: "Vites", options: ["Otomatik", "Manuel", "Yarı Otomatik"] },
-  { label: "Durum", options: DURUMLAR, column: "durum" },
-  { label: "Konum", options: ["İstanbul", "Ankara", "İzmir"] },
-];
+// Segment/Durum/Yakıt options come from the loaded rows — guarantees column
+// filters match; the rest are fixed buckets.
+function buildFilters(
+  segmentler: string[],
+  durumlar: string[],
+  yakitlar: string[]
+): FilterDef[] {
+  return [
+    { label: "Segment", options: segmentler, column: "segment" },
+    { label: "Araç Tipi", options: ["Otomobil", "Arazi/SUV", "Minivan"] },
+    // "Yakıt Tipi" drives the price column via a custom filterFn that reads
+    // row.original.yakit — no extra column needed, layout unchanged.
+    { label: "Yakıt Tipi", options: yakitlar, column: "fiyat" },
+    { label: "Vites", options: ["Otomatik", "Manuel", "Yarı Otomatik"] },
+    { label: "Durum", options: durumlar, column: "durum" },
+    { label: "Konum", options: ["İstanbul", "Ankara", "İzmir"] },
+  ];
+}
 
 const ALL = "__all__";
 
@@ -278,9 +159,12 @@ const columns = [
         const row = info.row.original;
         return (
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-16 shrink-0 items-center justify-center rounded-lg bg-canvas text-ink-muted">
-              <Car size={20} strokeWidth={1.7} />
-            </span>
+            <VehicleImage
+              className="h-11 w-16 shrink-0 rounded-lg"
+              iconSize={20}
+              name={`${row.marka} ${row.model}`}
+              segment={row.segment}
+            />
             <span className="leading-tight">
               <span className="block font-semibold text-[13.5px] text-ink">
                 {row.marka} {row.model}
@@ -350,7 +234,13 @@ const columns = [
   }),
 ];
 
-function Toolbar({ table }: { table: Table<StockVehicle> }) {
+function Toolbar({
+  table,
+  filters,
+}: {
+  table: Table<StockVehicle>;
+  filters: FilterDef[];
+}) {
   // Selects are controlled by local state so "Filtreleri Temizle" can reset
   // their displayed value too (not just the underlying table filter).
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -378,7 +268,7 @@ function Toolbar({ table }: { table: Table<StockVehicle> }) {
             />
           </div>
         </div>
-        {FILTERS.map((f) => (
+        {filters.map((f) => (
           <div className="w-[118px]" key={f.label}>
             <div className="mb-1.5 font-medium text-[12px] text-ink-soft">
               {f.label}
@@ -430,16 +320,68 @@ function StockTable({
   table,
   selectedId,
   onSelect,
+  isPending,
+  isError,
+  refetch,
 }: {
   table: Table<StockVehicle>;
   selectedId: string;
   onSelect: (id: string) => void;
+  isPending: boolean;
+  isError: boolean;
+  refetch: () => void;
 }) {
+  const rows = table.getRowModel().rows;
+
+  function renderBody() {
+    if (isPending) {
+      return <TableSkeleton cols={columns.length} rows={6} />;
+    }
+    if (isError) {
+      return (
+        <TableStateRow colSpan={columns.length}>
+          <ErrorState
+            label="Araç listesi yüklenemedi."
+            onRetry={() => refetch()}
+          />
+        </TableStateRow>
+      );
+    }
+    if (rows.length === 0) {
+      return (
+        <TableStateRow colSpan={columns.length}>
+          <EmptyState label="Eşleşen araç bulunamadı." />
+        </TableStateRow>
+      );
+    }
+    return rows.map((row) => {
+      const isActive = row.original.id === selectedId;
+      return (
+        <tr
+          className={`cursor-pointer border-line border-t ${
+            isActive
+              ? "bg-dealer-tint/60 ring-1 ring-dealer ring-inset"
+              : "hover:bg-canvas/50"
+          }`}
+          key={row.id}
+          onClick={() => onSelect(row.original.id)}
+        >
+          {row.getVisibleCells().map((cell) => (
+            <td className="px-4 py-3 first:pl-5" key={cell.id}>
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  }
+
   return (
     <Card className="mt-5 overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4">
         <h3 className="font-semibold text-[14px] text-ink">
-          {table.getFilteredRowModel().rows.length} araç bulundu
+          {isPending ? "…" : table.getFilteredRowModel().rows.length} araç
+          bulundu
         </h3>
         <div className="flex items-center gap-2">
           <span className="mr-1 text-[12px] text-ink-muted">Görünüm</span>
@@ -490,28 +432,7 @@ function StockTable({
             </tr>
           ))}
         </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => {
-            const isActive = row.original.id === selectedId;
-            return (
-              <tr
-                className={`cursor-pointer border-line border-t ${
-                  isActive
-                    ? "bg-dealer-tint/60 ring-1 ring-dealer ring-inset"
-                    : "hover:bg-canvas/50"
-                }`}
-                key={row.id}
-                onClick={() => onSelect(row.original.id)}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td className="px-4 py-3 first:pl-5" key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
+        <tbody>{renderBody()}</tbody>
       </table>
 
       <div className="flex items-center justify-between border-line border-t px-5 py-3.5 text-[12.5px] text-ink-muted">
@@ -576,17 +497,21 @@ function DetailPanel({ vehicle }: { vehicle: StockVehicle }) {
 
       <div className="flex gap-4 px-5 pt-3">
         <div className="flex flex-col gap-2">
-          <div className="flex h-[120px] w-[150px] items-center justify-center rounded-xl bg-canvas text-ink-muted">
-            <Car size={44} strokeWidth={1.4} />
-          </div>
+          <VehicleImage
+            className="h-[120px] w-[150px] rounded-xl"
+            iconSize={44}
+            name={`${vehicle.marka} ${vehicle.model}`}
+            segment={segment}
+          />
           <div className="flex items-center gap-1.5">
             {["a", "b", "c"].map((k) => (
-              <span
-                className="flex size-9 items-center justify-center rounded-md bg-canvas text-ink-muted"
+              <VehicleImage
+                className="size-9 rounded-md"
+                iconSize={15}
                 key={k}
-              >
-                <Car size={15} strokeWidth={1.6} />
-              </span>
+                name={`${vehicle.marka} ${vehicle.model}`}
+                segment={segment}
+              />
             ))}
             <span className="flex size-9 items-center justify-center rounded-md bg-dealer-tint font-semibold text-[11px] text-dealer-700">
               +8
@@ -738,9 +663,29 @@ function DetailPanel({ vehicle }: { vehicle: StockVehicle }) {
 }
 
 export function DealerStok() {
+  const { data, isPending, isError, refetch } = useStock();
+  const vehicles = useMemo(() => data ?? [], [data]);
   const [selectedId, setSelectedId] = useState("1");
-  const selected = VEHICLES.find((v) => v.id === selectedId) ?? VEHICLES[0];
-  const table = useDataTable({ data: VEHICLES, columns, pageSize: 6 });
+  const selected =
+    vehicles.find((v) => v.id === selectedId) ?? vehicles[0];
+  const table = useDataTable({ data: vehicles, columns, pageSize: 6 });
+
+  const segmentler = useMemo(
+    () => [...new Set(vehicles.map((v) => v.segment))],
+    [vehicles]
+  );
+  const durumlar = useMemo(
+    () => [...new Set(vehicles.map((v) => v.durum))],
+    [vehicles]
+  );
+  const yakitlar = useMemo(
+    () => [...new Set(vehicles.map((v) => v.yakit))],
+    [vehicles]
+  );
+  const filters = useMemo(
+    () => buildFilters(segmentler, durumlar, yakitlar),
+    [segmentler, durumlar, yakitlar]
+  );
 
   return (
     <DealerShell
@@ -757,15 +702,18 @@ export function DealerStok() {
       subtitle="Stoktaki araçlarınızı yönetin, fiyat ve durum bilgilerini güncelleyin."
       title="Stok Yönetimi"
     >
-      <Toolbar table={table} />
+      <Toolbar filters={filters} table={table} />
       <div className="mt-1 grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr]">
         <StockTable
+          isError={isError}
+          isPending={isPending}
           onSelect={setSelectedId}
+          refetch={refetch}
           selectedId={selectedId}
           table={table}
         />
         <div className="lg:mt-5">
-          <DetailPanel vehicle={selected} />
+          {selected ? <DetailPanel vehicle={selected} /> : null}
         </div>
       </div>
     </DealerShell>

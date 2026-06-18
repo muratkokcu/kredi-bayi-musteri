@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   Bookmark,
-  Car,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -26,90 +25,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import type { OfferVehicle } from "@/data/offer-vehicles";
+import { annuity } from "@/lib/finance";
+import { formatTRY } from "@/lib/format";
+import { useOfferVehicles } from "@/queries/offer-vehicles";
+import { EmptyState, ErrorState, LoadingState } from "@/ui/async-states";
 import { Badge } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
 import { ScoreRing } from "@/ui/score-ring";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { DealerShell } from "../dealer-shell";
 
-interface StockVehicle {
-  fuel: string;
-  id: string;
-  km: string;
-  marka: string;
-  model: string;
-  price: string;
-  priceNum: number;
-  renk: string;
-  segment: string;
-  stokKodu: string;
-  transmission: string;
-  variant: string;
-  year: string;
-}
-
-/** Built from the real taxonomy: marka + model + a real variant code. */
-const STOCK: StockVehicle[] = [
-  {
-    id: "ka-2020-1256",
-    marka: "Volkswagen",
-    model: "Tiguan",
-    variant: "1.5 TSI e-TSI Life",
-    year: "2020",
-    km: "45.000 km",
-    fuel: "Benzin",
-    transmission: "Otomatik",
-    stokKodu: "KA-2020-1256",
-    renk: "Beyaz",
-    segment: "SUV",
-    price: "₺1.250.000",
-    priceNum: 1_250_000,
-  },
-  {
-    id: "ka-2020-0897",
-    marka: "Toyota",
-    model: "Corolla",
-    variant: "1.2 Turbo Vision",
-    year: "2020",
-    km: "38.000 km",
-    fuel: "Benzin",
-    transmission: "Otomatik",
-    stokKodu: "KA-2020-0897",
-    renk: "Gri",
-    segment: "Sedan",
-    price: "₺980.000",
-    priceNum: 980_000,
-  },
-  {
-    id: "ka-2021-0432",
-    marka: "Peugeot",
-    model: "3008",
-    variant: "1.2 PureTech Active",
-    year: "2021",
-    km: "52.000 km",
-    fuel: "Benzin",
-    transmission: "Otomatik",
-    stokKodu: "KA-2021-0432",
-    renk: "Siyah",
-    segment: "SUV",
-    price: "₺1.180.000",
-    priceNum: 1_180_000,
-  },
-  {
-    id: "ka-2019-0781",
-    marka: "Renault",
-    model: "Clio",
-    variant: "1.0 TCe Joy",
-    year: "2019",
-    km: "60.000 km",
-    fuel: "Benzin",
-    transmission: "Manuel",
-    stokKodu: "KA-2019-0781",
-    renk: "Mavi",
-    segment: "Hatchback",
-    price: "₺650.000",
-    priceNum: 650_000,
-  },
-];
+// OfferVehicle type + seed live in src/data/offer-vehicles.ts; the selectable
+// list arrives via useOfferVehicles().
 
 const STEPS = [
   { id: 1, label: "Araç Seçimi" },
@@ -125,25 +53,34 @@ const SEND_CHANNELS = [
   { id: "push", label: "Push Bildirim" },
 ];
 
-// Filter options are derived from the actual stock so they always match a row.
-const FILTER_DEFS: { key: string; label: string; field: keyof StockVehicle }[] =
-  [
-    { key: "segment", label: "Segment", field: "segment" },
-    { key: "marka", label: "Marka", field: "marka" },
-    { key: "model", label: "Model", field: "model" },
-    { key: "yakit", label: "Yakıt Tipi", field: "fuel" },
-    { key: "vites", label: "Vites", field: "transmission" },
-  ];
+interface FilterDef {
+  field: keyof OfferVehicle;
+  key: string;
+  label: string;
+}
 
-const FILTERS = FILTER_DEFS.map((f) => ({
-  ...f,
-  options: [...new Set(STOCK.map((v) => String(v[f.field])))],
-}));
+const FILTER_DEFS: FilterDef[] = [
+  { key: "segment", label: "Segment", field: "segment" },
+  { key: "marka", label: "Marka", field: "marka" },
+  { key: "model", label: "Model", field: "model" },
+  { key: "yakit", label: "Yakıt Tipi", field: "fuel" },
+  { key: "vites", label: "Vites", field: "transmission" },
+];
+
+// Filter options are derived from the loaded rows so they always match a row.
+function buildFilters(vehicles: OfferVehicle[]) {
+  return FILTER_DEFS.map((f) => ({
+    ...f,
+    options: [...new Set(vehicles.map((v) => String(v[f.field])))],
+  }));
+}
+
+type FilterWithOptions = ReturnType<typeof buildFilters>[number];
 
 const ALL = "tumu";
 
 function matchesVehicle(
-  v: StockVehicle,
+  v: OfferVehicle,
   search: string,
   values: Record<string, string>
 ): boolean {
@@ -157,7 +94,7 @@ function matchesVehicle(
       return false;
     }
   }
-  return FILTERS.every((f) => {
+  return FILTER_DEFS.every((f) => {
     const val = values[f.key];
     return !val || val === ALL || String(v[f.field]) === val;
   });
@@ -200,12 +137,6 @@ const MATCH_ROWS: MatchRow[] = [
   { label: "Kredi Bitiş Süresi", value: 88 },
 ];
 
-function formatTry(value: number): string {
-  return `₺${new Intl.NumberFormat("tr-TR", {
-    maximumFractionDigits: 0,
-  }).format(Math.round(value))}`;
-}
-
 /** Parses a Turkish-formatted rate label like "%2,29" into a number (2.29). */
 function parseRate(label: string): number {
   const normalized = label.replace("%", "").replace(",", ".").trim();
@@ -217,16 +148,6 @@ function parseRate(label: string): number {
 function parseTerm(label: string): number {
   const value = Number.parseFloat(label);
   return Number.isNaN(value) ? 0 : value;
-}
-
-function annuity(loan: number, monthlyRate: number, months: number): number {
-  if (months === 0) {
-    return 0;
-  }
-  if (monthlyRate === 0) {
-    return loan / months;
-  }
-  return (loan * monthlyRate) / (1 - (1 + monthlyRate) ** -months);
 }
 
 interface ScheduleRow {
@@ -311,17 +232,19 @@ function Stepper({
 }
 
 function FilterBar({
+  filters,
   values,
   onChange,
   onClear,
 }: {
+  filters: FilterWithOptions[];
   values: Record<string, string>;
   onChange: (key: string, v: string) => void;
   onClear: () => void;
 }) {
   return (
     <div className="grid grid-cols-[repeat(5,1fr)_auto] gap-3 px-5">
-      {FILTERS.map((f) => (
+      {filters.map((f) => (
         <div key={f.key}>
           <label
             className="mb-1.5 block font-medium text-[12px] text-ink-muted"
@@ -363,11 +286,14 @@ function FilterBar({
   );
 }
 
-function VehicleThumb() {
+function VehicleThumb({ v }: { v: OfferVehicle }) {
   return (
-    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-canvas text-ink-muted">
-      <Car size={22} strokeWidth={1.7} />
-    </span>
+    <VehicleImage
+      className="size-12 shrink-0 rounded-lg"
+      iconSize={22}
+      name={`${v.marka} ${v.model}`}
+      segment={v.segment}
+    />
   );
 }
 
@@ -376,7 +302,7 @@ function VehicleRow({
   selected,
   onSelect,
 }: {
-  v: StockVehicle;
+  v: OfferVehicle;
   selected: boolean;
   onSelect: () => void;
 }) {
@@ -395,7 +321,7 @@ function VehicleRow({
       >
         {selected && <span className="size-2.5 rounded-full bg-dealer" />}
       </span>
-      <VehicleThumb />
+      <VehicleThumb v={v} />
       <span className="min-w-0">
         <span className="block font-semibold text-[14px] text-ink">
           {v.marka} {v.model}
@@ -430,15 +356,48 @@ function VehicleRow({
 }
 
 function VehicleListCard({
+  vehicles,
   selectedId,
   onSelect,
+  isPending,
+  isError,
+  refetch,
 }: {
+  vehicles: OfferVehicle[];
   selectedId: string;
   onSelect: (id: string) => void;
+  isPending: boolean;
+  isError: boolean;
+  refetch: () => void;
 }) {
   const [search, setSearch] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
-  const filtered = STOCK.filter((v) => matchesVehicle(v, search, filterValues));
+  const filters = buildFilters(vehicles);
+  const filtered = vehicles.filter((v) =>
+    matchesVehicle(v, search, filterValues)
+  );
+
+  function renderList() {
+    if (isPending) {
+      return <LoadingState label="Araçlar yükleniyor…" />;
+    }
+    if (isError) {
+      return (
+        <ErrorState label="Araç listesi yüklenemedi." onRetry={refetch} />
+      );
+    }
+    if (filtered.length === 0) {
+      return <EmptyState label="Aramanıza uygun araç bulunamadı." />;
+    }
+    return filtered.map((v) => (
+      <VehicleRow
+        key={v.id}
+        onSelect={() => onSelect(v.id)}
+        selected={v.id === selectedId}
+        v={v}
+      />
+    ));
+  }
 
   return (
     <Card className="pb-4">
@@ -486,6 +445,7 @@ function VehicleListCard({
 
       <div className="mt-4">
         <FilterBar
+          filters={filters}
           onChange={(key, v) =>
             setFilterValues((prev) => ({ ...prev, [key]: v }))
           }
@@ -497,22 +457,7 @@ function VehicleListCard({
         />
       </div>
 
-      <div className="mt-3">
-        {filtered.length === 0 ? (
-          <div className="px-5 py-10 text-center text-[13px] text-ink-muted">
-            Aramanıza uygun araç bulunamadı.
-          </div>
-        ) : (
-          filtered.map((v) => (
-            <VehicleRow
-              key={v.id}
-              onSelect={() => onSelect(v.id)}
-              selected={v.id === selectedId}
-              v={v}
-            />
-          ))
-        )}
-      </div>
+      <div className="mt-3">{renderList()}</div>
 
       <div className="flex items-center justify-between px-5 pt-3">
         <button
@@ -562,7 +507,7 @@ function VehicleListCard({
   );
 }
 
-function SelectedVehicleCard({ v }: { v: StockVehicle }) {
+function SelectedVehicleCard({ v }: { v: OfferVehicle }) {
   const specs = [
     { label: "Kilometre", value: v.km },
     { label: "Yakıt Tipi", value: v.fuel },
@@ -573,9 +518,12 @@ function SelectedVehicleCard({ v }: { v: StockVehicle }) {
     <Card className="pb-5">
       <CardHeader title="Seçili Araç" />
       <div className="mt-3 flex items-start gap-4 px-5">
-        <span className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg bg-canvas text-ink-muted">
-          <Car size={30} strokeWidth={1.6} />
-        </span>
+        <VehicleImage
+          className="h-16 w-24 shrink-0 rounded-lg"
+          iconSize={30}
+          name={`${v.marka} ${v.model}`}
+          segment={v.segment}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div>
@@ -653,7 +601,7 @@ function ReadonlyValue({ value, suffix }: { value: string; suffix?: string }) {
  * Customer-facing preview of the offer — a mock of what the müşteri sees in
  * their app. Used on the final step so the dealer reviews the real output.
  */
-function OfferPreview({ v, fin }: { v: StockVehicle; fin: FinanceState }) {
+function OfferPreview({ v, fin }: { v: OfferVehicle; fin: FinanceState }) {
   const months = parseTerm(fin.term);
   const monthlyRate = parseRate(fin.rate) / 100;
   const taksit = annuity(fin.amount, monthlyRate, months);
@@ -677,9 +625,12 @@ function OfferPreview({ v, fin }: { v: StockVehicle; fin: FinanceState }) {
             <Heart className="text-ink-muted" size={16} />
           </div>
           <div className="mt-3 flex items-center gap-3">
-            <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-xl bg-canvas text-ink-muted">
-              <Car size={24} strokeWidth={1.6} />
-            </span>
+            <VehicleImage
+              className="h-14 w-20 shrink-0 rounded-xl"
+              iconSize={24}
+              name={`${v.marka} ${v.model}`}
+              segment={v.segment}
+            />
             <div className="min-w-0">
               <div className="font-bold text-[15px] text-ink">
                 {v.marka} {v.model}
@@ -692,7 +643,7 @@ function OfferPreview({ v, fin }: { v: StockVehicle; fin: FinanceState }) {
           <div className="mt-4 rounded-xl bg-cust-ink p-3.5 text-white">
             <div className="text-[11px] text-white/70">Aylık Taksit</div>
             <div className="font-bold text-[24px] tabular-nums">
-              {formatTry(taksit)}
+              {formatTRY(taksit)}
             </div>
             <div className="mt-1.5 flex gap-4 text-[11.5px] text-white/80">
               <span>Faiz Oranı {fin.rate}</span>
@@ -733,13 +684,13 @@ function FinancingCard({
       ? Math.round((fin.down / (fin.amount + fin.down)) * 100)
       : 0;
   const result = [
-    { label: "Aylık Taksit", value: formatTry(taksit), emphasize: true },
+    { label: "Aylık Taksit", value: formatTRY(taksit), emphasize: true },
     {
       label: "Toplam Geri Ödeme",
-      value: formatTry(toplamGeriOdeme),
+      value: formatTRY(toplamGeriOdeme),
       emphasize: false,
     },
-    { label: "Toplam Faiz", value: formatTry(toplamFaiz), emphasize: false },
+    { label: "Toplam Faiz", value: formatTRY(toplamFaiz), emphasize: false },
     {
       label: "Maliyet Oranı",
       value: `%${maliyetOrani.toLocaleString("tr-TR", {
@@ -761,7 +712,7 @@ function FinancingCard({
 
       <div className="mt-4 grid grid-cols-4 gap-4 px-5">
         <FinanceField label="Kredi Tutarı">
-          <ReadonlyValue value={formatTry(fin.amount)} />
+          <ReadonlyValue value={formatTRY(fin.amount)} />
         </FinanceField>
         <FinanceField label="Vade">
           <Select
@@ -782,7 +733,7 @@ function FinancingCard({
         <FinanceField label="Peşinat">
           <ReadonlyValue
             suffix={`%${downPercent}`}
-            value={formatTry(fin.down)}
+            value={formatTRY(fin.down)}
           />
         </FinanceField>
         <FinanceField label="Faiz Oranı">
@@ -890,16 +841,16 @@ function FinancingCard({
                       {r.month}. Ay
                     </td>
                     <td className="px-3 py-1.5 text-right font-medium text-ink tabular-nums">
-                      {formatTry(r.payment)}
+                      {formatTRY(r.payment)}
                     </td>
                     <td className="px-3 py-1.5 text-right text-ink-soft tabular-nums">
-                      {formatTry(r.principal)}
+                      {formatTRY(r.principal)}
                     </td>
                     <td className="px-3 py-1.5 text-right text-ink-soft tabular-nums">
-                      {formatTry(r.interest)}
+                      {formatTRY(r.interest)}
                     </td>
                     <td className="px-3 py-1.5 text-right text-ink-soft tabular-nums">
-                      {formatTry(r.balance)}
+                      {formatTRY(r.balance)}
                     </td>
                   </tr>
                 ))}
@@ -1060,15 +1011,15 @@ function summaryRows(fin: FinanceState) {
   const taksit = annuity(fin.amount, monthlyRate, months);
   const total = taksit * months;
   return [
-    { label: "Kredi Tutarı", value: formatTry(fin.amount), strong: false },
-    { label: "Peşinat", value: formatTry(fin.down), strong: false },
+    { label: "Kredi Tutarı", value: formatTRY(fin.amount), strong: false },
+    { label: "Peşinat", value: formatTRY(fin.down), strong: false },
     { label: "Vade", value: fin.term, strong: false },
     { label: "Faiz Oranı", value: fin.rate, strong: false },
-    { label: "Aylık Taksit", value: formatTry(taksit), strong: true },
-    { label: "Toplam Geri Ödeme", value: formatTry(total), strong: false },
+    { label: "Aylık Taksit", value: formatTRY(taksit), strong: true },
+    { label: "Toplam Geri Ödeme", value: formatTRY(total), strong: false },
     {
       label: "Toplam Faiz",
-      value: formatTry(total - fin.amount),
+      value: formatTRY(total - fin.amount),
       strong: false,
     },
   ];
@@ -1082,7 +1033,7 @@ function SummaryLabel({ children }: { children: string }) {
   );
 }
 
-function OfferSummaryCard({ v, fin }: { v: StockVehicle; fin: FinanceState }) {
+function OfferSummaryCard({ v, fin }: { v: OfferVehicle; fin: FinanceState }) {
   const addons = ADD_ONS.filter((a) => a.on);
   return (
     <Card className="pb-5">
@@ -1094,9 +1045,12 @@ function OfferSummaryCard({ v, fin }: { v: StockVehicle; fin: FinanceState }) {
         <div>
           <SummaryLabel>Araç</SummaryLabel>
           <div className="flex items-center gap-3 rounded-[12px] border border-line p-3">
-            <span className="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-canvas text-ink-muted">
-              <Car size={20} strokeWidth={1.7} />
-            </span>
+            <VehicleImage
+              className="h-12 w-16 shrink-0 rounded-lg"
+              iconSize={20}
+              name={`${v.marka} ${v.model}`}
+              segment={v.segment}
+            />
             <div className="min-w-0 flex-1">
               <div className="font-semibold text-[14px] text-ink">
                 {v.marka} {v.model}
@@ -1280,8 +1234,11 @@ function BottomBar({
 }
 
 export function DealerTeklifOlustur() {
+  const { data, isPending, isError, refetch } = useOfferVehicles();
+  const vehicles = useMemo(() => data ?? [], [data]);
+
   const [step, setStep] = useState(1);
-  const [selectedId, setSelectedId] = useState(STOCK[0].id);
+  const [selectedId, setSelectedId] = useState("");
   const [fin, setFin] = useState<FinanceState>({
     amount: 1_000_000,
     down: 250_000,
@@ -1293,9 +1250,11 @@ export function DealerTeklifOlustur() {
   const [validity, setValidity] = useState("14 gün");
   const [consent, setConsent] = useState(false);
 
+  // Selection state stays local; resolve against the loaded list and fall back
+  // to the first loaded row until the dealer picks one.
   const selected = useMemo(
-    () => STOCK.find((v) => v.id === selectedId) ?? STOCK[0],
-    [selectedId]
+    () => vehicles.find((v) => v.id === selectedId) ?? vehicles[0],
+    [vehicles, selectedId]
   );
 
   const toggleChannel = (id: string) =>
@@ -1316,10 +1275,21 @@ export function DealerTeklifOlustur() {
 
       {step === 1 && (
         <div className="mt-5 grid grid-cols-[1.6fr_1fr] gap-5">
-          <VehicleListCard onSelect={setSelectedId} selectedId={selectedId} />
+          <VehicleListCard
+            isError={isError}
+            isPending={isPending}
+            onSelect={setSelectedId}
+            refetch={refetch}
+            selectedId={selectedId}
+            vehicles={vehicles}
+          />
           <div className="flex flex-col gap-5">
-            <SelectedVehicleCard v={selected} />
-            <SegmentMatchCard segment={selected.segment} />
+            {selected && (
+              <>
+                <SelectedVehicleCard v={selected} />
+                <SegmentMatchCard segment={selected.segment} />
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1328,7 +1298,7 @@ export function DealerTeklifOlustur() {
         <div className="mt-5 grid grid-cols-[1.6fr_1fr] gap-5">
           <FinancingCard fin={fin} setFin={setFin} />
           <div className="flex flex-col gap-5">
-            <SelectedVehicleCard v={selected} />
+            {selected && <SelectedVehicleCard v={selected} />}
             <MusteriFirsatCard />
           </div>
         </div>
@@ -1336,9 +1306,9 @@ export function DealerTeklifOlustur() {
 
       {step === 3 && (
         <div className="mt-5 grid grid-cols-[1.6fr_1fr] gap-5">
-          <OfferSummaryCard fin={fin} v={selected} />
+          {selected && <OfferSummaryCard fin={fin} v={selected} />}
           <div className="flex flex-col gap-5">
-            <SelectedVehicleCard v={selected} />
+            {selected && <SelectedVehicleCard v={selected} />}
             <MusteriFirsatCard />
           </div>
         </div>
@@ -1355,8 +1325,12 @@ export function DealerTeklifOlustur() {
             validity={validity}
           />
           <div className="flex flex-col gap-5">
-            <SelectedVehicleCard v={selected} />
-            <OfferPreview fin={fin} v={selected} />
+            {selected && (
+              <>
+                <SelectedVehicleCard v={selected} />
+                <OfferPreview fin={fin} v={selected} />
+              </>
+            )}
           </div>
         </div>
       )}

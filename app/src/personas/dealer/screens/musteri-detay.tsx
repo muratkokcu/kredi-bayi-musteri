@@ -1,205 +1,45 @@
-import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
-  Calendar,
-  Car,
   ChevronDown,
+  Clock,
   Flame,
-  Fuel,
   Gauge,
-  Hash,
   Info,
-  Mail,
-  MessageSquare,
   MessageSquarePlus,
-  Phone,
   PlusCircle,
-  Route,
   ShieldCheck,
   Sparkles,
   Star,
-  Target,
   Users,
-  Wallet,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getModel } from "@/data/arac-taksonomisi";
+import type {
+  ContactEvent,
+  DealerCustomerDetail,
+  DetailRow,
+  ExpectationRow,
+  FactRow,
+  Interaction,
+  NeedRow,
+  QuickContact,
+  ScoreFactor,
+  SegmentRow,
+} from "@/data/dealer-customer-detail";
+import { computeLoan } from "@/lib/finance";
+import { formatTRY } from "@/lib/format";
+import { useDealerCustomerDetail } from "@/queries/dealer-customer-detail";
+import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Badge, MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
 import { ScoreRing } from "@/ui/score-ring";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { DealerShell } from "../dealer-shell";
 
 // Customer vehicle pulled from the shared taxonomy (Volkswagen Tiguan, SUV).
 const tiguan = getModel("volkswagen", "tiguan");
 const tiguanModel = `Volkswagen ${tiguan?.model ?? "Tiguan"}`;
 const tiguanVaryant = tiguan?.varyantlar[0] ?? "1.5 TSI";
-
-const RENEWAL_SCORE = 92;
-
-interface FactRow {
-  icon: LucideIcon;
-  label: string;
-  sub?: string;
-  subTone?: "muted" | "danger";
-  value: string;
-}
-
-const QUICK_FACTS: FactRow[] = [
-  {
-    icon: Calendar,
-    label: "Kredi Bitiş Tarihi",
-    value: "22.05.2025",
-    sub: "30 gün kaldı",
-    subTone: "danger",
-  },
-  { icon: Hash, label: "Kalan Borç", value: "8 / 36" },
-  { icon: Wallet, label: "Kalan Taksit", value: "36" },
-  { icon: Target, label: "Bütçe Aralığı", value: "₺1,2M - ₺1,5M" },
-  { icon: Car, label: "Segment", value: "SUV" },
-];
-
-interface DetailRow {
-  label: string;
-  strong?: boolean;
-  value: string;
-}
-
-const MUSTERI_OZET: DetailRow[] = [
-  { label: "Ad Soyad", value: "A*** Y******" },
-  { label: "Plaka", value: "34 *** 123" },
-  { label: "Yaş", value: "34" },
-  { label: "İl / İlçe", value: "İstanbul / Kadıköy" },
-  { label: "Meslek", value: "Özel Sektör" },
-  { label: "Medeni Durum", value: "Evli" },
-  { label: "Çocuk", value: "1" },
-  { label: "Müşteri Tipi", value: "Bireysel" },
-];
-
-const ARAC_KREDI: DetailRow[] = [
-  { label: "Marka / Model", value: tiguanModel },
-  { label: "Yıl", value: "2020" },
-  { label: "Yakıt Tipi", value: "Dizel" },
-  { label: "Vites", value: "Otomatik" },
-  { label: "Kredi Tutarı", value: "₺980.000" },
-  { label: "Kalan Borç", value: "₺245.000", strong: true },
-  { label: "Faiz Oranı", value: "%2,15" },
-  { label: "Kredi Bitiş Tarihi", value: "22.05.2025" },
-  { label: "Kalan Taksit", value: "8 / 36" },
-  { label: "Aylık Taksit", value: "₺28.750" },
-];
-
-interface ScoreFactor {
-  label: string;
-  value: number;
-}
-
-const SKOR_FAKTORLER: ScoreFactor[] = [
-  { label: "Kredi Bitiş Yakınlığı", value: 25 },
-  { label: "Ödeme Performansı", value: 25 },
-  { label: "Araç Segment Uygunluğu", value: 22 },
-  { label: "Bütçe Uygunluğu", value: 12 },
-  { label: "Müşteri Sadakati", value: 8 },
-];
-
-interface NeedRow {
-  icon: LucideIcon;
-  label: string;
-  tone: "dealer" | "success" | "cust" | "warn";
-  value: string;
-}
-
-const IHTIYAC_ANALIZI: NeedRow[] = [
-  { icon: Car, label: "Araç Tipi Tercihi", value: "SUV", tone: "success" },
-  {
-    icon: Route,
-    label: "Kullanım Amacı",
-    value: "Aile & Günlük Kullanım",
-    tone: "dealer",
-  },
-  {
-    icon: ShieldCheck,
-    label: "Öncelikli Özellikler",
-    value: "Güvenlik, Konfor, Bagaj Hacmi",
-    tone: "cust",
-  },
-  {
-    icon: Fuel,
-    label: "Yakıt Tercihi",
-    value: "Dizel / Hibrit",
-    tone: "dealer",
-  },
-  {
-    icon: Wallet,
-    label: "Tahmini Bütçe",
-    value: "₺1,2M - ₺1,5M",
-    tone: "success",
-  },
-  { icon: Flame, label: "Takip Seviyesi", value: "Sıcak", tone: "warn" },
-];
-
-interface SegmentRow {
-  araclar: string;
-  id: string;
-  label: string;
-  tone: "success" | "dealer" | "warn";
-  uygunluk: string;
-}
-
-const SEGMENTLER: SegmentRow[] = [
-  {
-    id: "suv",
-    label: "SUV",
-    araclar: "Volkswagen Tiguan, Nissan Qashqai, Hyundai Tucson",
-    uygunluk: "Çok Uygun",
-    tone: "success",
-  },
-  {
-    id: "c-suv",
-    label: "C-SUV",
-    araclar: "Peugeot 3008, Kia Sportage, Toyota RAV4",
-    uygunluk: "Uygun",
-    tone: "dealer",
-  },
-  {
-    id: "d-sedan",
-    label: "D-Sedan",
-    araclar: "Skoda Superb, Toyota Camry",
-    uygunluk: "Orta",
-    tone: "warn",
-  },
-];
-
-interface Interaction {
-  desc: string;
-  icon: LucideIcon;
-  id: string;
-  title: string;
-  tone: string;
-}
-
-const ETKILESIMLER: Interaction[] = [
-  {
-    id: "telefon",
-    icon: Phone,
-    title: "Telefon",
-    desc: "Arama yapıldı",
-    tone: "bg-success-tint text-success",
-  },
-  {
-    id: "eposta",
-    icon: Mail,
-    title: "E-posta",
-    desc: "Kampanya e-postası gönderildi",
-    tone: "bg-dealer-tint text-dealer-700",
-  },
-  {
-    id: "sms",
-    icon: MessageSquare,
-    title: "SMS",
-    desc: "Kampanya SMS'i gönderildi",
-    tone: "bg-cust-tint text-cust-600",
-  },
-];
 
 const TABS = [
   { id: "genel", label: "Genel Bakış" },
@@ -251,7 +91,7 @@ function DetailList({ rows }: { rows: DetailRow[] }) {
   );
 }
 
-function HeaderCard() {
+function HeaderCard({ quickFacts }: { quickFacts: FactRow[] }) {
   return (
     <Card className="px-6 py-5">
       <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
@@ -276,7 +116,7 @@ function HeaderCard() {
         </div>
 
         <div className="ml-auto flex flex-wrap items-center gap-x-7 gap-y-3">
-          {QUICK_FACTS.map(({ icon: Icon, label, value, sub, subTone }) => (
+          {quickFacts.map(({ icon: Icon, label, value, sub, subTone }) => (
             <div className="flex items-start gap-2" key={label}>
               <Icon
                 aria-hidden="true"
@@ -326,12 +166,12 @@ function HeaderCard() {
   );
 }
 
-function MusteriOzetiCard() {
+function MusteriOzetiCard({ rows }: { rows: DetailRow[] }) {
   return (
     <Card className="pb-4">
       <CardHeader title="Müşteri Özeti" />
       <div className="px-5">
-        <DetailList rows={MUSTERI_OZET} />
+        <DetailList rows={rows} />
         <button
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-[10px] border border-line border-dashed py-2.5 font-semibold text-[12.5px] text-dealer-700 hover:bg-dealer-tint"
           type="button"
@@ -344,19 +184,30 @@ function MusteriOzetiCard() {
   );
 }
 
-function AracKrediCard() {
+function AracKrediCard({ rows }: { rows: DetailRow[] }) {
+  // Araç Marka / Model row is taxonomy-derived presentation, kept inline.
+  const aracKredi: DetailRow[] = [
+    { label: "Marka / Model", value: tiguanModel },
+    ...rows,
+  ];
+
   return (
     <Card className="pb-4">
       <CardHeader title="Araç & Kredi Bilgileri" />
       <div className="mt-4 flex gap-5 px-5">
-        <div className="flex h-24 w-32 shrink-0 flex-col items-center justify-center gap-1 rounded-xl bg-canvas text-ink-muted">
-          <Car aria-hidden="true" size={34} strokeWidth={1.6} />
+        <div className="flex h-24 w-32 shrink-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-xl bg-canvas">
+          <VehicleImage
+            className="h-14 w-full"
+            iconSize={34}
+            name="Volkswagen Tiguan"
+            segment="SUV"
+          />
           <span className="font-medium text-[10.5px] text-ink-soft">
             {tiguanVaryant}
           </span>
         </div>
         <div className="flex-1">
-          <DetailList rows={ARAC_KREDI} />
+          <DetailList rows={aracKredi} />
         </div>
       </div>
       <div className="mt-3 flex justify-end px-5">
@@ -372,7 +223,7 @@ function AracKrediCard() {
   );
 }
 
-function IhtiyacAnaliziCard() {
+function IhtiyacAnaliziCard({ rows }: { rows: NeedRow[] }) {
   return (
     <Card className="pb-4">
       <CardHeader
@@ -387,7 +238,7 @@ function IhtiyacAnaliziCard() {
         title="İhtiyaç Analizi Özeti"
       />
       <div className="mt-3 flex flex-col px-5">
-        {IHTIYAC_ANALIZI.map(({ icon: Icon, label, value, tone }) => (
+        {rows.map(({ icon: Icon, label, value, tone }) => (
           <div
             className="flex items-center gap-3 border-line border-b py-2.5 last:border-0"
             key={label}
@@ -411,18 +262,26 @@ function IhtiyacAnaliziCard() {
   );
 }
 
-function YenilemePotansiyeliCard() {
+function YenilemePotansiyeliCard({
+  score,
+  factors,
+}: {
+  score: number;
+  factors: ScoreFactor[];
+}) {
   return (
     <Card className="pb-5">
       <CardHeader title="Yenileme Potansiyeli" />
       <div className="mt-4 flex items-center gap-4 px-5">
         <div className="relative flex flex-col items-center">
-          <ScoreRing size={104} stroke={9} value={RENEWAL_SCORE} />
-          <span className="mt-2 text-[10px] text-ink-muted">Yenileme Skoru</span>
+          <ScoreRing size={104} stroke={9} value={score} />
+          <span className="mt-2 text-[10px] text-ink-muted">
+            Yenileme Skoru
+          </span>
           <span className="font-semibold text-[11px] text-success">Yüksek</span>
         </div>
         <ul className="flex-1 flex-col gap-2">
-          {SKOR_FAKTORLER.map((f) => (
+          {factors.map((f) => (
             <li className="mb-2 last:mb-0" key={f.label}>
               <div className="mb-1 flex items-center justify-between gap-2 text-[11.5px]">
                 <span className="flex items-center gap-1.5 text-ink-soft">
@@ -459,19 +318,22 @@ function YenilemePotansiyeliCard() {
   );
 }
 
-function OnerilenSegmentlerCard() {
+function OnerilenSegmentlerCard({ rows }: { rows: SegmentRow[] }) {
   return (
     <Card className="pb-4">
       <CardHeader title="Önerilen Araç Segmentleri" />
       <div className="mt-3 flex flex-col px-5">
-        {SEGMENTLER.map((s) => (
+        {rows.map((s) => (
           <div
             className="flex items-center gap-3 border-line border-b py-3 last:border-0"
             key={s.id}
           >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-canvas text-ink-soft">
-              <Car aria-hidden="true" size={17} strokeWidth={1.9} />
-            </span>
+            <VehicleImage
+              className="size-9 shrink-0 rounded-full"
+              iconSize={17}
+              name={s.araclar}
+              segment={s.label}
+            />
             <div className="min-w-0 flex-1">
               <div className="font-semibold text-[13px] text-ink">
                 {s.label}
@@ -495,12 +357,12 @@ function OnerilenSegmentlerCard() {
   );
 }
 
-function SonEtkilesimlerCard() {
+function SonEtkilesimlerCard({ rows }: { rows: Interaction[] }) {
   return (
     <Card className="pb-4">
       <CardHeader title="Son Etkileşimler" />
       <ol className="mt-3 flex flex-col px-5">
-        {ETKILESIMLER.map(({ icon: Icon, id, title, desc, tone }) => (
+        {rows.map(({ icon: Icon, id, title, desc, tone }) => (
           <li
             className="flex items-center gap-3 border-line border-b py-3 last:border-0"
             key={id}
@@ -528,69 +390,255 @@ function SonEtkilesimlerCard() {
   );
 }
 
-function GenelBakis() {
+function GenelBakis({ data }: { data: DealerCustomerDetail }) {
   return (
     <div className="grid grid-cols-3 gap-5">
       <div className="flex flex-col gap-5">
-        <MusteriOzetiCard />
-        <IhtiyacAnaliziCard />
+        <MusteriOzetiCard rows={data.musteriOzet} />
+        <IhtiyacAnaliziCard rows={data.ihtiyacAnalizi} />
       </div>
       <div className="flex flex-col gap-5">
-        <AracKrediCard />
-        <OnerilenSegmentlerCard />
+        <AracKrediCard rows={data.aracKredi} />
+        <OnerilenSegmentlerCard rows={data.segmentler} />
       </div>
       <div className="flex flex-col gap-5">
-        <YenilemePotansiyeliCard />
-        <SonEtkilesimlerCard />
+        <YenilemePotansiyeliCard
+          factors={data.skorFaktorler}
+          score={data.renewalScore}
+        />
+        <SonEtkilesimlerCard rows={data.etkilesimler} />
       </div>
     </div>
   );
 }
 
-function PlaceholderPane({
-  icon: Icon,
-  text,
-}: {
-  icon: LucideIcon;
-  text: string;
-}) {
+// --- İhtiyaç Analizi sekmesi ------------------------------------------------
+function BeklentilerCard({ rows }: { rows: ExpectationRow[] }) {
   return (
-    <Card className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
-      <span className="flex size-12 items-center justify-center rounded-full bg-dealer-tint text-dealer-700">
-        <Icon aria-hidden="true" size={22} strokeWidth={1.9} />
-      </span>
-      <p className="max-w-sm text-[13px] text-ink-soft">{text}</p>
+    <Card className="pb-4">
+      <CardHeader
+        action={
+          <Gauge
+            aria-hidden="true"
+            className="text-dealer-700"
+            size={18}
+            strokeWidth={1.9}
+          />
+        }
+        title="Beklentiler & Finansman Profili"
+      />
+      <div className="px-5">
+        <DetailList rows={rows} />
+        <p className="mt-3 rounded-[12px] bg-canvas px-3.5 py-3 text-[12px] text-ink-soft leading-5">
+          Müşteri, mevcut aracını takas ederek SUV segmentinde yenileme yapmayı
+          planlıyor. Aylık ödeme hedefini aşmayan, 48 ay vadeli bir teklif
+          dönüşüm olasılığını en üst düzeye çıkarır.
+        </p>
+      </div>
     </Card>
   );
 }
 
-export function DealerMusteriDetay() {
+function IhtiyacAnaliziTab({ data }: { data: DealerCustomerDetail }) {
   return (
-    <DealerShell
-      actions={
-        <div className="flex items-center gap-2.5">
-          <button
-            className="flex items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-3.5 py-2 font-medium text-[13px] text-ink-soft hover:bg-canvas"
-            type="button"
-          >
-            <MessageSquarePlus aria-hidden="true" size={16} strokeWidth={1.9} />
-            Not Ekle
-          </button>
-          <button
-            className="flex items-center gap-2 rounded-[10px] bg-dealer px-3.5 py-2 font-semibold text-[13px] text-white hover:bg-dealer-600"
-            type="button"
-          >
-            <PlusCircle aria-hidden="true" size={16} strokeWidth={2} />
-            Teklif Oluştur
-          </button>
+    <div className="grid grid-cols-3 gap-5">
+      <div className="col-span-2 flex flex-col gap-5">
+        <IhtiyacAnaliziCard rows={data.ihtiyacAnalizi} />
+        <BeklentilerCard rows={data.beklentiler} />
+      </div>
+      <div className="flex flex-col gap-5">
+        <MusteriOzetiCard rows={data.musteriOzet} />
+      </div>
+    </div>
+  );
+}
+
+// --- Araç & Finansman Eşleştirme sekmesi ------------------------------------
+// Financing scenarios are computed via computeLoan, not record data — kept inline.
+const ESLESME_FIYAT = 1_450_000;
+const ESLESME_PESINAT = 300_000;
+const ESLESME_FAIZ = 0.0215;
+const ESLESME_VADELER = [36, 48, 60];
+
+function FinansmanSenaryolariCard() {
+  return (
+    <Card className="pb-4">
+      <CardHeader
+        action={
+          <Sparkles
+            aria-hidden="true"
+            className="text-dealer-700"
+            size={18}
+            strokeWidth={1.9}
+          />
+        }
+        subtitle={`${formatTRY(ESLESME_FIYAT)} araç · ${formatTRY(ESLESME_PESINAT)} peşinat`}
+        title="Finansman Senaryoları"
+      />
+      <div className="mt-3 px-5">
+        <div className="grid grid-cols-[1fr_1.2fr_1.4fr] gap-3 border-line border-b pb-2 font-medium text-[11.5px] text-ink-muted">
+          <span>Vade</span>
+          <span className="text-right">Aylık Taksit</span>
+          <span className="text-right">Toplam Geri Ödeme</span>
         </div>
-      }
-      breadcrumb={["Fırsat Havuzu", "Müşteri Detay"]}
-      highlight={<Badge tone="success">Yüksek Skor</Badge>}
-      subtitle="Müşteri bilgilerini inceleyin, ihtiyaç analizini tamamlayın ve teklif oluşturun."
-      title="Müşteri Detayı"
-    >
-      <HeaderCard />
+        {ESLESME_VADELER.map((vade) => {
+          const plan = computeLoan({
+            price: ESLESME_FIYAT,
+            downPayment: ESLESME_PESINAT,
+            months: vade,
+            baseMonthlyRate: ESLESME_FAIZ,
+          });
+          return (
+            <div
+              className="grid grid-cols-[1fr_1.2fr_1.4fr] items-center gap-3 border-line border-b py-2.5 text-[12.5px] tabular-nums last:border-0"
+              key={vade}
+            >
+              <span className="font-semibold text-ink">{vade} Ay</span>
+              <span className="text-right font-bold text-dealer-700">
+                {formatTRY(plan.monthlyPayment)}
+              </span>
+              <span className="text-right text-ink-soft">
+                {formatTRY(plan.toplamGeriOdeme)}
+              </span>
+            </div>
+          );
+        })}
+        <p className="mt-3 text-[11px] text-ink-muted">
+          KKDF + BSMV dahil efektif orana göre hesaplanmıştır.
+        </p>
+      </div>
+    </Card>
+  );
+}
+
+function EslestirmeTab({ data }: { data: DealerCustomerDetail }) {
+  return (
+    <div className="grid grid-cols-3 gap-5">
+      <div className="col-span-2 flex flex-col gap-5">
+        <OnerilenSegmentlerCard rows={data.segmentler} />
+        <FinansmanSenaryolariCard />
+      </div>
+      <div className="flex flex-col gap-5">
+        <AracKrediCard rows={data.aracKredi} />
+      </div>
+    </div>
+  );
+}
+
+// --- İletişim Geçmişi sekmesi -----------------------------------------------
+const CONTACT_TONE: Record<ContactEvent["tone"], string> = {
+  success: "bg-success-tint text-success",
+  dealer: "bg-dealer-tint text-dealer-700",
+  warn: "bg-warn-tint text-warn",
+};
+
+function IletisimZamanCizelgesiCard({ rows }: { rows: ContactEvent[] }) {
+  return (
+    <Card className="pb-4">
+      <CardHeader
+        action={
+          <span className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+            <Users aria-hidden="true" size={14} strokeWidth={1.9} /> Mehmet Kaya
+          </span>
+        }
+        title="İletişim Geçmişi"
+      />
+      <ol className="mt-4 px-5">
+        {rows.map((e, i) => {
+          const isLast = i === rows.length - 1;
+          return (
+            <li className="flex gap-3" key={e.id}>
+              <div className="flex flex-col items-center">
+                <span
+                  className={`flex size-9 shrink-0 items-center justify-center rounded-full ${CONTACT_TONE[e.tone]}`}
+                >
+                  <e.channel aria-hidden="true" size={16} strokeWidth={2} />
+                </span>
+                {isLast ? null : <span className="w-px flex-1 bg-line" />}
+              </div>
+              <div className={`flex-1 ${isLast ? "pb-0" : "pb-5"}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 text-[11.5px] text-ink-muted tabular-nums">
+                    <Clock aria-hidden="true" size={12} /> {e.date}
+                  </span>
+                  <Badge tone={e.tone}>{e.outcome}</Badge>
+                </div>
+                <p className="mt-1 text-[12.5px] text-ink-soft leading-4">
+                  {e.desc}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </Card>
+  );
+}
+
+function HizliIletisimCard({ rows }: { rows: QuickContact[] }) {
+  return (
+    <Card className="p-5">
+      <h3 className="font-semibold text-[15px] text-ink">Hızlı İletişim</h3>
+      <div className="mt-3 grid grid-cols-3 gap-2.5">
+        {rows.map((a) => (
+          <button
+            className="flex flex-col items-center gap-1.5 rounded-[12px] border border-line py-3 font-semibold text-[12px] text-dealer-700 hover:bg-dealer-tint"
+            key={a.id}
+            type="button"
+          >
+            <a.icon aria-hidden="true" size={18} strokeWidth={1.9} />
+            {a.label}
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function IletisimTab({ data }: { data: DealerCustomerDetail }) {
+  return (
+    <div className="grid grid-cols-3 gap-5">
+      <div className="col-span-2 flex flex-col gap-5">
+        <IletisimZamanCizelgesiCard rows={data.iletisimGecmisi} />
+      </div>
+      <div className="flex flex-col gap-5">
+        <SonEtkilesimlerCard rows={data.etkilesimler} />
+        <HizliIletisimCard rows={data.hizliIletisim} />
+      </div>
+    </div>
+  );
+}
+
+const SHELL_PROPS = {
+  actions: (
+    <div className="flex items-center gap-2.5">
+      <button
+        className="flex items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-3.5 py-2 font-medium text-[13px] text-ink-soft hover:bg-canvas"
+        type="button"
+      >
+        <MessageSquarePlus aria-hidden="true" size={16} strokeWidth={1.9} />
+        Not Ekle
+      </button>
+      <button
+        className="flex items-center gap-2 rounded-[10px] bg-dealer px-3.5 py-2 font-semibold text-[13px] text-white hover:bg-dealer-600"
+        type="button"
+      >
+        <PlusCircle aria-hidden="true" size={16} strokeWidth={2} />
+        Teklif Oluştur
+      </button>
+    </div>
+  ),
+  breadcrumb: ["Fırsat Havuzu", "Müşteri Detay"],
+  highlight: <Badge tone="success">Yüksek Skor</Badge>,
+  subtitle:
+    "Müşteri bilgilerini inceleyin, ihtiyaç analizini tamamlayın ve teklif oluşturun.",
+  title: "Müşteri Detayı",
+} as const;
+
+function CustomerDetailBody({ data }: { data: DealerCustomerDetail }) {
+  return (
+    <>
+      <HeaderCard quickFacts={data.quickFacts} />
 
       <Tabs className="mt-5 gap-0" defaultValue="genel">
         <TabsList
@@ -609,27 +657,44 @@ export function DealerMusteriDetay() {
         </TabsList>
 
         <TabsContent className="mt-0" value="genel">
-          <GenelBakis />
+          <GenelBakis data={data} />
         </TabsContent>
         <TabsContent className="mt-0" value="ihtiyac">
-          <PlaceholderPane
-            icon={Gauge}
-            text="İhtiyaç analizi formunu tamamlayarak müşteriye en uygun araç ve finansman seçeneklerini eşleştirin."
-          />
+          <IhtiyacAnaliziTab data={data} />
         </TabsContent>
         <TabsContent className="mt-0" value="eslestirme">
-          <PlaceholderPane
-            icon={Sparkles}
-            text="Müşterinin profiline göre önerilen araç ve finansman paketleri burada listelenir."
-          />
+          <EslestirmeTab data={data} />
         </TabsContent>
         <TabsContent className="mt-0" value="iletisim">
-          <PlaceholderPane
-            icon={Users}
-            text="Telefon, e-posta ve SMS dahil tüm iletişim geçmişi bu sekmede görüntülenir."
-          />
+          <IletisimTab data={data} />
         </TabsContent>
       </Tabs>
+    </>
+  );
+}
+
+export function DealerMusteriDetay() {
+  const { data, isPending, isError, refetch } = useDealerCustomerDetail();
+
+  if (isPending) {
+    return (
+      <DealerShell {...SHELL_PROPS}>
+        <LoadingState />
+      </DealerShell>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <DealerShell {...SHELL_PROPS}>
+        <ErrorState onRetry={() => refetch()} />
+      </DealerShell>
+    );
+  }
+
+  return (
+    <DealerShell {...SHELL_PROPS}>
+      <CustomerDetailBody data={data} />
     </DealerShell>
   );
 }

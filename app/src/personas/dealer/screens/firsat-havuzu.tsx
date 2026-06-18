@@ -3,7 +3,6 @@ import type { Table } from "@tanstack/react-table";
 import { createColumnHelper, flexRender } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  Car,
   ChevronDown,
   ChevronUp,
   Download,
@@ -23,170 +22,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useMemo } from "react";
+import type { Opportunity } from "@/data/opportunities";
+import { useOpportunities } from "@/queries/opportunities";
+import {
+  EmptyState,
+  ErrorState,
+  TableSkeleton,
+  TableStateRow,
+} from "@/ui/async-states";
 import { Badge } from "@/ui/badge";
 import { Card } from "@/ui/card";
 import { ScoreRing } from "@/ui/score-ring";
 import { StatCard } from "@/ui/stat-card";
 import { useDataTable } from "@/ui/use-data-table";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { DealerShell } from "../dealer-shell";
 
-interface Opportunity {
-  avatarTone: string;
-  bitis: string;
-  butce: string;
-  id: string;
-  initials: string;
-  kalanGun: number;
-  paid: number;
-  segment: string;
-  skor: number;
-  total: number;
-  vehicle: string;
-  vehicleSub: string;
-}
-
-const OPPORTUNITIES: Opportunity[] = [
-  {
-    id: "MST-08412",
-    initials: "08",
-    avatarTone: "bg-dealer-tint text-dealer-700",
-    vehicle: "BMW 3 Serisi",
-    vehicleSub: "2021 · 320i",
-    bitis: "15.08.2025",
-    kalanGun: 28,
-    paid: 8,
-    total: 36,
-    skor: 92,
-    butce: "₺1.8M - ₺2.4M",
-    segment: "SUV",
-  },
-  {
-    id: "MST-07733",
-    initials: "07",
-    avatarTone: "bg-cust-tint text-cust-600",
-    vehicle: "Volkswagen Passat",
-    vehicleSub: "2020 · 1.5 TSI",
-    bitis: "03.09.2025",
-    kalanGun: 47,
-    paid: 14,
-    total: 48,
-    skor: 88,
-    butce: "₺1.5M - ₺2.0M",
-    segment: "Sedan",
-  },
-  {
-    id: "MST-09187",
-    initials: "09",
-    avatarTone: "bg-warn-tint text-warn",
-    vehicle: "Renault Megane",
-    vehicleSub: "2019 · 1.5 dCi",
-    bitis: "28.07.2025",
-    kalanGun: 19,
-    paid: 30,
-    total: 36,
-    skor: 84,
-    butce: "₺1.0M - ₺1.4M",
-    segment: "Hatchback",
-  },
-  {
-    id: "MST-06120",
-    initials: "06",
-    avatarTone: "bg-bank-tint text-bank-700",
-    vehicle: "Ford Focus",
-    vehicleSub: "2021 · 1.5 EcoBoost",
-    bitis: "11.10.2025",
-    kalanGun: 84,
-    paid: 22,
-    total: 48,
-    skor: 79,
-    butce: "₺1.2M - ₺1.6M",
-    segment: "SUV",
-  },
-  {
-    id: "MST-05512",
-    initials: "05",
-    avatarTone: "bg-dealer-tint text-dealer-700",
-    vehicle: "Toyota Corolla",
-    vehicleSub: "2021 · 1.8 Hybrid",
-    bitis: "05.08.2025",
-    kalanGun: 35,
-    paid: 26,
-    total: 36,
-    skor: 76,
-    butce: "₺1.3M - ₺1.7M",
-    segment: "Sedan",
-  },
-  {
-    id: "MST-04521",
-    initials: "04",
-    avatarTone: "bg-cust-tint text-cust-600",
-    vehicle: "Hyundai i20",
-    vehicleSub: "2020 · 1.0 T-GDI",
-    bitis: "19.07.2025",
-    kalanGun: 12,
-    paid: 31,
-    total: 36,
-    skor: 71,
-    butce: "₺0.9M - ₺1.3M",
-    segment: "Hatchback",
-  },
-  {
-    id: "MST-09787",
-    initials: "09",
-    avatarTone: "bg-warn-tint text-warn",
-    vehicle: "Mercedes-Benz C Serisi",
-    vehicleSub: "2022 · C 200",
-    bitis: "27.08.2025",
-    kalanGun: 41,
-    paid: 18,
-    total: 48,
-    skor: 67,
-    butce: "₺2.4M - ₺3.2M",
-    segment: "SUV",
-  },
-  {
-    id: "MST-01245",
-    initials: "01",
-    avatarTone: "bg-bank-tint text-bank-700",
-    vehicle: "Audi A4",
-    vehicleSub: "2022 · 40 TDI",
-    bitis: "12.12.2025",
-    kalanGun: 132,
-    paid: 12,
-    total: 60,
-    skor: 63,
-    butce: "₺2.0M - ₺2.8M",
-    segment: "Sedan",
-  },
-  {
-    id: "MST-02984",
-    initials: "02",
-    avatarTone: "bg-dealer-tint text-dealer-700",
-    vehicle: "Peugeot 308",
-    vehicleSub: "2020 · 1.5 BlueHDi",
-    bitis: "02.09.2025",
-    kalanGun: 46,
-    paid: 24,
-    total: 48,
-    skor: 58,
-    butce: "₺1.1M - ₺1.5M",
-    segment: "Hatchback",
-  },
-  {
-    id: "MST-01190",
-    initials: "01",
-    avatarTone: "bg-cust-tint text-cust-600",
-    vehicle: "Fiat Egea",
-    vehicleSub: "2019 · 1.6 D Multijet",
-    bitis: "21.07.2025",
-    kalanGun: 14,
-    paid: 33,
-    total: 36,
-    skor: 54,
-    butce: "₺0.7M - ₺1.0M",
-    segment: "Sedan",
-  },
-];
+// Opportunity type + seed live in src/data/opportunities.ts; rows arrive via useOpportunities().
 
 function uygunlukLabel(skor: number): string {
   if (skor >= 85) {
@@ -208,9 +61,6 @@ function uygunlukToneClass(skor: number): string {
   return "text-warn";
 }
 
-// Distinct segment values present in the data — guarantees the filter matches.
-const SEGMENTS = [...new Set(OPPORTUNITIES.map((o) => o.segment))];
-
 interface FilterDef {
   /** table column id this filter drives; omitted = visual only */
   column?: string;
@@ -219,31 +69,34 @@ interface FilterDef {
   placeholder: string;
 }
 
-const FILTERS: FilterDef[] = [
-  {
-    label: "Segment",
-    placeholder: "Tüm Segmentler",
-    options: SEGMENTS,
-    column: "segment",
-  },
-  {
-    label: "Skor Aralığı",
-    placeholder: "Tümü",
-    options: ["Yüksek (80+)", "Orta (60-79)", "Düşük (<60)"],
-    column: "skor",
-  },
-  {
-    label: "Bütçe",
-    placeholder: "Tümü",
-    options: ["₺0 - ₺1M", "₺1M - ₺2M", "₺2M - ₺3M", "₺3M+"],
-    column: "butce",
-  },
-  {
-    label: "Bölge",
-    placeholder: "Tüm Bölgeler",
-    options: ["Marmara", "Ege", "İç Anadolu", "Akdeniz", "Karadeniz"],
-  },
-];
+// Segment options come from the loaded rows; the rest are fixed buckets.
+function buildFilters(segmentler: string[]): FilterDef[] {
+  return [
+    {
+      label: "Segment",
+      placeholder: "Tüm Segmentler",
+      options: segmentler,
+      column: "segment",
+    },
+    {
+      label: "Skor Aralığı",
+      placeholder: "Tümü",
+      options: ["Yüksek (80+)", "Orta (60-79)", "Düşük (<60)"],
+      column: "skor",
+    },
+    {
+      label: "Bütçe",
+      placeholder: "Tümü",
+      options: ["₺0 - ₺1M", "₺1M - ₺2M", "₺2M - ₺3M", "₺3M+"],
+      column: "butce",
+    },
+    {
+      label: "Bölge",
+      placeholder: "Tüm Bölgeler",
+      options: ["Marmara", "Ege", "İç Anadolu", "Akdeniz", "Karadeniz"],
+    },
+  ];
+}
 
 function skorFilter(value: number, bucket: string): boolean {
   if (bucket === "Yüksek (80+)") {
@@ -340,9 +193,12 @@ const columns = [
       const row = info.row.original;
       return (
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-11 items-center justify-center rounded-md bg-canvas text-ink-muted">
-            <Car size={16} strokeWidth={1.8} />
-          </span>
+          <VehicleImage
+            className="h-8 w-11 rounded-md"
+            iconSize={16}
+            name={row.vehicle}
+            segment={row.segment}
+          />
           <span className="leading-tight">
             <span className="block font-medium text-[13px] text-ink">
               {row.vehicle}
@@ -476,7 +332,13 @@ const columns = [
   }),
 ];
 
-function Toolbar({ table }: { table: Table<Opportunity> }) {
+function Toolbar({
+  table,
+  filters,
+}: {
+  table: Table<Opportunity>;
+  filters: FilterDef[];
+}) {
   return (
     <Card className="mt-5 px-5 py-4">
       <div className="flex flex-wrap items-end gap-4">
@@ -494,7 +356,7 @@ function Toolbar({ table }: { table: Table<Opportunity> }) {
             />
           </div>
         </div>
-        {FILTERS.map((f) => (
+        {filters.map((f) => (
           <div className="w-[160px]" key={f.label}>
             <div className="mb-1.5 font-medium text-[12px] text-ink-soft">
               {f.label}
@@ -527,7 +389,50 @@ function Toolbar({ table }: { table: Table<Opportunity> }) {
 }
 
 export function DealerFirsatHavuzu() {
-  const table = useDataTable({ data: OPPORTUNITIES, columns, pageSize: 6 });
+  const { data, isPending, isError, refetch } = useOpportunities();
+  const opportunities = useMemo(() => data ?? [], [data]);
+  const table = useDataTable({ data: opportunities, columns, pageSize: 6 });
+
+  const segmentler = useMemo(
+    () => [...new Set(opportunities.map((o) => o.segment))],
+    [opportunities]
+  );
+  const filters = useMemo(() => buildFilters(segmentler), [segmentler]);
+
+  const rows = table.getRowModel().rows;
+  const filteredCount = table.getFilteredRowModel().rows.length;
+
+  function renderBody() {
+    if (isPending) {
+      return <TableSkeleton cols={columns.length} rows={6} />;
+    }
+    if (isError) {
+      return (
+        <TableStateRow colSpan={columns.length}>
+          <ErrorState
+            label="Fırsat havuzu yüklenemedi."
+            onRetry={() => refetch()}
+          />
+        </TableStateRow>
+      );
+    }
+    if (rows.length === 0) {
+      return (
+        <TableStateRow colSpan={columns.length}>
+          <EmptyState label="Eşleşen fırsat bulunamadı." />
+        </TableStateRow>
+      );
+    }
+    return rows.map((row) => (
+      <tr className="border-line border-t hover:bg-canvas/50" key={row.id}>
+        {row.getVisibleCells().map((cell) => (
+          <td className="px-4 py-3 first:pl-5" key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </td>
+        ))}
+      </tr>
+    ));
+  }
 
   return (
     <DealerShell
@@ -575,7 +480,7 @@ export function DealerFirsatHavuzu() {
         />
       </div>
 
-      <Toolbar table={table} />
+      <Toolbar filters={filters} table={table} />
 
       {/* table */}
       <Card className="mt-5 overflow-hidden">
@@ -583,7 +488,7 @@ export function DealerFirsatHavuzu() {
           <h3 className="font-semibold text-[15px] text-ink">
             Uygun Müşteriler{" "}
             <span className="font-normal text-ink-muted">
-              ({table.getFilteredRowModel().rows.length})
+              ({isPending ? "…" : filteredCount})
             </span>
           </h3>
           <div className="flex items-center gap-2.5">
@@ -628,32 +533,21 @@ export function DealerFirsatHavuzu() {
               </tr>
             ))}
           </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                className="border-line border-t hover:bg-canvas/50"
-                key={row.id}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td className="px-4 py-3 first:pl-5" key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
+          <tbody>{renderBody()}</tbody>
         </table>
 
         {/* pagination */}
         <div className="flex items-center justify-between border-line border-t px-5 py-3.5 text-[12.5px] text-ink-muted">
           <span>
-            {table.getFilteredRowModel().rows.length === 0
-              ? "Sonuç bulunamadı"
-              : `${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${
-                  table.getState().pagination.pageIndex *
-                    table.getState().pagination.pageSize +
-                  table.getRowModel().rows.length
-                } / ${table.getFilteredRowModel().rows.length} fırsat`}
+            {isPending && "Yükleniyor…"}
+            {!isPending && filteredCount === 0 && "Sonuç bulunamadı"}
+            {!isPending &&
+              filteredCount > 0 &&
+              `${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${
+                table.getState().pagination.pageIndex *
+                  table.getState().pagination.pageSize +
+                rows.length
+              } / ${filteredCount} fırsat`}
           </span>
           <div className="flex items-center gap-1.5">
             <button

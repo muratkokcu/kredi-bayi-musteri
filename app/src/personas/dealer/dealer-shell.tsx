@@ -199,12 +199,12 @@ function TopbarUtilities() {
             ))}
           </ul>
           <div className="border-line border-t px-4 py-2.5 text-center">
-            <button
+            <Link
               className="font-semibold text-[12.5px] text-dealer hover:underline"
-              type="button"
+              to="/bayi/bildirimler"
             >
               Tümünü gör
-            </button>
+            </Link>
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -236,7 +236,7 @@ function Topbar({
   info,
   actions,
 }: {
-  breadcrumb?: string[];
+  breadcrumb?: readonly string[];
   title: string;
   highlight?: ReactNode;
   subtitle?: string;
@@ -290,7 +290,7 @@ export function DealerShell({
   actions,
   children,
 }: {
-  breadcrumb?: string[];
+  breadcrumb?: readonly string[];
   title: string;
   highlight?: ReactNode;
   subtitle?: string;

@@ -1,213 +1,39 @@
-import type { LucideIcon } from "lucide-react";
 import {
   ArrowDown,
   ArrowUp,
   CalendarRange,
-  Car,
-  CheckCircle2,
   ChevronDown,
-  Clock,
-  Coins,
-  Eye,
-  FileText,
-  Gauge,
   Headphones,
   Info,
-  MessageSquare,
   Phone,
   Sparkles,
-  Star,
-  UserPlus,
-  XCircle,
 } from "lucide-react";
+import {
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 import { getMarka, getModel } from "@/data/arac-taksonomisi";
+import type {
+  DealerActivity,
+  DealerFunnelStage,
+  DealerKpi,
+  DealerPerformance,
+  DealerPopularRaw,
+  DealerSegment,
+} from "@/data/dealer-home";
+import { useDealerHome } from "@/queries/dealer-home";
+import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
 import { FunnelChart } from "@/ui/funnel-chart";
 import { KpiCard } from "@/ui/kpi";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { DealerShell } from "../dealer-shell";
 
 const DEALER_COLOR = "var(--color-dealer)";
-
-interface KpiDef {
-  delta: string;
-  icon: LucideIcon;
-  label: string;
-  positive: boolean;
-  value: string;
-}
-
-const KPIS: KpiDef[] = [
-  {
-    icon: Sparkles,
-    label: "Yeni Fırsatlar",
-    value: "48",
-    delta: "%20",
-    positive: true,
-  },
-  {
-    icon: FileText,
-    label: "Bekleyen Teklifler",
-    value: "23",
-    delta: "%15",
-    positive: true,
-  },
-  {
-    icon: CheckCircle2,
-    label: "Kabul Edilen Teklifler",
-    value: "12",
-    delta: "%33",
-    positive: true,
-  },
-  {
-    icon: XCircle,
-    label: "Reddedilen Teklifler",
-    value: "6",
-    delta: "%14",
-    positive: false,
-  },
-  {
-    icon: Coins,
-    label: "Tahmini Kazanç",
-    value: "₺1.285.000",
-    delta: "%18",
-    positive: true,
-  },
-];
-
-const FUNNEL_STAGES = [
-  {
-    label: "Fırsat Havuzu",
-    sub: "Uygun müşteriler",
-    value: "48",
-    pct: "%100",
-    frac: 1,
-  },
-  {
-    label: "Teklif Oluşturulan",
-    sub: "Teklif gönderilen fırsatlar",
-    value: "24",
-    pct: "%50",
-    frac: 0.78,
-  },
-  {
-    label: "İnceleme Aşamasında",
-    sub: "Müşterinin incelediği teklifler",
-    value: "14",
-    pct: "%29",
-    frac: 0.58,
-  },
-  {
-    label: "Görüşme Yapılan",
-    sub: "Müşteri ile görüşülen fırsatlar",
-    value: "12",
-    pct: "%25",
-    frac: 0.42,
-  },
-  {
-    label: "Kazanılan",
-    sub: "Kapanan satışlar",
-    value: "9",
-    pct: "%19",
-    frac: 0.3,
-  },
-];
-
-interface SegmentDef {
-  color: string;
-  frac: number;
-  label: string;
-  value: string;
-}
-
-const SEGMENTS: SegmentDef[] = [
-  { label: "SUV", value: "%38", frac: 0.38, color: "var(--color-dealer)" },
-  { label: "Sedan", value: "%28", frac: 0.28, color: "var(--color-bank)" },
-  { label: "Hatchback", value: "%17", frac: 0.17, color: "#f59e0b" },
-  { label: "MPV", value: "%9", frac: 0.09, color: "var(--color-cust)" },
-  { label: "Diğer", value: "%8", frac: 0.08, color: "#94a3b8" },
-];
-
-interface ActivityDef {
-  icon: LucideIcon;
-  id: string;
-  name: string;
-  sub: string;
-  text: string;
-  time: string;
-  tone: string;
-}
-
-const ACTIVITIES: ActivityDef[] = [
-  {
-    id: "ahmet",
-    icon: CheckCircle2,
-    tone: "bg-success-tint text-success",
-    name: "Ahmet Yılmaz",
-    text: "teklifinizi kabul etti",
-    sub: "Volkswagen Tiguan",
-    time: "10:24",
-  },
-  {
-    id: "mehmet",
-    icon: Eye,
-    tone: "bg-dealer-tint text-dealer-700",
-    name: "Mehmet Demir",
-    text: "teklifinizi görüntüledi",
-    sub: "Toyota Corolla · ₺980.000 TL",
-    time: "09:48",
-  },
-  {
-    id: "havuz",
-    icon: UserPlus,
-    tone: "bg-cust-tint text-cust-600",
-    name: "Yeni fırsat",
-    text: "havuzuna 6 müşteri eklendi",
-    sub: "SUV segmenti",
-    time: "09:15",
-  },
-  {
-    id: "ayse",
-    icon: Phone,
-    tone: "bg-warn-tint text-warn",
-    name: "Ayşe Kara",
-    text: "görüşme kaydı eklendi",
-    sub: "İlk görüşme tamamlandı",
-    time: "Dün 16:30",
-  },
-  {
-    id: "hakan",
-    icon: XCircle,
-    tone: "bg-danger-tint text-danger",
-    name: "Hakan Şahin",
-    text: "teklifinizi reddetti",
-    sub: "Peugeot 3008 · ₺1.150.000 TL",
-    time: "Dün 14:22",
-  },
-];
-
-interface VehicleDef {
-  marka: string;
-  model: string;
-  pct: number;
-  sayisi: number;
-}
-
-const POPULAR_RAW: VehicleDef[] = [
-  { marka: "volkswagen", model: "tiguan", sayisi: 8, pct: 100 },
-  { marka: "toyota", model: "corolla", sayisi: 7, pct: 88 },
-  { marka: "peugeot", model: "3008", sayisi: 6, pct: 75 },
-  { marka: "renault", model: "clio", sayisi: 5, pct: 63 },
-  { marka: "hyundai", model: "i20", sayisi: 4, pct: 50 },
-];
-
-const POPULAR_PCT: Record<string, string> = {
-  tiguan: "%22",
-  corolla: "%19",
-  "3008": "%17",
-  clio: "%14",
-  i20: "%11",
-};
 
 interface PopularVehicle {
   pct: number;
@@ -216,70 +42,23 @@ interface PopularVehicle {
   title: string;
 }
 
-const POPULAR_VEHICLES: PopularVehicle[] = POPULAR_RAW.map((v) => {
-  const marka = getMarka(v.marka);
-  const model = getModel(v.marka, v.model);
-  const markaAd = marka?.marka ?? v.marka;
-  const modelAd = model?.model ?? v.model;
-  return {
-    title: `${markaAd} ${modelAd}`,
-    sayisi: v.sayisi,
-    pct: v.pct,
-    pctLabel: POPULAR_PCT[v.model] ?? "",
-  };
-});
-
-interface PerfDef {
-  delta: string;
-  icon: LucideIcon;
-  label: string;
-  positive: boolean;
-  tone: string;
-  value: string;
+function buildPopularVehicles(
+  raw: DealerPopularRaw[],
+  pctLabels: Record<string, string>,
+): PopularVehicle[] {
+  return raw.map((v) => {
+    const marka = getMarka(v.marka);
+    const model = getModel(v.marka, v.model);
+    const markaAd = marka?.marka ?? v.marka;
+    const modelAd = model?.model ?? v.model;
+    return {
+      title: `${markaAd} ${modelAd}`,
+      sayisi: v.sayisi,
+      pct: v.pct,
+      pctLabel: pctLabels[v.model] ?? "",
+    };
+  });
 }
-
-const PERFORMANCE: PerfDef[] = [
-  {
-    icon: MessageSquare,
-    tone: "bg-dealer-tint text-dealer-700",
-    label: "Teklif Gönderim Oranı",
-    value: "%50",
-    delta: "%8",
-    positive: true,
-  },
-  {
-    icon: Phone,
-    tone: "bg-success-tint text-success",
-    label: "Görüşme Oranı",
-    value: "%37",
-    delta: "%5",
-    positive: true,
-  },
-  {
-    icon: Clock,
-    tone: "bg-warn-tint text-warn",
-    label: "Kapanış Oranı",
-    value: "%25",
-    delta: "%6",
-    positive: true,
-  },
-  {
-    icon: Gauge,
-    tone: "bg-danger-tint text-danger",
-    label: "Ortalama Kapanış Süresi",
-    value: "18 gün",
-    delta: "%2",
-    positive: false,
-  },
-  {
-    icon: Star,
-    tone: "bg-dealer-tint text-dealer-700",
-    label: "Müşteri Memnuniyeti",
-    value: "4.6 / 5",
-    delta: "%0,3",
-    positive: true,
-  },
-];
 
 function DateRangePill() {
   return (
@@ -299,10 +78,10 @@ function DateRangePill() {
   );
 }
 
-function KpiRow() {
+function KpiRow({ kpis }: { kpis: DealerKpi[] }) {
   return (
     <div className="grid grid-cols-5 gap-4">
-      {KPIS.map((k) => (
+      {kpis.map((k) => (
         <KpiCard
           accent="dealer"
           delta={k.delta}
@@ -330,7 +109,7 @@ function PeriodSelect({ label }: { label: string }) {
   );
 }
 
-function PipelineCard() {
+function PipelineCard({ funnel }: { funnel: DealerFunnelStage[] }) {
   return (
     <Card className="pb-4">
       <CardHeader
@@ -343,7 +122,7 @@ function PipelineCard() {
         }
       />
       <div className="mt-4 px-5">
-        <FunnelChart color={DEALER_COLOR} stages={FUNNEL_STAGES} />
+        <FunnelChart color={DEALER_COLOR} stages={funnel} />
       </div>
       <div className="mt-4 flex items-center justify-between border-line border-t px-5 pt-4">
         <span className="text-[12.5px] text-ink-soft">Kapanış Oranı</span>
@@ -355,52 +134,53 @@ function PipelineCard() {
   );
 }
 
-function SegmentDonut() {
+function SegmentTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { name?: string; payload?: DealerSegment }[];
+}) {
+  if (!(active && payload && payload.length > 0)) {
+    return null;
+  }
+  const seg = payload[0].payload;
+  return (
+    <div className="rounded-lg border border-line-strong bg-surface px-2.5 py-1.5 shadow-[var(--shadow-pop)]">
+      <div className="text-[11px] text-ink-muted">{seg?.label}</div>
+      <div className="font-bold text-[13px] text-ink tabular-nums">
+        {seg?.value}
+      </div>
+    </div>
+  );
+}
+
+function SegmentDonut({ segments }: { segments: DealerSegment[] }) {
   const size = 168;
-  const stroke = 24;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  let acc = 0;
   return (
     <span
       className="relative inline-flex shrink-0 items-center justify-center"
       style={{ width: size, height: size }}
     >
-      <svg
-        aria-hidden="true"
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        width={size}
-      >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          fill="none"
-          r={r}
-          stroke="var(--color-line)"
-          strokeWidth={stroke}
-        />
-        {SEGMENTS.map((s) => {
-          const dash = s.frac * c;
-          const offset = acc * c;
-          acc += s.frac;
-          return (
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              fill="none"
-              key={s.label}
-              r={r}
-              stroke={s.color}
-              strokeDasharray={`${dash - 3} ${c - dash + 3}`}
-              strokeDashoffset={-offset}
-              strokeWidth={stroke}
-              transform={`rotate(-90 ${size / 2} ${size / 2})`}
-            />
-          );
-        })}
-      </svg>
-      <span className="absolute flex flex-col items-center">
+      <ResponsiveContainer height={size} width={size}>
+        <PieChart>
+          <Pie
+            data={segments}
+            dataKey="frac"
+            innerRadius={60}
+            nameKey="label"
+            outerRadius={84}
+            paddingAngle={2}
+            stroke="none"
+          >
+            {segments.map((s) => (
+              <Cell fill={s.color} key={s.label} />
+            ))}
+          </Pie>
+          <Tooltip content={<SegmentTooltip />} />
+        </PieChart>
+      </ResponsiveContainer>
+      <span className="pointer-events-none absolute flex flex-col items-center">
         <span className="text-[11px] text-ink-muted">Toplam</span>
         <span className="font-bold text-[26px] text-ink leading-7 tracking-tight">
           48
@@ -411,14 +191,14 @@ function SegmentDonut() {
   );
 }
 
-function SegmentCard() {
+function SegmentCard({ segments }: { segments: DealerSegment[] }) {
   return (
     <Card className="pb-1">
       <CardHeader title="Segment Dağılımı" />
       <div className="mt-3 flex items-center gap-5 px-5">
-        <SegmentDonut />
+        <SegmentDonut segments={segments} />
         <div className="flex-1">
-          {SEGMENTS.map((s) => (
+          {segments.map((s) => (
             <div
               className="flex items-center justify-between border-line border-b py-2.5 last:border-0"
               key={s.label}
@@ -448,7 +228,7 @@ function SegmentCard() {
   );
 }
 
-function ActivitiesCard() {
+function ActivitiesCard({ activities }: { activities: DealerActivity[] }) {
   return (
     <Card className="pb-2">
       <CardHeader
@@ -463,7 +243,7 @@ function ActivitiesCard() {
         title="Son Aktiviteler"
       />
       <div className="mt-3 px-5">
-        {ACTIVITIES.map(({ icon: Icon, ...a }) => (
+        {activities.map(({ icon: Icon, ...a }) => (
           <div
             className="flex items-start gap-3 border-line border-b py-3 last:border-0"
             key={a.id}
@@ -491,12 +271,12 @@ function ActivitiesCard() {
   );
 }
 
-function PopularVehiclesCard() {
+function PopularVehiclesCard({ vehicles }: { vehicles: PopularVehicle[] }) {
   return (
     <Card className="pb-4">
       <CardHeader title="En Çok İlgi Gören Araçlar" />
       <div className="mt-3 px-5">
-        {POPULAR_VEHICLES.map((v, i) => (
+        {vehicles.map((v, i) => (
           <div
             className="flex items-center gap-3 border-line border-b py-3 last:border-0"
             key={v.title}
@@ -504,9 +284,11 @@ function PopularVehiclesCard() {
             <span className="w-4 shrink-0 text-center font-bold text-[13px] text-ink-muted tabular-nums">
               {i + 1}
             </span>
-            <span className="flex h-8 w-11 shrink-0 items-center justify-center rounded-md bg-canvas text-ink-muted">
-              <Car size={16} strokeWidth={1.8} />
-            </span>
+            <VehicleImage
+              className="h-8 w-11 shrink-0 rounded-md"
+              iconSize={16}
+              name={v.title}
+            />
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
                 <span className="truncate font-medium text-[13px] text-ink">
@@ -534,7 +316,11 @@ function deltaTone(positive: boolean): string {
   return positive ? "text-success" : "text-danger";
 }
 
-function PerformanceCard() {
+function PerformanceCard({
+  performance,
+}: {
+  performance: DealerPerformance[];
+}) {
   return (
     <Card className="pb-2">
       <CardHeader
@@ -542,7 +328,7 @@ function PerformanceCard() {
         title="Performans Özeti"
       />
       <div className="mt-3 px-5">
-        {PERFORMANCE.map(({ icon: Icon, ...p }) => (
+        {performance.map(({ icon: Icon, ...p }) => (
           <div
             className="flex items-center gap-3 border-line border-b py-3 last:border-0"
             key={p.label}
@@ -623,25 +409,47 @@ function AnnouncementsCard() {
   );
 }
 
+const SHELL_PROPS = {
+  actions: <DateRangePill />,
+  highlight: "Mehmet 👋",
+  subtitle: "Bugün 22 Nisan 2025 Salı",
+  title: "Günaydın,",
+} as const;
+
 export function DealerDashboard() {
+  const { data, isPending, isError, refetch } = useDealerHome();
+
+  if (isPending) {
+    return (
+      <DealerShell {...SHELL_PROPS}>
+        <LoadingState />
+      </DealerShell>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <DealerShell {...SHELL_PROPS}>
+        <ErrorState onRetry={() => refetch()} />
+      </DealerShell>
+    );
+  }
+
+  const popularVehicles = buildPopularVehicles(data.popularRaw, data.popularPct);
+
   return (
-    <DealerShell
-      actions={<DateRangePill />}
-      highlight="Mehmet 👋"
-      subtitle="Bugün 22 Nisan 2025 Salı"
-      title="Günaydın,"
-    >
-      <KpiRow />
+    <DealerShell {...SHELL_PROPS}>
+      <KpiRow kpis={data.kpis} />
 
       <div className="mt-5 grid grid-cols-3 gap-5">
-        <PipelineCard />
-        <SegmentCard />
-        <ActivitiesCard />
+        <PipelineCard funnel={data.funnel} />
+        <SegmentCard segments={data.segments} />
+        <ActivitiesCard activities={data.activities} />
       </div>
 
       <div className="mt-5 grid grid-cols-3 gap-5">
-        <PopularVehiclesCard />
-        <PerformanceCard />
+        <PopularVehiclesCard vehicles={popularVehicles} />
+        <PerformanceCard performance={data.performance} />
         <AnnouncementsCard />
       </div>
     </DealerShell>

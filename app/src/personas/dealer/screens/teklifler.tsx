@@ -17,7 +17,8 @@ import {
   SlidersHorizontal,
   Trophy,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -25,6 +26,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import type { Column, OfferCard } from "@/data/dealer-offers";
+import { useDealerOffers } from "@/queries/dealer-offers";
+import { EmptyState, ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
 import { ScoreRing } from "@/ui/score-ring";
 import { StatCard } from "@/ui/stat-card";
@@ -91,223 +95,18 @@ const KPIS: Kpi[] = [
 // KANBAN BOARD
 // ---------------------------------------------------------------------------
 
-interface OfferCard {
-  amount: string;
-  avatarTone: string;
-  customer: string;
-  id: string;
-  initials: string;
-  status: string;
-  vehicle: string;
-}
+// Column type + seed live in src/data/dealer-offers.ts; rows arrive via
+// useDealerOffers(). The stage filter options are derived from those rows.
 
-interface Column {
-  accent: string;
-  cards: OfferCard[];
-  count: number;
-  dot: string;
+interface StageOption {
   id: string;
   title: string;
-  total: string;
 }
 
-const COLUMNS: Column[] = [
-  {
-    id: "taslak",
-    title: "Taslak",
-    total: "₺1.240.000",
-    count: 7,
-    dot: "bg-ink-muted",
-    accent: "text-ink-soft",
-    cards: [
-      {
-        id: "t1",
-        customer: "A*** Y*******",
-        initials: "AY",
-        avatarTone: "bg-dealer-tint text-dealer-700",
-        vehicle: "Volkswagen Tiguan",
-        amount: "₺1.250.000",
-        status: "Oluşturulma: Bugün 10:24",
-      },
-      {
-        id: "t2",
-        customer: "M*** K******",
-        initials: "MK",
-        avatarTone: "bg-cust-tint text-cust-600",
-        vehicle: "Peugeot 3008",
-        amount: "₺1.180.000",
-        status: "Oluşturulma: Bugün 09:15",
-      },
-      {
-        id: "t3",
-        customer: "S*** D*******",
-        initials: "SD",
-        avatarTone: "bg-warn-tint text-warn",
-        vehicle: "Toyota Corolla",
-        amount: "₺980.000",
-        status: "Oluşturulma: Dün 16:40",
-      },
-    ],
-  },
-  {
-    id: "gonderildi",
-    title: "Gönderildi",
-    total: "₺3.450.000",
-    count: 12,
-    dot: "bg-dealer",
-    accent: "text-dealer-700",
-    cards: [
-      {
-        id: "g1",
-        customer: "E*** Y*******",
-        initials: "EY",
-        avatarTone: "bg-dealer-tint text-dealer-700",
-        vehicle: "Volkswagen Tiguan",
-        amount: "₺1.250.000",
-        status: "Gönderilme: Bugün 11:30",
-      },
-      {
-        id: "g2",
-        customer: "H*** B*******",
-        initials: "HB",
-        avatarTone: "bg-cust-tint text-cust-600",
-        vehicle: "Honda Civic",
-        amount: "₺890.000",
-        status: "Gönderilme: Dün 14:20",
-      },
-      {
-        id: "g3",
-        customer: "A*** G*******",
-        initials: "AG",
-        avatarTone: "bg-warn-tint text-warn",
-        vehicle: "Renault Clio",
-        amount: "₺650.000",
-        status: "Gönderilme: Dün 11:05",
-      },
-    ],
-  },
-  {
-    id: "goruntulendi",
-    title: "Görüntülendi",
-    total: "₺2.750.000",
-    count: 8,
-    dot: "bg-cust",
-    accent: "text-cust-600",
-    cards: [
-      {
-        id: "v1",
-        customer: "B*** Y*******",
-        initials: "BY",
-        avatarTone: "bg-dealer-tint text-dealer-700",
-        vehicle: "Toyota Corolla",
-        amount: "₺980.000",
-        status: "Görüntülenme: Bugün 09:40",
-      },
-      {
-        id: "v2",
-        customer: "K*** Y*******",
-        initials: "KY",
-        avatarTone: "bg-cust-tint text-cust-600",
-        vehicle: "Peugeot 3008",
-        amount: "₺1.180.000",
-        status: "Görüntülenme: Bugün 08:55",
-      },
-      {
-        id: "v3",
-        customer: "F*** A*******",
-        initials: "FA",
-        avatarTone: "bg-warn-tint text-warn",
-        vehicle: "Opel Astra",
-        amount: "₺790.000",
-        status: "Görüntülenme: Dün 17:10",
-      },
-    ],
-  },
-  {
-    id: "gorusme",
-    title: "Görüşme",
-    total: "₺1.890.000",
-    count: 6,
-    dot: "bg-success",
-    accent: "text-success",
-    cards: [
-      {
-        id: "m1",
-        customer: "M*** T*******",
-        initials: "MT",
-        avatarTone: "bg-dealer-tint text-dealer-700",
-        vehicle: "Honda Civic",
-        amount: "₺890.000",
-        status: "Son Görüşme: Bugün 10:15",
-      },
-      {
-        id: "m2",
-        customer: "D*** Ç*******",
-        initials: "DÇ",
-        avatarTone: "bg-cust-tint text-cust-600",
-        vehicle: "Ford Focus",
-        amount: "₺1.000.000",
-        status: "Son Görüşme: Dün 15:30",
-      },
-    ],
-  },
-  {
-    id: "kabul",
-    title: "Kabul",
-    total: "₺2.470.000",
-    count: 9,
-    dot: "bg-success",
-    accent: "text-success",
-    cards: [
-      {
-        id: "k1",
-        customer: "Ö*** D*******",
-        initials: "ÖD",
-        avatarTone: "bg-dealer-tint text-dealer-700",
-        vehicle: "Toyota Corolla",
-        amount: "₺980.000",
-        status: "Kabul: Bugün 09:50",
-      },
-      {
-        id: "k2",
-        customer: "N*** A*******",
-        initials: "NA",
-        avatarTone: "bg-cust-tint text-cust-600",
-        vehicle: "Skoda Octavia",
-        amount: "₺1.150.000",
-        status: "Kabul: Dün 13:25",
-      },
-    ],
-  },
-  {
-    id: "reddedildi",
-    title: "Reddedildi",
-    total: "₺650.000",
-    count: 6,
-    dot: "bg-danger",
-    accent: "text-danger",
-    cards: [
-      {
-        id: "r1",
-        customer: "N*** O*******",
-        initials: "NO",
-        avatarTone: "bg-dealer-tint text-dealer-700",
-        vehicle: "Renault Clio",
-        amount: "₺650.000",
-        status: "Reddetme: Dün 12:03",
-      },
-      {
-        id: "r2",
-        customer: "T*** K*******",
-        initials: "TK",
-        avatarTone: "bg-cust-tint text-cust-600",
-        vehicle: "Fiat Egea",
-        amount: "₺720.000",
-        status: "Reddetme: 22.04.2025",
-      },
-    ],
-  },
-];
+/** Stage filter options come from the loaded pipeline columns. */
+function buildFilters(columns: Column[]): StageOption[] {
+  return columns.map((c) => ({ id: c.id, title: c.title }));
+}
 
 function columnFooterLabel(col: Column): string {
   if (col.id === "taslak") {
@@ -797,52 +596,55 @@ const SLICES: DonutSlice[] = [
   },
 ];
 
+function DonutTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: DonutSlice }[];
+}) {
+  if (!(active && payload && payload.length > 0)) {
+    return null;
+  }
+  const s = payload[0].payload;
+  return (
+    <div className="rounded-lg border border-line-strong bg-surface px-2.5 py-1.5 shadow-[var(--shadow-pop)]">
+      <div className="text-[11px] text-ink-muted">{s.label}</div>
+      <div className="font-bold text-[13px] text-ink tabular-nums">
+        {s.count} <span className="text-ink-muted">({s.pct})</span>
+      </div>
+    </div>
+  );
+}
+
 function PerformansDonut() {
+  // Old ring: size 168, stroke 22 → centerline r = 73, so the band spans
+  // r ± stroke/2 = 62…84. Mirror that as inner/outer radius here.
   const size = 168;
-  const stroke = 22;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  let acc = 0;
   return (
     <span
       className="relative inline-flex shrink-0 items-center justify-center"
       style={{ width: size, height: size }}
     >
-      <svg
-        aria-hidden="true"
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        width={size}
-      >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          fill="none"
-          r={r}
-          stroke="var(--color-line)"
-          strokeWidth={stroke}
-        />
-        {SLICES.map((s) => {
-          const dash = s.frac * c;
-          const offset = acc * c;
-          acc += s.frac;
-          return (
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              fill="none"
-              key={s.label}
-              r={r}
-              stroke={s.color}
-              strokeDasharray={`${dash - 3} ${c - dash + 3}`}
-              strokeDashoffset={-offset}
-              strokeWidth={stroke}
-              transform={`rotate(-90 ${size / 2} ${size / 2})`}
-            />
-          );
-        })}
-      </svg>
-      <span className="absolute flex flex-col items-center">
+      <ResponsiveContainer height={size} width={size}>
+        <PieChart>
+          <Pie
+            data={SLICES}
+            dataKey="frac"
+            innerRadius={62}
+            nameKey="label"
+            outerRadius={84}
+            paddingAngle={2}
+            stroke="none"
+          >
+            {SLICES.map((s) => (
+              <Cell fill={s.color} key={s.label} />
+            ))}
+          </Pie>
+          <Tooltip content={<DonutTooltip />} />
+        </PieChart>
+      </ResponsiveContainer>
+      <span className="pointer-events-none absolute flex flex-col items-center">
         <span className="text-[11px] text-ink-muted">Toplam Teklif</span>
         <span className="font-bold text-[28px] text-ink leading-8 tracking-tight">
           48
@@ -893,13 +695,16 @@ function TeklifPerformansiCard() {
 // ---------------------------------------------------------------------------
 
 export function DealerTeklifler() {
+  const { data, isPending, isError, refetch } = useDealerOffers();
+  const columns = useMemo(() => data ?? [], [data]);
+
   const [sortBy, setSortBy] = useState<SortKey>("guncelleme");
-  const [stages, setStages] = useState<Set<string>>(
-    () => new Set(COLUMNS.map((c) => c.id))
-  );
+  // `null` = every stage selected (default); a Set narrows the selection.
+  const [stages, setStages] = useState<Set<string> | null>(null);
+  const isStageOn = (id: string) => stages === null || stages.has(id);
   const toggleStage = (id: string) =>
     setStages((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev ?? columns.map((c) => c.id));
       if (next.has(id)) {
         next.delete(id);
       } else {
@@ -908,10 +713,14 @@ export function DealerTeklifler() {
       return next;
     });
   const [view, setView] = useState<"kanban" | "liste">("kanban");
-  const shownColumns = COLUMNS.filter((c) => stages.has(c.id)).map((c) => ({
-    ...c,
-    cards: sortCards(c.cards, sortBy),
-  }));
+
+  const stageOptions = useMemo(() => buildFilters(columns), [columns]);
+  const shownColumns = columns
+    .filter((c) => isStageOn(c.id))
+    .map((c) => ({
+      ...c,
+      cards: sortCards(c.cards, sortBy),
+    }));
   const listRows: ListRow[] = sortCards(
     shownColumns.flatMap((c) =>
       c.cards.map((card) => ({
@@ -923,6 +732,33 @@ export function DealerTeklifler() {
     ),
     sortBy
   );
+
+  function renderBoard() {
+    if (isPending) {
+      return <LoadingState label="Teklifler yükleniyor…" />;
+    }
+    if (isError) {
+      return (
+        <ErrorState
+          label="Teklifler yüklenemedi."
+          onRetry={() => refetch()}
+        />
+      );
+    }
+    if (shownColumns.length === 0) {
+      return <EmptyState label="Seçili aşamalarda teklif bulunmuyor." />;
+    }
+    if (view === "kanban") {
+      return (
+        <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+          {shownColumns.map((col) => (
+            <KanbanColumn col={col} key={col.id} />
+          ))}
+        </div>
+      );
+    }
+    return <ListView rows={listRows} />;
+  }
 
   return (
     <DealerShell
@@ -1021,13 +857,13 @@ export function DealerTeklifler() {
                 Aşamalar
               </div>
               <div className="flex flex-col gap-2">
-                {COLUMNS.map((c) => (
+                {stageOptions.map((c) => (
                   <div
                     className="flex items-center gap-2.5 text-[13px] text-ink-soft"
                     key={c.id}
                   >
                     <Checkbox
-                      checked={stages.has(c.id)}
+                      checked={isStageOn(c.id)}
                       id={`stage-${c.id}`}
                       onCheckedChange={() => toggleStage(c.id)}
                     />
@@ -1043,15 +879,7 @@ export function DealerTeklifler() {
       </div>
 
       {/* BOARD / LIST */}
-      {view === "kanban" ? (
-        <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-          {shownColumns.map((col) => (
-            <KanbanColumn col={col} key={col.id} />
-          ))}
-        </div>
-      ) : (
-        <ListView rows={listRows} />
-      )}
+      {renderBoard()}
 
       {/* BOTTOM ROW */}
       <div className="mt-6 grid grid-cols-[1.15fr_1.15fr_1fr] gap-5">
