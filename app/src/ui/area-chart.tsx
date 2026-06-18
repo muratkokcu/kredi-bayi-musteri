@@ -1,10 +1,19 @@
 import { useId } from "react";
+import {
+  Area,
+  AreaChart as RechartsAreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 interface Props {
   color?: string;
   data: number[];
   height?: number;
-  /** index of the point to highlight with a tooltip */
+  /** Accepted for API compatibility; Recharts shows an interactive tooltip. */
   highlight?: number;
   highlightLabel?: string;
   highlightValue?: string;
@@ -12,162 +21,90 @@ interface Props {
   yTicks?: string[];
 }
 
-/** Lightweight hand-drawn area chart (SVG) for pixel control. */
+/** Compact axis/tooltip number, e.g. 42000 → "42K", 1.25M → "1,3M". */
+function compact(value: number): string {
+  if (Math.abs(value) >= 1_000_000) {
+    return `${(value / 1_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })}M`;
+  }
+  if (Math.abs(value) >= 1000) {
+    return `${Math.round(value / 1000)}K`;
+  }
+  return value.toLocaleString("tr-TR");
+}
+
+function ChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  label?: string;
+  payload?: { value: number }[];
+}) {
+  if (!(active && payload && payload.length > 0)) {
+    return null;
+  }
+  return (
+    <div className="rounded-lg border border-line-strong bg-surface px-2.5 py-1.5 shadow-[var(--shadow-pop)]">
+      <div className="text-[11px] text-ink-muted">{label}</div>
+      <div className="font-bold text-[13px] text-ink tabular-nums">
+        {compact(payload[0].value)}
+      </div>
+    </div>
+  );
+}
+
+/** Interactive area chart (Recharts), tokenized to match the design. */
 export function AreaChart({
   data,
   labels,
   height = 200,
-  highlight,
-  highlightLabel,
-  highlightValue,
-  yTicks = ["50K", "40K", "30K", "20K", "10K"],
   color = "var(--color-bank)",
 }: Props) {
   const id = useId();
-  const w = 1000;
-  const padL = 42;
-  const padR = 12;
-  const padT = 14;
-  const padB = 26;
-  const plotW = w - padL - padR;
-  const plotH = height - padT - padB;
-
-  const max = Math.max(...data) * 1.12;
-  const min = 0;
-  const x = (i: number) => padL + (plotW * i) / (data.length - 1);
-  const y = (v: number) => padT + plotH - (plotH * (v - min)) / (max - min);
-
-  const line = data
-    .map((d, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(d)}`)
-    .join(" ");
-  const area = `${line} L ${x(data.length - 1)} ${padT + plotH} L ${x(0)} ${padT + plotH} Z`;
+  const gradId = `area-grad-${id}`;
+  const chartData = data.map((value, i) => ({ label: labels[i] ?? "", value }));
 
   return (
-    <svg
-      aria-hidden="true"
-      className="w-full"
-      style={{ height }}
-      viewBox={`0 0 ${w} ${height}`}
-    >
-      <defs>
-        <linearGradient id={`g-${id}`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity={0.22} />
-          <stop offset="100%" stopColor={color} stopOpacity={0} />
-        </linearGradient>
-      </defs>
-
-      {/* horizontal gridlines + y labels */}
-      {yTicks.map((t, i) => {
-        const gy = padT + (plotH * i) / (yTicks.length - 1);
-        return (
-          <g key={t}>
-            <line
-              stroke="var(--color-line)"
-              strokeWidth={1}
-              x1={padL}
-              x2={w - padR}
-              y1={gy}
-              y2={gy}
-            />
-            <text
-              fill="var(--color-ink-muted)"
-              fontSize={13}
-              textAnchor="end"
-              x={padL - 10}
-              y={gy + 4}
-            >
-              {t}
-            </text>
-          </g>
-        );
-      })}
-
-      <path d={area} fill={`url(#g-${id})`} />
-      <path
-        d={line}
-        fill="none"
-        stroke={color}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2.5}
-      />
-
-      {/* data-point markers */}
-      {data.map((d, i) => {
-        const cx = x(i);
-        return (
-          <circle
-            cx={cx}
-            cy={y(d)}
-            fill="#fff"
-            key={cx}
-            r={3.5}
-            stroke={color}
-            strokeWidth={2}
-          />
-        );
-      })}
-
-      {/* x labels */}
-      {labels.map((l, i) => (
-        <text
-          fill="var(--color-ink-muted)"
-          fontSize={13}
-          key={l}
-          textAnchor="middle"
-          x={x(i)}
-          y={height - 6}
-        >
-          {l}
-        </text>
-      ))}
-
-      {/* highlight point + tooltip */}
-      {highlight != null && (
-        <>
-          <line
-            stroke="var(--color-line-strong)"
-            strokeDasharray="4 4"
-            x1={x(highlight)}
-            x2={x(highlight)}
-            y1={padT}
-            y2={padT + plotH}
-          />
-          <circle
-            cx={x(highlight)}
-            cy={y(data[highlight])}
-            fill="#fff"
-            r={5}
-            stroke={color}
-            strokeWidth={3}
-          />
-          {highlightValue && (
-            <g
-              transform={`translate(${x(highlight) - 56}, ${y(data[highlight]) - 58})`}
-            >
-              <rect
-                fill="#fff"
-                height={42}
-                rx={9}
-                stroke="var(--color-line-strong)"
-                width={112}
-              />
-              <text fill="var(--color-ink-muted)" fontSize={12} x={14} y={18}>
-                {highlightLabel}
-              </text>
-              <text
-                fill="var(--color-ink)"
-                fontSize={15}
-                fontWeight={700}
-                x={14}
-                y={34}
-              >
-                {highlightValue}
-              </text>
-            </g>
-          )}
-        </>
-      )}
-    </svg>
+    <ResponsiveContainer height={height} width="100%">
+      <RechartsAreaChart
+        data={chartData}
+        margin={{ top: 14, right: 12, bottom: 0, left: -8 }}
+      >
+        <defs>
+          <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.22} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke="var(--color-line)" vertical={false} />
+        <XAxis
+          axisLine={false}
+          dataKey="label"
+          tick={{ fill: "var(--color-ink-muted)", fontSize: 12 }}
+          tickLine={false}
+        />
+        <YAxis
+          axisLine={false}
+          tick={{ fill: "var(--color-ink-muted)", fontSize: 12 }}
+          tickFormatter={compact}
+          tickLine={false}
+          width={44}
+        />
+        <Tooltip
+          content={<ChartTooltip />}
+          cursor={{ stroke: "var(--color-line-strong)", strokeDasharray: "4 4" }}
+        />
+        <Area
+          activeDot={{ fill: "#fff", r: 5, stroke: color, strokeWidth: 3 }}
+          dataKey="value"
+          dot={{ fill: "#fff", r: 3, stroke: color, strokeWidth: 2 }}
+          fill={`url(#${gradId})`}
+          stroke={color}
+          strokeWidth={2.5}
+          type="monotone"
+        />
+      </RechartsAreaChart>
+    </ResponsiveContainer>
   );
 }
