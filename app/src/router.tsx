@@ -5,42 +5,186 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
-import type { FC } from "react";
+import { type FC, lazy, Suspense } from "react";
 import { PersonaSwitcher } from "./persona-switcher";
 import { BANK_NAV } from "./personas/bank/bank-shell";
-import { BankBayiYonetimi } from "./personas/bank/screens/bayi-yonetimi";
-import { BankBildirimAyarlari } from "./personas/bank/screens/bildirim-ayarlari";
-import { BankDashboard } from "./personas/bank/screens/dashboard";
-import { BankMusteriDetay } from "./personas/bank/screens/musteri-detay";
-import { BankMusteriPortfoyu } from "./personas/bank/screens/musteri-portfoyu";
 import { BankPlaceholder } from "./personas/bank/screens/placeholder";
-import { BankPortfoyImport } from "./personas/bank/screens/portfoy-import";
-import { BankRaporlar } from "./personas/bank/screens/raporlar";
-import { BankYenilemeSkoru } from "./personas/bank/screens/yenileme-skoru";
 import { CUSTOMER_TABS } from "./personas/customer/mobile-shell";
-import { CustomerAnaSayfa } from "./personas/customer/screens/ana-sayfa";
-import { CustomerAracTercihlerim } from "./personas/customer/screens/arac-tercihlerim";
-import { CustomerBasvuruDurumu } from "./personas/customer/screens/basvuru-durumu";
-import { CustomerOdemePlani } from "./personas/customer/screens/odeme-plani";
 import { CustomerPlaceholder } from "./personas/customer/screens/placeholder";
-import { CustomerSimulator } from "./personas/customer/screens/simulator";
-import { CustomerTeklifDetayi } from "./personas/customer/screens/teklif-detayi";
-import { CustomerTekliflerim } from "./personas/customer/screens/tekliflerim";
 import { DEALER_NAV } from "./personas/dealer/dealer-shell";
-import { DealerDashboard } from "./personas/dealer/screens/ana-sayfa";
-import { DealerAracDetay } from "./personas/dealer/screens/arac-detay";
-import { DealerFirsatHavuzu } from "./personas/dealer/screens/firsat-havuzu";
-import { DealerMusteriDetay } from "./personas/dealer/screens/musteri-detay";
-import { DealerPerformans } from "./personas/dealer/screens/performans";
 import { DealerPlaceholder } from "./personas/dealer/screens/placeholder";
-import { DealerStok } from "./personas/dealer/screens/stok";
-import { DealerTeklifOlustur } from "./personas/dealer/screens/teklif-olustur";
-import { DealerTeklifler } from "./personas/dealer/screens/teklifler";
+import { LoadingState } from "./ui/async-states";
+
+/**
+ * Screens are lazy-loaded so each persona's screens land in their own chunks,
+ * fetched on navigation. This keeps the initial bundle small (route-based code
+ * splitting). Placeholders + nav metadata stay static (tiny, always needed).
+ */
+const BankDashboard = lazy(() =>
+  import("./personas/bank/screens/dashboard").then((m) => ({
+    default: m.BankDashboard,
+  }))
+);
+const BankMusteriPortfoyu = lazy(() =>
+  import("./personas/bank/screens/musteri-portfoyu").then((m) => ({
+    default: m.BankMusteriPortfoyu,
+  }))
+);
+const BankYenilemeSkoru = lazy(() =>
+  import("./personas/bank/screens/yenileme-skoru").then((m) => ({
+    default: m.BankYenilemeSkoru,
+  }))
+);
+const BankBayiYonetimi = lazy(() =>
+  import("./personas/bank/screens/bayi-yonetimi").then((m) => ({
+    default: m.BankBayiYonetimi,
+  }))
+);
+const BankPortfoyImport = lazy(() =>
+  import("./personas/bank/screens/portfoy-import").then((m) => ({
+    default: m.BankPortfoyImport,
+  }))
+);
+const BankBildirimAyarlari = lazy(() =>
+  import("./personas/bank/screens/bildirim-ayarlari").then((m) => ({
+    default: m.BankBildirimAyarlari,
+  }))
+);
+const BankRaporlar = lazy(() =>
+  import("./personas/bank/screens/raporlar").then((m) => ({
+    default: m.BankRaporlar,
+  }))
+);
+const BankMusteriDetay = lazy(() =>
+  import("./personas/bank/screens/musteri-detay").then((m) => ({
+    default: m.BankMusteriDetay,
+  }))
+);
+const BankBayiDetay = lazy(() =>
+  import("./personas/bank/screens/bayi-detay").then((m) => ({
+    default: m.BankBayiDetay,
+  }))
+);
+
+const DealerDashboard = lazy(() =>
+  import("./personas/dealer/screens/ana-sayfa").then((m) => ({
+    default: m.DealerDashboard,
+  }))
+);
+const DealerFirsatHavuzu = lazy(() =>
+  import("./personas/dealer/screens/firsat-havuzu").then((m) => ({
+    default: m.DealerFirsatHavuzu,
+  }))
+);
+const DealerTeklifler = lazy(() =>
+  import("./personas/dealer/screens/teklifler").then((m) => ({
+    default: m.DealerTeklifler,
+  }))
+);
+const DealerStok = lazy(() =>
+  import("./personas/dealer/screens/stok").then((m) => ({
+    default: m.DealerStok,
+  }))
+);
+const DealerMusteriler = lazy(() =>
+  import("./personas/dealer/screens/musterilerim").then((m) => ({
+    default: m.DealerMusteriler,
+  }))
+);
+const DealerPerformans = lazy(() =>
+  import("./personas/dealer/screens/performans").then((m) => ({
+    default: m.DealerPerformans,
+  }))
+);
+const DealerKomisyonlar = lazy(() =>
+  import("./personas/dealer/screens/komisyonlar").then((m) => ({
+    default: m.DealerKomisyonlar,
+  }))
+);
+const DealerBildirimler = lazy(() =>
+  import("./personas/dealer/screens/bildirimler").then((m) => ({
+    default: m.DealerBildirimler,
+  }))
+);
+const DealerAyarlar = lazy(() =>
+  import("./personas/dealer/screens/ayarlar").then((m) => ({
+    default: m.DealerAyarlar,
+  }))
+);
+const DealerAracDetay = lazy(() =>
+  import("./personas/dealer/screens/arac-detay").then((m) => ({
+    default: m.DealerAracDetay,
+  }))
+);
+const DealerTeklifOlustur = lazy(() =>
+  import("./personas/dealer/screens/teklif-olustur").then((m) => ({
+    default: m.DealerTeklifOlustur,
+  }))
+);
+const DealerMusteriDetay = lazy(() =>
+  import("./personas/dealer/screens/musteri-detay").then((m) => ({
+    default: m.DealerMusteriDetay,
+  }))
+);
+
+const CustomerAnaSayfa = lazy(() =>
+  import("./personas/customer/screens/ana-sayfa").then((m) => ({
+    default: m.CustomerAnaSayfa,
+  }))
+);
+const CustomerTekliflerim = lazy(() =>
+  import("./personas/customer/screens/tekliflerim").then((m) => ({
+    default: m.CustomerTekliflerim,
+  }))
+);
+const CustomerSimulator = lazy(() =>
+  import("./personas/customer/screens/simulator").then((m) => ({
+    default: m.CustomerSimulator,
+  }))
+);
+const CustomerBildirimler = lazy(() =>
+  import("./personas/customer/screens/bildirimler").then((m) => ({
+    default: m.CustomerBildirimler,
+  }))
+);
+const CustomerProfil = lazy(() =>
+  import("./personas/customer/screens/profil").then((m) => ({
+    default: m.CustomerProfil,
+  }))
+);
+const CustomerTeklifDetayi = lazy(() =>
+  import("./personas/customer/screens/teklif-detayi").then((m) => ({
+    default: m.CustomerTeklifDetayi,
+  }))
+);
+const CustomerAracTercihlerim = lazy(() =>
+  import("./personas/customer/screens/arac-tercihlerim").then((m) => ({
+    default: m.CustomerAracTercihlerim,
+  }))
+);
+const CustomerOdemePlani = lazy(() =>
+  import("./personas/customer/screens/odeme-plani").then((m) => ({
+    default: m.CustomerOdemePlani,
+  }))
+);
+const CustomerBasvuruDurumu = lazy(() =>
+  import("./personas/customer/screens/basvuru-durumu").then((m) => ({
+    default: m.CustomerBasvuruDurumu,
+  }))
+);
 
 function RootLayout() {
   return (
     <>
-      <Outlet />
+      <Suspense
+        fallback={
+          <div className="flex min-h-screen items-center justify-center bg-canvas">
+            <LoadingState />
+          </div>
+        }
+      >
+        <Outlet />
+      </Suspense>
       <PersonaSwitcher />
     </>
   );
@@ -57,13 +201,17 @@ const BANK_SCREENS: Record<string, FC> = {
   "/banka/raporlar": BankRaporlar,
 };
 
-/** Implemented dealer screens keyed by route path (filled in as built). */
+/** Implemented dealer screens keyed by route path. */
 const DEALER_SCREENS: Record<string, FC> = {
   "/bayi/ana-sayfa": DealerDashboard,
   "/bayi/firsat-havuzu": DealerFirsatHavuzu,
   "/bayi/teklifler": DealerTeklifler,
   "/bayi/stok": DealerStok,
+  "/bayi/musteriler": DealerMusteriler,
   "/bayi/performans": DealerPerformans,
+  "/bayi/komisyonlar": DealerKomisyonlar,
+  "/bayi/bildirimler": DealerBildirimler,
+  "/bayi/ayarlar": DealerAyarlar,
 };
 
 /** Implemented customer (mobile) screens keyed by route path. */
@@ -71,6 +219,8 @@ const CUSTOMER_SCREENS: Record<string, FC> = {
   "/musteri/ana-sayfa": CustomerAnaSayfa,
   "/musteri/tekliflerim": CustomerTekliflerim,
   "/musteri/simulator": CustomerSimulator,
+  "/musteri/bildirimler": CustomerBildirimler,
+  "/musteri/profil": CustomerProfil,
 };
 
 const rootRoute = createRootRoute({ component: RootLayout });
@@ -111,10 +261,10 @@ const customerTabRoutes = CUSTOMER_TABS.map((tab) =>
   })
 );
 
-// Sub-pages not present in primary nav. Customer sub-pages start as placeholders
-// (filled in by the customer screen workflow).
+// Sub-pages not present in primary nav.
 const subPages = [
   { path: "/banka/musteri-detay", component: BankMusteriDetay },
+  { path: "/banka/bayi-detay", component: BankBayiDetay },
   { path: "/bayi/arac-detay", component: DealerAracDetay },
   { path: "/bayi/teklif-olustur", component: DealerTeklifOlustur },
   { path: "/bayi/musteri-detay", component: DealerMusteriDetay },
