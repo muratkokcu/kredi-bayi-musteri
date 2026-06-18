@@ -1,0 +1,34 @@
+/**
+ * Central query-key factory. One place to look up / invalidate keys so they
+ * never drift across hooks (roadmap 0.3). One flat entry per hook.
+ */
+export const queryKeys = {
+  applicationStatus: ["application-status"] as const,
+  bankDashboard: ["bank-dashboard"] as const,
+  commissions: ["commissions"] as const,
+  customerDetail: ["customer-detail"] as const,
+  customerHome: ["customer-home"] as const,
+  customerNotifications: ["customer-notifications"] as const,
+  customerProfile: ["customer-profile"] as const,
+  customers: ["customers", "list"] as const,
+  dealerCustomerDetail: ["dealer-customer-detail"] as const,
+  dealerCustomers: ["dealer-customers"] as const,
+  dealerDetail: ["dealer-detail"] as const,
+  dealerHome: ["dealer-home"] as const,
+  dealerNotifications: ["dealer-notifications"] as const,
+  dealerOffers: ["dealer-offers"] as const,
+  dealerPerformance: ["dealer-performance"] as const,
+  dealerProfile: ["dealer-profile"] as const,
+  dealers: ["dealers", "list"] as const,
+  importHistory: ["import-history"] as const,
+  myOffers: ["my-offers"] as const,
+  notificationRules: ["notification-rules"] as const,
+  offerDetail: ["offer-detail"] as const,
+  offerVehicles: ["offer-vehicles"] as const,
+  opportunities: ["opportunities"] as const,
+  reports: ["reports"] as const,
+  scoreDistribution: ["score-distribution"] as const,
+  stock: ["stock"] as const,
+  vehicleDetail: ["vehicle-detail"] as const,
+  vehiclePreferences: ["vehicle-preferences"] as const,
+} as const;

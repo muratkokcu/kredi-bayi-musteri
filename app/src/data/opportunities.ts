@@ -1,0 +1,161 @@
+/**
+ * Dealer-side opportunity pool — seed data extracted from the opportunity-pool
+ * screen (rollout). Served via src/services/opportunities.
+ */
+export interface Opportunity {
+  avatarTone: string;
+  bitis: string;
+  butce: string;
+  id: string;
+  initials: string;
+  kalanGun: number;
+  paid: number;
+  segment: string;
+  skor: number;
+  total: number;
+  vehicle: string;
+  vehicleSub: string;
+}
+
+export const OPPORTUNITIES: Opportunity[] = [
+  {
+    id: "MST-08412",
+    initials: "08",
+    avatarTone: "bg-dealer-tint text-dealer-700",
+    vehicle: "BMW 3 Serisi",
+    vehicleSub: "2021 · 320i",
+    bitis: "15.08.2025",
+    kalanGun: 28,
+    paid: 8,
+    total: 36,
+    skor: 92,
+    butce: "₺1.8M - ₺2.4M",
+    segment: "SUV",
+  },
+  {
+    id: "MST-07733",
+    initials: "07",
+    avatarTone: "bg-cust-tint text-cust-600",
+    vehicle: "Volkswagen Passat",
+    vehicleSub: "2020 · 1.5 TSI",
+    bitis: "03.09.2025",
+    kalanGun: 47,
+    paid: 14,
+    total: 48,
+    skor: 88,
+    butce: "₺1.5M - ₺2.0M",
+    segment: "Sedan",
+  },
+  {
+    id: "MST-09187",
+    initials: "09",
+    avatarTone: "bg-warn-tint text-warn",
+    vehicle: "Renault Megane",
+    vehicleSub: "2019 · 1.5 dCi",
+    bitis: "28.07.2025",
+    kalanGun: 19,
+    paid: 30,
+    total: 36,
+    skor: 84,
+    butce: "₺1.0M - ₺1.4M",
+    segment: "Hatchback",
+  },
+  {
+    id: "MST-06120",
+    initials: "06",
+    avatarTone: "bg-bank-tint text-bank-700",
+    vehicle: "Ford Focus",
+    vehicleSub: "2021 · 1.5 EcoBoost",
+    bitis: "11.10.2025",
+    kalanGun: 84,
+    paid: 22,
+    total: 48,
+    skor: 79,
+    butce: "₺1.2M - ₺1.6M",
+    segment: "SUV",
+  },
+  {
+    id: "MST-05512",
+    initials: "05",
+    avatarTone: "bg-dealer-tint text-dealer-700",
+    vehicle: "Toyota Corolla",
+    vehicleSub: "2021 · 1.8 Hybrid",
+    bitis: "05.08.2025",
+    kalanGun: 35,
+    paid: 26,
+    total: 36,
+    skor: 76,
+    butce: "₺1.3M - ₺1.7M",
+    segment: "Sedan",
+  },
+  {
+    id: "MST-04521",
+    initials: "04",
+    avatarTone: "bg-cust-tint text-cust-600",
+    vehicle: "Hyundai i20",
+    vehicleSub: "2020 · 1.0 T-GDI",
+    bitis: "19.07.2025",
+    kalanGun: 12,
+    paid: 31,
+    total: 36,
+    skor: 71,
+    butce: "₺0.9M - ₺1.3M",
+    segment: "Hatchback",
+  },
+  {
+    id: "MST-09787",
+    initials: "09",
+    avatarTone: "bg-warn-tint text-warn",
+    vehicle: "Mercedes-Benz C Serisi",
+    vehicleSub: "2022 · C 200",
+    bitis: "27.08.2025",
+    kalanGun: 41,
+    paid: 18,
+    total: 48,
+    skor: 67,
+    butce: "₺2.4M - ₺3.2M",
+    segment: "SUV",
+  },
+  {
+    id: "MST-01245",
+    initials: "01",
+    avatarTone: "bg-bank-tint text-bank-700",
+    vehicle: "Audi A4",
+    vehicleSub: "2022 · 40 TDI",
+    bitis: "12.12.2025",
+    kalanGun: 132,
+    paid: 12,
+    total: 60,
+    skor: 63,
+    butce: "₺2.0M - ₺2.8M",
+    segment: "Sedan",
+  },
+  {
+    id: "MST-02984",
+    initials: "02",
+    avatarTone: "bg-dealer-tint text-dealer-700",
+    vehicle: "Peugeot 308",
+    vehicleSub: "2020 · 1.5 BlueHDi",
+    bitis: "02.09.2025",
+    kalanGun: 46,
+    paid: 24,
+    total: 48,
+    skor: 58,
+    butce: "₺1.1M - ₺1.5M",
+    segment: "Hatchback",
+  },
+  {
+    id: "MST-01190",
+    initials: "01",
+    avatarTone: "bg-cust-tint text-cust-600",
+    vehicle: "Fiat Egea",
+    vehicleSub: "2019 · 1.6 D Multijet",
+    bitis: "21.07.2025",
+    kalanGun: 14,
+    paid: 33,
+    total: 36,
+    skor: 54,
+    butce: "₺0.7M - ₺1.0M",
+    segment: "Sedan",
+  },
+];
