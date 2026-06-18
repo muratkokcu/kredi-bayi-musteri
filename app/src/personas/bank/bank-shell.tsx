@@ -17,6 +17,7 @@ import {
   Users2,
 } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
+import quickFinansLogo from "@/assets/quick-finans-logo.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,30 +64,16 @@ export const BANK_NAV = [
 
 function Logo() {
   return (
-    <div className="flex items-center gap-2.5 px-5 pt-5">
-      <div className="flex size-9 items-center justify-center rounded-[10px] bg-bank">
-        <svg
-          aria-hidden="true"
-          fill="none"
-          height="20"
-          viewBox="0 0 24 24"
-          width="20"
-        >
-          <path d="M12 2 22 12 12 22 2 12Z" stroke="#fff" strokeWidth="1.6" />
-          <path
-            d="M12 6.5 17.5 12 12 17.5 6.5 12Z"
-            stroke="#fff"
-            strokeWidth="1.6"
-          />
-        </svg>
-      </div>
-      <div className="leading-none">
-        <div className="font-bold text-[15px] text-ink tracking-tight">
-          BANKA
-        </div>
-        <div className="mt-1 font-semibold text-[9px] text-ink-muted tracking-[0.12em]">
-          YENİLEME PLATFORMU
-        </div>
+    <div className="px-5 pt-5">
+      <img
+        alt="QuickFinans"
+        className="h-7 w-auto"
+        height={28}
+        src={quickFinansLogo}
+        width={132}
+      />
+      <div className="mt-1.5 font-semibold text-[9px] text-ink-muted tracking-[0.12em]">
+        YENİLEME PLATFORMU
       </div>
     </div>
   );
@@ -233,7 +220,7 @@ function Topbar({
   info,
   actions,
 }: {
-  breadcrumb?: string[];
+  breadcrumb?: readonly string[];
   title: string;
   highlight?: string;
   subtitle?: string;
@@ -287,7 +274,7 @@ export function BankShell({
   actions,
   children,
 }: {
-  breadcrumb?: string[];
+  breadcrumb?: readonly string[];
   title: string;
   highlight?: string;
   subtitle?: string;

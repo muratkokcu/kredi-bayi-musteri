@@ -7,179 +7,67 @@ import {
   CreditCard,
   FileText,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { lazy, type ReactNode, Suspense } from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Reports, ReportSegment } from "@/data/reports";
+import type { Bolge } from "@/data/turkiye-bolge";
+import { useReports } from "@/queries/reports";
 import { AreaChart } from "@/ui/area-chart";
+import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
 import { FunnelChart } from "@/ui/funnel-chart";
 import { ScoreRing } from "@/ui/score-ring";
 import { StatCard } from "@/ui/stat-card";
 import { BankShell } from "../bank-shell";
 
-interface Kpi {
-  delta: string;
-  icon: ReactNode;
-  label: string;
-  tone: "bank" | "dealer" | "cust" | "warn" | "teal";
-  value: string;
-}
+// Lazy-loaded so the Türkiye GeoJSON + d3-geo land in a separate chunk,
+// fetched only when Raporlar is opened (keeps them out of the main bundle).
+const TurkeyChoropleth = lazy(() =>
+  import("@/ui/turkey-choropleth").then((m) => ({
+    default: m.TurkeyChoropleth,
+  }))
+);
 
-const KPIS: Kpi[] = [
-  {
+// Report figures (KPIs, trend, segments, funnel, dealers, regions, period) are
+// server data fetched via useReports(); see src/data/reports.ts. Presentation
+// below (KPI icons/tones, segment chart colors, tab labels) stays inline.
+
+/** KPI icon + tone, keyed by label and merged onto the fetched KPI rows. */
+const KPI_PRESENTATION: Record<
+  string,
+  { icon: ReactNode; tone: "bank" | "dealer" | "cust" | "warn" | "teal" }
+> = {
+  "Yenileme Oranı": {
     icon: <ScoreRing showValue={false} size={26} stroke={4} value={33} />,
-    label: "Yenileme Oranı",
-    value: "%32,6",
-    delta: "%4,3",
     tone: "teal",
   },
-  {
+  "Toplam Uygun Müşteri": {
     icon: <Car size={20} strokeWidth={1.9} />,
-    label: "Toplam Uygun Müşteri",
-    value: "18.492",
-    delta: "%12,4",
     tone: "bank",
   },
-  {
+  "Teklif Gönderilen": {
     icon: <FileText size={20} strokeWidth={1.9} />,
-    label: "Teklif Gönderilen",
-    value: "6.842",
-    delta: "%8,7",
     tone: "warn",
   },
-  {
+  "Kabul Edilen": {
     icon: <CircleCheck size={20} strokeWidth={1.9} />,
-    label: "Kabul Edilen",
-    value: "2.231",
-    delta: "%9,1",
     tone: "cust",
   },
-  {
+  "Toplam Hacim": {
     icon: <CreditCard size={20} strokeWidth={1.9} />,
-    label: "Toplam Hacim",
-    value: "₺1,28 Milyar",
-    delta: "%15,6",
     tone: "dealer",
   },
-];
+};
 
-const TREND_LABELS = [
-  "May 2024",
-  "Haz 2024",
-  "Tem 2024",
-  "Ağu 2024",
-  "Eyl 2024",
-  "Eki 2024",
-  "Kas 2024",
-  "Ara 2024",
-  "Oca 2025",
-  "Şub 2025",
-  "Mar 2025",
-  "Nis 2025",
-];
-
-const TREND_DATA = [24, 25, 23, 27, 26, 28, 29, 27, 30, 31, 32, 32.6];
-
-const TREND_TICKS = ["%40", "%30", "%20", "%10", "%0"];
-
-interface SegmentRow {
-  color: string;
-  label: string;
-  value: string;
-}
-
-const SEGMENTS: SegmentRow[] = [
-  { label: "SUV", value: "%38,2", color: "var(--color-bank)" },
-  { label: "Sedan", value: "%31,4", color: "var(--color-dealer)" },
-  { label: "Hatchback", value: "%27,1", color: "#f59e0b" },
-  { label: "MPV", value: "%24,8", color: "#f59e0b" },
-  { label: "Diğer", value: "%18,3", color: "var(--color-cust)" },
-];
-
-const FUNNEL_STAGES = [
-  { label: "Uygun Müşteri", value: "18.492", pct: "%100", frac: 1 },
-  { label: "İletişime Geçilen", value: "9.842", pct: "%53,2", frac: 0.78 },
-  { label: "Teklif Gönderilen", value: "6.842", pct: "%36,9", frac: 0.58 },
-  { label: "Teklif Görüntülenen", value: "3.192", pct: "%17,3", frac: 0.4 },
-  { label: "Kabul Edilen", value: "2.231", pct: "%12,1", frac: 0.26 },
-];
-
-interface BayiRow {
-  ad: string;
-  hacim: string;
-  oran: string;
-  teklif: string;
-}
-
-const BAYILER: BayiRow[] = [
-  { ad: "Doğuş Oto", teklif: "1.248", oran: "%18,7", hacim: "₺285.4 M" },
-  { ad: "Borusan Otomotiv", teklif: "1.102", oran: "%17,3", hacim: "₺238.7 M" },
-  { ad: "Otokoç", teklif: "987", oran: "%16,2", hacim: "₺212.3 M" },
-  { ad: "Groupe PSA", teklif: "765", oran: "%15,8", hacim: "₺162.6 M" },
-  { ad: "Kaya Otomotiv", teklif: "612", oran: "%14,9", hacim: "₺128.9 M" },
-];
-
-interface RegionRow {
-  bolge: string;
-  oran: number;
-}
-
-const REGIONS: RegionRow[] = [
-  { bolge: "Marmara", oran: 48 },
-  { bolge: "Ege", oran: 41 },
-  { bolge: "İç Anadolu", oran: 36 },
-  { bolge: "Akdeniz", oran: 33 },
-  { bolge: "Karadeniz", oran: 24 },
-  { bolge: "Doğu Anadolu", oran: 18 },
-  { bolge: "Güneydoğu Anadolu", oran: 15 },
-];
-
-interface DonemRow {
-  degisim: string;
-  gosterge: string;
-  oncki: string;
-  secili: string;
-}
-
-const DONEM: DonemRow[] = [
-  {
-    gosterge: "Yenileme Oranı",
-    secili: "%32,6",
-    oncki: "%28,3",
-    degisim: "%4,3",
-  },
-  {
-    gosterge: "Uygun Müşteri",
-    secili: "18.492",
-    oncki: "16.446",
-    degisim: "%12,4",
-  },
-  {
-    gosterge: "Teklif Gönderilen",
-    secili: "6.842",
-    oncki: "6.301",
-    degisim: "%8,7",
-  },
-  {
-    gosterge: "Kabul Edilen",
-    secili: "2.231",
-    oncki: "2.045",
-    degisim: "%9,1",
-  },
-  {
-    gosterge: "Toplam Hacim",
-    secili: "₺1,28 Milyar",
-    oncki: "₺1,11 Milyar",
-    degisim: "%15,6",
-  },
-];
-
-const BAYI_ORAN: { ad: string; oran: string; pct: number }[] = [
-  { ad: "Doğuş Oto", oran: "%38,7", pct: 100 },
-  { ad: "Borusan Otomotiv", oran: "%36,1", pct: 93 },
-  { ad: "Otokoç", oran: "%33,4", pct: 86 },
-  { ad: "Groupe PSA", oran: "%31,2", pct: 81 },
-  { ad: "Kaya Otomotiv", oran: "%28,9", pct: 75 },
-];
+/** Segment chart color, keyed by segment label (presentation only). */
+const SEGMENT_COLORS: Record<string, string> = {
+  SUV: "var(--color-bank)",
+  Sedan: "var(--color-dealer)",
+  Hatchback: "#f59e0b",
+  MPV: "#f59e0b",
+  Diğer: "var(--color-cust)",
+};
 
 const TABS = [
   { id: "genel", label: "Genel Bakış" },
@@ -202,12 +90,12 @@ function regionTone(oran: number): string {
   return "bg-bank/20";
 }
 
-function KpiRow() {
+function KpiRow({ kpis }: { kpis: Reports["kpis"] }) {
   return (
     <div className="grid grid-cols-5 gap-4">
-      {KPIS.map((k) => (
+      {kpis.map((k) => (
         <StatCard
-          icon={k.icon}
+          icon={KPI_PRESENTATION[k.label].icon}
           key={k.label}
           label={k.label}
           sub={
@@ -219,7 +107,7 @@ function KpiRow() {
               </span>
             </span>
           }
-          tone={k.tone}
+          tone={KPI_PRESENTATION[k.label].tone}
           value={k.value}
         />
       ))}
@@ -227,55 +115,58 @@ function KpiRow() {
   );
 }
 
-/** Inline hand-drawn donut for segment dağılımı, centered overall figure. */
-function SegmentDonut() {
-  const size = 168;
-  const stroke = 22;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const fracs = [0.27, 0.23, 0.18, 0.17, 0.15];
-  const colors = SEGMENTS.map((s) => s.color);
-  let acc = 0;
+/** Tooltip for the segment donut: segment name + its yenileme oranı value. */
+function DonutTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { name?: string; payload?: { display?: string } }[];
+}) {
+  if (!(active && payload && payload.length > 0)) {
+    return null;
+  }
+  const slice = payload[0];
   return (
-    <span
-      className="relative inline-flex shrink-0 items-center justify-center"
-      style={{ width: size, height: size }}
-    >
-      <svg
-        aria-hidden="true"
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        width={size}
-      >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          fill="none"
-          r={r}
-          stroke="var(--color-line)"
-          strokeWidth={stroke}
-        />
-        {fracs.map((f, i) => {
-          const dash = f * c;
-          const offset = acc * c;
-          acc += f;
-          return (
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              fill="none"
-              key={SEGMENTS[i].label}
-              r={r}
-              stroke={colors[i]}
-              strokeDasharray={`${dash - 3} ${c - dash + 3}`}
-              strokeDashoffset={-offset}
-              strokeWidth={stroke}
-              transform={`rotate(-90 ${size / 2} ${size / 2})`}
-            />
-          );
-        })}
-      </svg>
-      <span className="absolute flex flex-col items-center">
+    <div className="rounded-lg border border-line-strong bg-surface px-2.5 py-1.5 shadow-[var(--shadow-pop)]">
+      <div className="text-[11px] text-ink-muted">{slice.name}</div>
+      <div className="font-bold text-[13px] text-ink tabular-nums">
+        {slice.payload?.display}
+      </div>
+    </div>
+  );
+}
+
+/** Recharts donut for segment dağılımı, centered overall figure. */
+function SegmentDonut({ segments }: { segments: ReportSegment[] }) {
+  // Same proportions as the previous hand-drawn donut.
+  const fracs = [0.27, 0.23, 0.18, 0.17, 0.15];
+  const chartData = segments.map((s, i) => ({
+    name: s.label,
+    value: fracs[i],
+    display: s.value,
+  }));
+
+  return (
+    <div className="relative shrink-0" style={{ width: 168, height: 168 }}>
+      <ResponsiveContainer height={168} width={168}>
+        <PieChart>
+          <Pie
+            data={chartData}
+            dataKey="value"
+            innerRadius={56}
+            outerRadius={80}
+            paddingAngle={2}
+            stroke="none"
+          >
+            {segments.map((s) => (
+              <Cell fill={SEGMENT_COLORS[s.label]} key={s.label} />
+            ))}
+          </Pie>
+          <Tooltip content={<DonutTooltip />} />
+        </PieChart>
+      </ResponsiveContainer>
+      <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
         <span className="font-bold text-[24px] text-ink leading-6 tracking-tight">
           %32,6
         </span>
@@ -283,18 +174,18 @@ function SegmentDonut() {
           Genel Ortalama
         </span>
       </span>
-    </span>
+    </div>
   );
 }
 
-function SegmentCard() {
+function SegmentCard({ segments }: { segments: ReportSegment[] }) {
   return (
     <Card className="pb-5">
       <CardHeader title="Segment Bazlı Yenileme Oranı" />
       <div className="mt-3 flex items-center gap-6 px-5">
-        <SegmentDonut />
+        <SegmentDonut segments={segments} />
         <div className="flex-1">
-          {SEGMENTS.map((s) => (
+          {segments.map((s) => (
             <div
               className="flex items-center justify-between border-line border-b py-2.5 last:border-0"
               key={s.label}
@@ -302,7 +193,7 @@ function SegmentCard() {
               <span className="flex items-center gap-2.5">
                 <span
                   className="size-2.5 rounded-full"
-                  style={{ background: s.color }}
+                  style={{ background: SEGMENT_COLORS[s.label] }}
                 />
                 <span className="text-[13px] text-ink-soft">{s.label}</span>
               </span>
@@ -317,7 +208,13 @@ function SegmentCard() {
   );
 }
 
-function TrendCard({ twoSeries = false }: { twoSeries?: boolean }) {
+function TrendCard({
+  trend,
+  twoSeries = false,
+}: {
+  trend: Reports["trend"];
+  twoSeries?: boolean;
+}) {
   return (
     <Card className="pb-3">
       <CardHeader
@@ -346,31 +243,31 @@ function TrendCard({ twoSeries = false }: { twoSeries?: boolean }) {
       <div className="px-2 pt-2">
         <AreaChart
           color="var(--color-bank)"
-          data={TREND_DATA}
+          data={trend.data}
           height={236}
           highlight={11}
           highlightLabel="Nis 2025"
           highlightValue="%32,6"
-          labels={TREND_LABELS}
-          yTicks={TREND_TICKS}
+          labels={trend.labels}
+          yTicks={trend.ticks}
         />
       </div>
     </Card>
   );
 }
 
-function FunnelCard() {
+function FunnelCard({ funnel }: { funnel: Reports["funnel"] }) {
   return (
     <Card className="pb-5">
       <CardHeader title="Yenileme Hunisi" />
       <div className="mt-4 px-5">
-        <FunnelChart stages={FUNNEL_STAGES} />
+        <FunnelChart stages={funnel} />
       </div>
     </Card>
   );
 }
 
-function BayiTableCard() {
+function BayiTableCard({ bayiler }: { bayiler: Reports["bayiler"] }) {
   return (
     <Card className="pb-5">
       <CardHeader
@@ -388,7 +285,7 @@ function BayiTableCard() {
           <span className="text-right">Kabul Oranı</span>
           <span className="text-right">Yenileme Hacmi</span>
         </div>
-        {BAYILER.map((b) => (
+        {bayiler.map((b) => (
           <div
             className="grid grid-cols-[1.4fr_1fr_1fr_1fr] items-center gap-3 border-line border-b py-3 last:border-0"
             key={b.ad}
@@ -411,46 +308,30 @@ function BayiTableCard() {
 }
 
 /** Styled Türkiye region heatmap placeholder — region list with colored dots. */
-function RegionCard() {
+function RegionCard({ regions }: { regions: Reports["regions"] }) {
+  const ratesByRegion = Object.fromEntries(
+    regions.map((r) => [r.bolge, r.oran])
+  ) as Record<Bolge, number>;
   return (
     <Card className="pb-5">
-      <CardHeader title="Bölge Bazlı Yenileme Oranı" />
+      <CardHeader
+        subtitle="81 il, bağlı olduğu coğrafi bölgenin yenileme oranıyla renklenir."
+        title="Bölge Bazlı Yenileme Oranı"
+      />
       <div className="mt-4 flex gap-5 px-5">
-        <div className="relative flex h-44 flex-1 items-center justify-center overflow-hidden rounded-xl bg-canvas">
-          <svg
-            aria-hidden="true"
-            className="text-bank/30"
-            fill="currentColor"
-            height="120"
-            viewBox="0 0 200 90"
-            width="220"
+        <div className="flex-1">
+          <Suspense
+            fallback={
+              <div className="flex h-44 items-center justify-center rounded-xl bg-canvas text-[12px] text-ink-muted">
+                Harita yükleniyor…
+              </div>
+            }
           >
-            <path d="M14 44 C20 30 40 22 64 24 C80 18 110 16 134 22 C158 20 184 30 192 44 C188 56 168 64 140 62 C120 70 88 70 64 62 C40 64 18 56 14 44 Z" />
-            <circle cx="48" cy="40" fill="var(--color-bank)" r="6" />
-            <circle cx="78" cy="46" fill="var(--color-bank-600)" r="5" />
-            <circle
-              cx="116"
-              cy="42"
-              fill="var(--color-bank)"
-              opacity="0.5"
-              r="5"
-            />
-            <circle
-              cx="150"
-              cy="48"
-              fill="var(--color-bank)"
-              opacity="0.3"
-              r="4"
-            />
-          </svg>
-          <div className="absolute right-3 bottom-3 flex flex-col items-end gap-1 text-[10px] text-ink-muted">
-            <span>%50</span>
-            <span className="h-12 w-2 rounded-full bg-gradient-to-b from-bank to-bank/15" />
-            <span>%10</span>
-          </div>
+            <TurkeyChoropleth ratesByRegion={ratesByRegion} />
+          </Suspense>
         </div>
         <div className="w-[200px] shrink-0">
-          {REGIONS.map((r) => (
+          {regions.map((r) => (
             <div
               className="flex items-center justify-between border-line border-b py-2 last:border-0"
               key={r.bolge}
@@ -472,7 +353,7 @@ function RegionCard() {
   );
 }
 
-function DonemCard() {
+function DonemCard({ donem }: { donem: Reports["donem"] }) {
   return (
     <Card className="pb-5">
       <CardHeader title="Dönemsel Karşılaştırma" />
@@ -483,7 +364,7 @@ function DonemCard() {
           <span className="text-right">Önceki Dönem</span>
           <span className="text-right">Değişim</span>
         </div>
-        {DONEM.map((d) => (
+        {donem.map((d) => (
           <div
             className="grid grid-cols-[1.4fr_1fr_1fr_0.8fr] items-center gap-3 border-line border-b py-3 last:border-0"
             key={d.gosterge}
@@ -508,7 +389,7 @@ function DonemCard() {
   );
 }
 
-function BayiOranCard() {
+function BayiOranCard({ bayiOran }: { bayiOran: Reports["bayiOran"] }) {
   return (
     <Card className="pb-5">
       <CardHeader
@@ -520,7 +401,7 @@ function BayiOranCard() {
         }
       />
       <div className="mt-4 flex flex-col gap-3.5 px-5">
-        {BAYI_ORAN.map((b) => (
+        {bayiOran.map((b) => (
           <div key={b.ad}>
             <div className="mb-1.5 flex items-center justify-between text-[12.5px]">
               <span className="font-medium text-ink">{b.ad}</span>
@@ -545,6 +426,8 @@ const REPORT_NOTE =
   "Raporlar her gün 03:00'da güncellenir. Tüm veriler KVKK kapsamında anonimleştirilmiş ve toplulaştırılmıştır.";
 
 export function BankRaporlar() {
+  const { data, isPending, isError, refetch } = useReports();
+
   return (
     <BankShell
       actions={
@@ -576,79 +459,87 @@ export function BankRaporlar() {
       subtitle="Portföy ve yenileme performansınızı detaylı raporlarla analiz edin."
       title="Raporlar"
     >
-      <Tabs className="gap-0" defaultValue="genel">
-        <TabsList
-          className="mb-5 h-auto w-full justify-start gap-6 border-line border-b p-0"
-          variant="line"
-        >
-          {TABS.map((t) => (
-            <TabsTrigger
-              className="flex-none px-0 pb-3 text-[13.5px] text-ink-muted after:bottom-[-1px] after:h-0.5 after:bg-bank data-[state=active]:font-semibold data-[state=active]:text-bank-700 data-[state=active]:after:opacity-100"
-              key={t.id}
-              value={t.id}
+      {isPending && <LoadingState label="Raporlar yükleniyor…" />}
+      {!isPending && (isError || !data) && (
+        <ErrorState label="Raporlar yüklenemedi." onRetry={() => refetch()} />
+      )}
+      {!isPending && !isError && data && (
+        <>
+          <Tabs className="gap-0" defaultValue="genel">
+            <TabsList
+              className="mb-5 h-auto w-full justify-start gap-6 border-line border-b p-0"
+              variant="line"
             >
-              {t.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+              {TABS.map((t) => (
+                <TabsTrigger
+                  className="flex-none px-0 pb-3 text-[13.5px] text-ink-muted after:bottom-[-1px] after:h-0.5 after:bg-bank data-[state=active]:font-semibold data-[state=active]:text-bank-700 data-[state=active]:after:opacity-100"
+                  key={t.id}
+                  value={t.id}
+                >
+                  {t.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-        {/* GENEL BAKIŞ */}
-        <TabsContent className="mt-0" value="genel">
-          <KpiRow />
-          <div className="mt-5 grid grid-cols-[1.7fr_1fr] gap-5">
-            <TrendCard />
-            <SegmentCard />
-          </div>
-          <div className="mt-5 grid grid-cols-3 gap-5">
-            <FunnelCard />
-            <BayiTableCard />
-            <RegionCard />
-          </div>
-        </TabsContent>
+            {/* GENEL BAKIŞ */}
+            <TabsContent className="mt-0" value="genel">
+              <KpiRow kpis={data.kpis} />
+              <div className="mt-5 grid grid-cols-[1.7fr_1fr] gap-5">
+                <TrendCard trend={data.trend} />
+                <SegmentCard segments={data.segments} />
+              </div>
+              <div className="mt-5 grid grid-cols-3 gap-5">
+                <FunnelCard funnel={data.funnel} />
+                <BayiTableCard bayiler={data.bayiler} />
+                <RegionCard regions={data.regions} />
+              </div>
+            </TabsContent>
 
-        {/* YENİLEME PERFORMANSI */}
-        <TabsContent className="mt-0" value="yenileme">
-          <KpiRow />
-          <div className="mt-5 grid grid-cols-[1.7fr_1fr] gap-5">
-            <TrendCard twoSeries />
-            <FunnelCard />
-          </div>
-          <div className="mt-5 grid grid-cols-3 gap-5">
-            <DonemCard />
-            <SegmentCard />
-            <BayiOranCard />
-          </div>
-        </TabsContent>
+            {/* YENİLEME PERFORMANSI */}
+            <TabsContent className="mt-0" value="yenileme">
+              <KpiRow kpis={data.kpis} />
+              <div className="mt-5 grid grid-cols-[1.7fr_1fr] gap-5">
+                <TrendCard trend={data.trend} twoSeries />
+                <FunnelCard funnel={data.funnel} />
+              </div>
+              <div className="mt-5 grid grid-cols-3 gap-5">
+                <DonemCard donem={data.donem} />
+                <SegmentCard segments={data.segments} />
+                <BayiOranCard bayiOran={data.bayiOran} />
+              </div>
+            </TabsContent>
 
-        {/* SEGMENT ANALİZİ */}
-        <TabsContent className="mt-0" value="segment">
-          <KpiRow />
-          <div className="mt-5 grid grid-cols-2 gap-5">
-            <SegmentCard />
-            <TrendCard />
-          </div>
-        </TabsContent>
+            {/* SEGMENT ANALİZİ */}
+            <TabsContent className="mt-0" value="segment">
+              <KpiRow kpis={data.kpis} />
+              <div className="mt-5 grid grid-cols-2 gap-5">
+                <SegmentCard segments={data.segments} />
+                <TrendCard trend={data.trend} />
+              </div>
+            </TabsContent>
 
-        {/* BAYİ PERFORMANSI */}
-        <TabsContent className="mt-0" value="bayi">
-          <KpiRow />
-          <div className="mt-5 grid grid-cols-[1.4fr_1fr] gap-5">
-            <BayiTableCard />
-            <BayiOranCard />
-          </div>
-        </TabsContent>
+            {/* BAYİ PERFORMANSI */}
+            <TabsContent className="mt-0" value="bayi">
+              <KpiRow kpis={data.kpis} />
+              <div className="mt-5 grid grid-cols-[1.4fr_1fr] gap-5">
+                <BayiTableCard bayiler={data.bayiler} />
+                <BayiOranCard bayiOran={data.bayiOran} />
+              </div>
+            </TabsContent>
 
-        {/* MÜŞTERİ ANALİZİ */}
-        <TabsContent className="mt-0" value="musteri">
-          <KpiRow />
-          <div className="mt-5 grid grid-cols-[1.7fr_1fr] gap-5">
-            <TrendCard />
-            <FunnelCard />
-          </div>
-        </TabsContent>
-      </Tabs>
+            {/* MÜŞTERİ ANALİZİ */}
+            <TabsContent className="mt-0" value="musteri">
+              <KpiRow kpis={data.kpis} />
+              <div className="mt-5 grid grid-cols-[1.7fr_1fr] gap-5">
+                <TrendCard trend={data.trend} />
+                <FunnelCard funnel={data.funnel} />
+              </div>
+            </TabsContent>
+          </Tabs>
 
-      <p className="mt-6 text-[12px] text-ink-muted">{REPORT_NOTE}</p>
+          <p className="mt-6 text-[12px] text-ink-muted">{REPORT_NOTE}</p>
+        </>
+      )}
     </BankShell>
   );
 }

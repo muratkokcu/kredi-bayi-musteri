@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useImportHistory } from "@/queries/import-history";
+import { EmptyState, ErrorState, LoadingState } from "@/ui/async-states";
 import { Badge } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
 import { BankShell } from "../bank-shell";
@@ -156,57 +158,7 @@ const MAP_ROWS: MapRow[] = [
   },
 ];
 
-interface HistoryRow {
-  date: string;
-  file: string;
-  id: string;
-  rows: string;
-  status: "success" | "warn" | "danger";
-  statusLabel: string;
-}
-
-const HISTORY: HistoryRow[] = [
-  {
-    id: "1",
-    file: "portfoy_2025_06.csv",
-    rows: "12.480 satır",
-    date: "14.06.2025 · 09:42",
-    status: "success",
-    statusLabel: "Başarılı",
-  },
-  {
-    id: "2",
-    file: "portfoy_2025_05.csv",
-    rows: "11.920 satır",
-    date: "13.05.2025 · 11:08",
-    status: "success",
-    statusLabel: "Başarılı",
-  },
-  {
-    id: "3",
-    file: "yeni_bayiler_q2.csv",
-    rows: "842 satır",
-    date: "28.04.2025 · 16:25",
-    status: "warn",
-    statusLabel: "Kısmi",
-  },
-  {
-    id: "4",
-    file: "portfoy_2025_04.csv",
-    rows: "11.604 satır",
-    date: "12.04.2025 · 08:55",
-    status: "success",
-    statusLabel: "Başarılı",
-  },
-  {
-    id: "5",
-    file: "test_import.csv",
-    rows: "0 satır",
-    date: "02.04.2025 · 14:11",
-    status: "danger",
-    statusLabel: "Başarısız",
-  },
-];
+// Import history (server data) lives in src/data/import-history.ts.
 
 const STATUS_BADGE: Record<
   MapStatus,
@@ -459,6 +411,8 @@ function SummaryCard() {
 }
 
 function HistoryCard() {
+  const { data, isPending, isError, refetch } = useImportHistory();
+
   return (
     <Card className="pb-2">
       <CardHeader
@@ -472,29 +426,41 @@ function HistoryCard() {
         }
         title="Import Geçmişi"
       />
-      <div className="mt-3 px-5">
-        {HISTORY.map((h) => (
-          <div
-            className="flex items-center gap-3 border-line border-b py-3 last:border-0"
-            key={h.id}
-          >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-canvas text-ink-muted">
-              <FileSpreadsheet size={16} strokeWidth={1.8} />
-            </span>
-            <div className="min-w-0 flex-1 leading-tight">
-              <div className="truncate font-medium text-[13px] text-ink">
-                {h.file}
+      {isPending && <LoadingState label="Geçmiş yükleniyor…" />}
+      {!isPending && (isError || !data) && (
+        <ErrorState
+          label="Import geçmişi yüklenemedi."
+          onRetry={() => refetch()}
+        />
+      )}
+      {!isPending && !isError && data && data.length === 0 && (
+        <EmptyState label="Henüz import yapılmadı." />
+      )}
+      {!isPending && !isError && data && data.length > 0 && (
+        <div className="mt-3 px-5">
+          {data.map((h) => (
+            <div
+              className="flex items-center gap-3 border-line border-b py-3 last:border-0"
+              key={h.id}
+            >
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-canvas text-ink-muted">
+                <FileSpreadsheet size={16} strokeWidth={1.8} />
+              </span>
+              <div className="min-w-0 flex-1 leading-tight">
+                <div className="truncate font-medium text-[13px] text-ink">
+                  {h.file}
+                </div>
+                <div className="mt-0.5 flex gap-2 text-[11px] text-ink-muted tabular-nums">
+                  <span>{h.rows}</span>
+                  <span>·</span>
+                  <span>{h.date}</span>
+                </div>
               </div>
-              <div className="mt-0.5 flex gap-2 text-[11px] text-ink-muted tabular-nums">
-                <span>{h.rows}</span>
-                <span>·</span>
-                <span>{h.date}</span>
-              </div>
+              <Badge tone={h.status}>{h.statusLabel}</Badge>
             </div>
-            <Badge tone={h.status}>{h.statusLabel}</Badge>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }

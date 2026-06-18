@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { useScoreDistribution } from "@/queries/score-distribution";
+import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
 import { BankShell } from "../bank-shell";
 
@@ -105,37 +107,7 @@ const PARAMS: ScoreParam[] = [
 
 const TABS = ["Parametreler", "Segment Ayarları", "Simülasyon Geçmişi"];
 
-interface Bucket {
-  color: string;
-  count: string;
-  frac: number;
-  label: string;
-  pct: string;
-}
-
-const BUCKETS: Bucket[] = [
-  {
-    label: "Düşük (0-49)",
-    count: "76.245",
-    pct: "%31",
-    frac: 31,
-    color: "var(--color-danger)",
-  },
-  {
-    label: "Orta (50-74)",
-    count: "89.312",
-    pct: "%36",
-    frac: 36,
-    color: "var(--color-warn)",
-  },
-  {
-    label: "Yüksek (75-100)",
-    count: "80.273",
-    pct: "%33",
-    frac: 33,
-    color: "var(--color-success)",
-  },
-];
+// Score distribution (server data) lives in src/data/score-distribution.ts.
 
 const FORMULA_ROWS: { label: string; weight: string }[] = [
   { label: "Kredi Bitişine Kalan Süre", weight: "%25" },
@@ -206,26 +178,89 @@ function ParamRow({ param }: { param: ScoreParam }) {
   );
 }
 
+function ScoreDistributionCard() {
+  const { data, isPending, isError, refetch } = useScoreDistribution();
+
+  return (
+    <Card className="pb-5">
+      <CardHeader
+        action={<Info className="text-ink-muted" size={15} />}
+        title="Skor Dağılımı Önizleme"
+      />
+      {isPending && <LoadingState label="Dağılım hesaplanıyor…" />}
+      {!isPending && (isError || !data) && (
+        <ErrorState
+          label="Skor dağılımı yüklenemedi."
+          onRetry={() => refetch()}
+        />
+      )}
+      {!isPending && !isError && data && (
+        <>
+          <div className="mt-4 flex items-center justify-between px-5">
+            <span className="text-[12.5px] text-ink-muted">Toplam Müşteri</span>
+            <span className="font-bold text-[22px] text-ink tabular-nums">
+              {data.total}
+            </span>
+          </div>
+
+          <div className="mt-3 flex h-2.5 gap-1 px-5">
+            {data.buckets.map((b) => (
+              <span
+                className="h-full rounded-full"
+                key={b.label}
+                style={{ flex: b.frac, background: b.color }}
+              />
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2.5 px-5">
+            {data.buckets.map((b) => (
+              <div className="flex items-center gap-2.5" key={b.label}>
+                <span
+                  className="size-2.5 rounded-full"
+                  style={{ background: b.color }}
+                />
+                <span className="flex-1 text-[12.5px] text-ink-soft">
+                  {b.label}
+                </span>
+                <span className="font-bold text-[12.5px] text-ink tabular-nums">
+                  {b.count}
+                </span>
+                <span className="w-12 text-right text-[12.5px] text-ink-muted tabular-nums">
+                  ({b.pct})
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mx-5 mt-4 flex items-start gap-2.5 rounded-[10px] border border-success/20 bg-success-tint px-3.5 py-3">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
+              <TrendingUp size={15} strokeWidth={2} />
+            </span>
+            <p className="text-[12px] text-ink-soft leading-4">
+              Mevcut ayarlara göre yüksek skorlu müşteri oranı{" "}
+              <span className="font-bold text-success">{data.highRatePct}</span>{" "}
+              olarak hesaplanmıştır.
+            </p>
+          </div>
+        </>
+      )}
+    </Card>
+  );
+}
+
 export function BankYenilemeSkoru() {
   const [activeTab, setActiveTab] = useState(TABS[0]);
 
   return (
     <BankShell
       actions={
-        <>
-          <button
-            className="flex items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-3.5 py-2 font-medium text-[13px] text-ink-soft hover:bg-canvas"
-            type="button"
-          >
-            <Info size={16} /> Algoritma Hakkında
-          </button>
-          <button
-            className="flex items-center gap-2 rounded-[10px] bg-bank px-3.5 py-2 font-semibold text-[13px] text-white hover:bg-bank-600"
-            type="button"
-          >
-            <Upload size={16} /> Değişiklikleri Kaydet
-          </button>
-        </>
+        <button
+          className="flex items-center gap-2 rounded-[10px] bg-bank px-3.5 py-2 font-semibold text-[13px] text-white hover:bg-bank-600"
+          type="button"
+        >
+          <Upload size={16} /> Değişiklikleri Kaydet
+        </button>
       }
       breadcrumb={["Yenileme Skoru", "Skor Ayarları"]}
       subtitle="Yenileme skorunun hesaplanmasında kullanılan parametreleri ve ağırlıkları yapılandırın."
@@ -277,62 +312,7 @@ export function BankYenilemeSkoru() {
 
         {/* right: preview + formula */}
         <div className="flex flex-col gap-5">
-          <Card className="pb-5">
-            <CardHeader
-              action={<Info className="text-ink-muted" size={15} />}
-              title="Skor Dağılımı Önizleme"
-            />
-            <div className="mt-4 flex items-center justify-between px-5">
-              <span className="text-[12.5px] text-ink-muted">
-                Toplam Müşteri
-              </span>
-              <span className="font-bold text-[22px] text-ink tabular-nums">
-                245.830
-              </span>
-            </div>
-
-            {/* stacked distribution bar */}
-            <div className="mt-3 flex h-2.5 gap-1 px-5">
-              {BUCKETS.map((b) => (
-                <span
-                  className="h-full rounded-full"
-                  key={b.label}
-                  style={{ flex: b.frac, background: b.color }}
-                />
-              ))}
-            </div>
-
-            <div className="mt-4 flex flex-col gap-2.5 px-5">
-              {BUCKETS.map((b) => (
-                <div className="flex items-center gap-2.5" key={b.label}>
-                  <span
-                    className="size-2.5 rounded-full"
-                    style={{ background: b.color }}
-                  />
-                  <span className="flex-1 text-[12.5px] text-ink-soft">
-                    {b.label}
-                  </span>
-                  <span className="font-bold text-[12.5px] text-ink tabular-nums">
-                    {b.count}
-                  </span>
-                  <span className="w-12 text-right text-[12.5px] text-ink-muted tabular-nums">
-                    ({b.pct})
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mx-5 mt-4 flex items-start gap-2.5 rounded-[10px] border border-success/20 bg-success-tint px-3.5 py-3">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
-                <TrendingUp size={15} strokeWidth={2} />
-              </span>
-              <p className="text-[12px] text-ink-soft leading-4">
-                Mevcut ayarlara göre yüksek skorlu müşteri oranı{" "}
-                <span className="font-bold text-success">%33</span> olarak
-                hesaplanmıştır.
-              </p>
-            </div>
-          </Card>
+          <ScoreDistributionCard />
 
           <Card className="pb-5">
             <CardHeader title="Skor Hesaplama Formülü" />

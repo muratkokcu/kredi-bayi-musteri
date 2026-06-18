@@ -10,7 +10,6 @@ import {
   ChevronRight,
   ChevronUp,
   Download,
-  Plus,
   Search,
   SlidersHorizontal,
   TrendingUp,
@@ -28,177 +27,20 @@ import { Badge } from "@/ui/badge";
 import { Card } from "@/ui/card";
 import { ScoreRing } from "@/ui/score-ring";
 import { StatCard } from "@/ui/stat-card";
+import { useMemo } from "react";
+import type { Customer } from "@/data/customers";
+import { useCustomers } from "@/queries/customers";
+import {
+  EmptyState,
+  ErrorState,
+  TableSkeleton,
+  TableStateRow,
+} from "@/ui/async-states";
 import { useDataTable } from "@/ui/use-data-table";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { BankShell } from "../bank-shell";
 
-interface Customer {
-  avatarTone: string;
-  bitis: string;
-  bolge: string;
-  id: string;
-  initials: string;
-  kalanGun: number;
-  krediNo: string;
-  name: string;
-  paid: number;
-  plate: string;
-  segment: string;
-  skor: number;
-  sonAktivite: string;
-  total: number;
-  vehicle: string;
-  vehicleSub: string;
-}
-
-const CUSTOMERS: Customer[] = [
-  {
-    id: "1",
-    name: "Mehmet Yılmaz",
-    plate: "34 ABC 123",
-    initials: "MY",
-    avatarTone: "bg-bank-tint text-bank-700",
-    krediNo: "KRD-2021-001245",
-    vehicle: "BMW 3 Serisi",
-    vehicleSub: "2021 · 320i",
-    paid: 28,
-    total: 36,
-    bitis: "15.08.2025",
-    kalanGun: 62,
-    skor: 84,
-    bolge: "₺1.5M - ₺2.0M",
-    segment: "Sedan",
-    sonAktivite: "22.04.2025",
-  },
-  {
-    id: "2",
-    name: "Ahmet Şahin",
-    plate: "06 DEF 456",
-    initials: "AŞ",
-    avatarTone: "bg-dealer-tint text-dealer-700",
-    krediNo: "KRD-2022-009787",
-    vehicle: "Volkswagen Tiguan",
-    vehicleSub: "2020 · SUV",
-    paid: 22,
-    total: 48,
-    bitis: "03.09.2025",
-    kalanGun: 81,
-    skor: 92,
-    bolge: "₺1.8M - ₺2.4M",
-    segment: "SUV",
-    sonAktivite: "21.04.2025",
-  },
-  {
-    id: "3",
-    name: "Ayşe Demir",
-    plate: "35 GHI 789",
-    initials: "AD",
-    avatarTone: "bg-cust-tint text-cust-600",
-    krediNo: "KRD-2021-004521",
-    vehicle: "Renault Clio",
-    vehicleSub: "2019 · Hatchback",
-    paid: 31,
-    total: 36,
-    bitis: "28.07.2025",
-    kalanGun: 43,
-    skor: 67,
-    bolge: "₺0.8M - ₺1.2M",
-    segment: "Hatchback",
-    sonAktivite: "19.04.2025",
-  },
-  {
-    id: "4",
-    name: "Can Yılmaz",
-    plate: "34 JKL 012",
-    initials: "CY",
-    avatarTone: "bg-warn-tint text-warn",
-    krediNo: "KRD-2023-001190",
-    vehicle: "Audi A4",
-    vehicleSub: "2022 · Sedan",
-    paid: 12,
-    total: 60,
-    bitis: "11.12.2025",
-    kalanGun: 180,
-    skor: 58,
-    bolge: "₺2.0M - ₺2.8M",
-    segment: "Sedan",
-    sonAktivite: "18.04.2025",
-  },
-  {
-    id: "5",
-    name: "Sıla Öztürk",
-    plate: "16 MNO 345",
-    initials: "SÖ",
-    avatarTone: "bg-bank-tint text-bank-700",
-    krediNo: "KRD-2022-007733",
-    vehicle: "Toyota Corolla",
-    vehicleSub: "2021 · Sedan",
-    paid: 26,
-    total: 36,
-    bitis: "05.08.2025",
-    kalanGun: 52,
-    skor: 88,
-    bolge: "₺1.2M - ₺1.6M",
-    segment: "Sedan",
-    sonAktivite: "17.04.2025",
-  },
-  {
-    id: "6",
-    name: "Okan Korkmaz",
-    plate: "07 PRS 678",
-    initials: "OK",
-    avatarTone: "bg-dealer-tint text-dealer-700",
-    krediNo: "KRD-2021-002984",
-    vehicle: "Hyundai i20",
-    vehicleSub: "2020 · Hatchback",
-    paid: 30,
-    total: 36,
-    bitis: "19.07.2025",
-    kalanGun: 34,
-    skor: 73,
-    bolge: "₺0.9M - ₺1.3M",
-    segment: "Hatchback",
-    sonAktivite: "16.04.2025",
-  },
-  {
-    id: "7",
-    name: "Yasemin Aksoy",
-    plate: "34 TUV 901",
-    initials: "YA",
-    avatarTone: "bg-cust-tint text-cust-600",
-    krediNo: "KRD-2023-005512",
-    vehicle: "Mercedes C200",
-    vehicleSub: "2022 · Sedan",
-    paid: 9,
-    total: 48,
-    bitis: "02.02.2026",
-    kalanGun: 232,
-    skor: 49,
-    bolge: "₺2.4M - ₺3.2M",
-    segment: "Sedan",
-    sonAktivite: "15.04.2025",
-  },
-  {
-    id: "8",
-    name: "Burak Çelik",
-    plate: "01 XYZ 234",
-    initials: "BÇ",
-    avatarTone: "bg-warn-tint text-warn",
-    krediNo: "KRD-2022-006120",
-    vehicle: "Ford Kuga",
-    vehicleSub: "2021 · SUV",
-    paid: 24,
-    total: 48,
-    bitis: "27.08.2025",
-    kalanGun: 73,
-    skor: 81,
-    bolge: "₺1.6M - ₺2.2M",
-    segment: "SUV",
-    sonAktivite: "14.04.2025",
-  },
-];
-
-// Distinct segment values present in the data — guarantees the filter matches.
-const SEGMENTS = [...new Set(CUSTOMERS.map((c) => c.segment))];
+// Customer type + seed live in src/data/customers.ts; rows arrive via useCustomers().
 
 interface FilterDef {
   /** table column id this filter drives; omitted = visual only */
@@ -208,32 +50,35 @@ interface FilterDef {
   placeholder: string;
 }
 
-const FILTERS: FilterDef[] = [
-  {
-    label: "Kalan Taksit",
-    placeholder: "Tümü",
-    options: ["0-12 ay", "13-24 ay", "25-36 ay", "37+ ay"],
-    column: "kalanTaksit",
-  },
-  {
-    label: "Araç Segmenti",
-    placeholder: "Tümü",
-    options: SEGMENTS,
-    column: "segment",
-  },
-  {
-    label: "Bütçe Aralığı",
-    placeholder: "Tümü",
-    options: ["₺0 - ₺1M", "₺1M - ₺2M", "₺2M - ₺3M", "₺3M+"],
-    column: "bolge",
-  },
-  {
-    label: "Yenileme Skoru",
-    placeholder: "Tümü",
-    options: ["Yüksek (80+)", "Orta (60-79)", "Düşük (<60)"],
-    column: "skor",
-  },
-];
+// Segment options come from the loaded rows; the rest are fixed buckets.
+function buildFilters(segments: string[]): FilterDef[] {
+  return [
+    {
+      label: "Kalan Taksit",
+      placeholder: "Tümü",
+      options: ["0-12 ay", "13-24 ay", "25-36 ay", "37+ ay"],
+      column: "kalanTaksit",
+    },
+    {
+      label: "Araç Segmenti",
+      placeholder: "Tümü",
+      options: segments,
+      column: "segment",
+    },
+    {
+      label: "Bütçe Aralığı",
+      placeholder: "Tümü",
+      options: ["₺0 - ₺1M", "₺1M - ₺2M", "₺2M - ₺3M", "₺3M+"],
+      column: "bolge",
+    },
+    {
+      label: "Yenileme Skoru",
+      placeholder: "Tümü",
+      options: ["Yüksek (80+)", "Orta (60-79)", "Düşük (<60)"],
+      column: "skor",
+    },
+  ];
+}
 
 function skorFilter(value: number, bucket: string): boolean {
   if (bucket === "Yüksek (80+)") {
@@ -369,9 +214,12 @@ const columns = [
       const row = info.row.original;
       return (
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-11 items-center justify-center rounded-md bg-canvas text-ink-muted">
-            <Car size={16} strokeWidth={1.8} />
-          </span>
+          <VehicleImage
+            className="h-8 w-11 rounded-md"
+            iconSize={16}
+            name={row.vehicle}
+            segment={row.segment}
+          />
           <span className="leading-tight">
             <span className="block font-medium text-[13px] text-ink">
               {row.vehicle}
@@ -470,7 +318,13 @@ const columns = [
   }),
 ];
 
-function Toolbar({ table }: { table: Table<Customer> }) {
+function Toolbar({
+  table,
+  filters,
+}: {
+  table: Table<Customer>;
+  filters: FilterDef[];
+}) {
   return (
     <Card className="mt-5 px-5 py-4">
       <div className="flex flex-wrap items-end gap-4">
@@ -488,7 +342,7 @@ function Toolbar({ table }: { table: Table<Customer> }) {
             />
           </div>
         </div>
-        {FILTERS.map((f) => (
+        {filters.map((f) => (
           <div className="w-[150px]" key={f.label}>
             <div className="mb-1.5 font-medium text-[12px] text-ink-soft">
               {f.label}
@@ -552,18 +406,53 @@ function Toolbar({ table }: { table: Table<Customer> }) {
 }
 
 export function BankMusteriPortfoyu() {
-  const table = useDataTable({ data: CUSTOMERS, columns, pageSize: 6 });
+  const { data, isPending, isError, refetch } = useCustomers();
+  const customers = useMemo(() => data ?? [], [data]);
+  const table = useDataTable({ data: customers, columns, pageSize: 6 });
+
+  const segments = useMemo(
+    () => [...new Set(customers.map((c) => c.segment))],
+    [customers]
+  );
+  const filters = useMemo(() => buildFilters(segments), [segments]);
+
+  const rows = table.getRowModel().rows;
+  const filteredCount = table.getFilteredRowModel().rows.length;
+
+  function renderBody() {
+    if (isPending) {
+      return <TableSkeleton cols={columns.length} rows={6} />;
+    }
+    if (isError) {
+      return (
+        <TableStateRow colSpan={columns.length}>
+          <ErrorState
+            label="Müşteri portföyü yüklenemedi."
+            onRetry={() => refetch()}
+          />
+        </TableStateRow>
+      );
+    }
+    if (rows.length === 0) {
+      return (
+        <TableStateRow colSpan={columns.length}>
+          <EmptyState label="Eşleşen müşteri bulunamadı." />
+        </TableStateRow>
+      );
+    }
+    return rows.map((row) => (
+      <tr className="border-line border-t hover:bg-canvas/50" key={row.id}>
+        {row.getVisibleCells().map((cell) => (
+          <td className="px-4 py-3 first:pl-5" key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </td>
+        ))}
+      </tr>
+    ));
+  }
 
   return (
     <BankShell
-      actions={
-        <button
-          className="flex items-center gap-2 rounded-[10px] bg-bank px-3.5 py-2 font-semibold text-[13px] text-white hover:bg-bank-600"
-          type="button"
-        >
-          <Plus size={16} /> Yeni Müşteri Ekle
-        </button>
-      }
       breadcrumb={["Müşteri Portföyü", "Tüm Müşteriler"]}
       info
       subtitle="Tüm kredi müşterilerinizi görüntüleyin, filtreleyin ve portföyünüzü yönetin."
@@ -613,7 +502,7 @@ export function BankMusteriPortfoyu() {
         />
       </div>
 
-      <Toolbar table={table} />
+      <Toolbar filters={filters} table={table} />
 
       {/* table */}
       <Card className="mt-5 overflow-hidden">
@@ -621,7 +510,7 @@ export function BankMusteriPortfoyu() {
           <h3 className="font-semibold text-[15px] text-ink">
             Müşteriler{" "}
             <span className="font-normal text-ink-muted">
-              ({table.getFilteredRowModel().rows.length})
+              ({isPending ? "…" : filteredCount})
             </span>
           </h3>
           <div className="flex items-center gap-2.5">
@@ -666,32 +555,21 @@ export function BankMusteriPortfoyu() {
               </tr>
             ))}
           </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                className="border-line border-t hover:bg-canvas/50"
-                key={row.id}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td className="px-4 py-3 first:pl-5" key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
+          <tbody>{renderBody()}</tbody>
         </table>
 
         {/* pagination */}
         <div className="flex items-center justify-between border-line border-t px-5 py-3.5 text-[12.5px] text-ink-muted">
           <span>
-            {table.getFilteredRowModel().rows.length === 0
-              ? "Sonuç bulunamadı"
-              : `${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${
-                  table.getState().pagination.pageIndex *
-                    table.getState().pagination.pageSize +
-                  table.getRowModel().rows.length
-                } / ${table.getFilteredRowModel().rows.length} müşteri`}
+            {isPending && "Yükleniyor…"}
+            {!isPending && filteredCount === 0 && "Sonuç bulunamadı"}
+            {!isPending &&
+              filteredCount > 0 &&
+              `${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${
+                table.getState().pagination.pageIndex *
+                  table.getState().pagination.pageSize +
+                rows.length
+              } / ${filteredCount} müşteri`}
           </span>
           <div className="flex items-center gap-1.5">
             <button

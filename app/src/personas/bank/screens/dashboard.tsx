@@ -1,13 +1,6 @@
-import {
-  ArrowRight,
-  Calendar,
-  Car,
-  ChevronDown,
-  FileText,
-  TrendingUp,
-  Users,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Calendar, ChevronDown, Zap } from "lucide-react";
+import { useBankDashboard } from "@/queries/bank-dashboard";
+import { ErrorState, LoadingState } from "@/ui/async-states";
 import { AreaChart } from "../../../ui/area-chart";
 import { MiniBar } from "../../../ui/badge";
 import { Card, CardHeader } from "../../../ui/card";
@@ -15,130 +8,56 @@ import { FunnelChart } from "../../../ui/funnel-chart";
 import { KpiCard } from "../../../ui/kpi";
 import { BankShell } from "../bank-shell";
 
-const TREND = [
-  12_000, 18_000, 22_000, 21_500, 27_000, 31_000, 38_000, 41_000, 33_000,
-  30_000, 32_842, 34_000, 31_000,
-];
-const MONTHS = [
-  "Haz",
-  "Tem",
-  "Ağu",
-  "Eyl",
-  "Eki",
-  "Kas",
-  "Ara",
-  "Oca",
-  "Şub",
-  "Mar",
-  "Nis",
-  "May",
-];
-
-const INSIGHTS = [
-  {
-    id: "upcoming",
-    icon: Users,
-    tint: "bg-bank-tint text-bank-600",
-    text: (
-      <>
-        Önümüzdeki 90 gün içinde{" "}
-        <b className="font-semibold text-bank-600">3.842 müşteri</b> yenileme
-        için uygun hale gelecek.
-      </>
-    ),
-  },
-  {
-    id: "suv",
-    icon: Car,
-    tint: "bg-dealer-tint text-dealer-700",
-    text: (
-      <>
-        SUV segmentinde dönüşüm oranı{" "}
-        <b className="font-semibold text-ink">%18 daha yüksek.</b>
-      </>
-    ),
-  },
-  {
-    id: "deadline",
-    icon: Calendar,
-    tint: "bg-warn-tint text-warn",
-    text: (
-      <>
-        Kredi bitişine 60-90 gün kalan müşterilerde teklif kabul oranı{" "}
-        <b className="font-semibold text-ink">%24 artıyor.</b>
-      </>
-    ),
-  },
-];
-
-const DEALERS = [
-  { logo: "MINI", name: "Doğuş Oto", count: "1.248", conv: 38 },
-  { logo: "BO", name: "Borusan Otomotiv", count: "1.102", conv: 35 },
-  { logo: "OTO", name: "Otokoç", count: "987", conv: 32 },
-  { logo: "PSA", name: "Groupe PSA", count: "765", conv: 28 },
-  { logo: "KO", name: "Kaya Otomotiv", count: "612", conv: 25 },
-];
-
-const FUNNEL = [
-  {
-    label: "Uygun Müşteri",
-    sub: "Skor ≥ 70",
-    value: "18.492",
-    pct: "%100",
-    frac: 1.0,
-  },
-  { label: "İletişime Geçilen", value: "11.287", pct: "%61", frac: 0.74 },
-  { label: "Teklif Gönderilen", value: "6.842", pct: "%37", frac: 0.54 },
-  { label: "Kabul Edilen", value: "2.188", pct: "%12", frac: 0.4 },
-];
+const SHELL_PROPS = {
+  actions: (
+    <button
+      className="flex items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-3.5 py-2 font-medium text-[13px] text-ink-soft hover:bg-canvas"
+      type="button"
+    >
+      <Calendar size={16} strokeWidth={1.9} />
+      01 Mayıs - 31 Mayıs 2025
+      <ChevronDown className="text-ink-muted" size={15} strokeWidth={1.9} />
+    </button>
+  ),
+  highlight: "Ahmet Bey",
+  subtitle:
+    "Portföy yenileme fırsatlarınızı ve bayi performansınızı takip edin.",
+  title: "Hoş geldiniz,",
+} as const;
 
 export function BankDashboard() {
+  const { data, isPending, isError, refetch } = useBankDashboard();
+
+  if (isPending) {
+    return (
+      <BankShell {...SHELL_PROPS}>
+        <LoadingState />
+      </BankShell>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <BankShell {...SHELL_PROPS}>
+        <ErrorState onRetry={() => refetch()} />
+      </BankShell>
+    );
+  }
+
   return (
-    <BankShell
-      actions={
-        <button
-          className="flex items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-3.5 py-2 font-medium text-[13px] text-ink-soft hover:bg-canvas"
-          type="button"
-        >
-          <Calendar size={16} strokeWidth={1.9} />
-          01 Mayıs - 31 Mayıs 2025
-          <ChevronDown className="text-ink-muted" size={15} strokeWidth={1.9} />
-        </button>
-      }
-      highlight="Ahmet Bey"
-      subtitle="Portföy yenileme fırsatlarınızı ve bayi performansınızı takip edin."
-      title="Hoş geldiniz,"
-    >
+    <BankShell {...SHELL_PROPS}>
       {/* KPI row */}
       <div className="grid grid-cols-4 gap-5">
-        <KpiCard
-          delta="12.5%"
-          icon={FileText}
-          label="Aktif Kredi Sayısı"
-          positive
-          value="245.830"
-        />
-        <KpiCard
-          delta="8.7%"
-          icon={Users}
-          label="Yüksek Skorlu Müşteri"
-          positive
-          value="18.492"
-        />
-        <KpiCard
-          delta="3.2%"
-          icon={Calendar}
-          label="Bu Ay Biten Krediler"
-          positive={false}
-          value="4.231"
-        />
-        <KpiCard
-          delta="5.4%"
-          icon={TrendingUp}
-          label="Yenileme Dönüşüm Oranı"
-          positive
-          value="%32"
-        />
+        {data.kpis.map((kpi) => (
+          <KpiCard
+            delta={kpi.delta}
+            icon={kpi.icon}
+            key={kpi.label}
+            label={kpi.label}
+            positive={kpi.positive}
+            value={kpi.value}
+          />
+        ))}
       </div>
 
       {/* middle row */}
@@ -159,12 +78,12 @@ export function BankDashboard() {
           />
           <div className="px-3 pt-3">
             <AreaChart
-              data={TREND}
+              data={data.trend}
               height={210}
-              highlight={10}
-              highlightLabel="Nisan 2025"
-              highlightValue="32.842"
-              labels={MONTHS}
+              highlight={data.trendHighlight}
+              highlightLabel={data.trendHighlightLabel}
+              highlightValue={data.trendHighlightValue}
+              labels={data.months}
             />
           </div>
         </Card>
@@ -178,7 +97,7 @@ export function BankDashboard() {
             }
           />
           <div className="mt-3 flex flex-col gap-4 px-5">
-            {INSIGHTS.map((it) => (
+            {data.insights.map((it) => (
               <div className="flex gap-3" key={it.id}>
                 <div
                   className={`flex size-9 shrink-0 items-center justify-center rounded-[10px] ${it.tint}`}
@@ -222,7 +141,7 @@ export function BankDashboard() {
               <span>Teklif Aşamasına Geçen</span>
               <span className="text-right">Dönüşüm Oranı</span>
             </div>
-            {DEALERS.map((d) => (
+            {data.dealers.map((d) => (
               <div
                 className="grid grid-cols-[1fr_auto_180px] items-center gap-4 border-line border-b py-3 last:border-0"
                 key={d.name}
@@ -252,7 +171,7 @@ export function BankDashboard() {
         <Card className="pb-5">
           <CardHeader title="Yenileme Süreci Funnel" />
           <div className="mt-4 px-5">
-            <FunnelChart stages={FUNNEL} />
+            <FunnelChart stages={data.funnel} />
           </div>
           <div className="px-5 pt-5">
             <button

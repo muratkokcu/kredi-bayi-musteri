@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { Table } from "@tanstack/react-table";
 import { createColumnHelper, flexRender } from "@tanstack/react-table";
 import {
@@ -8,14 +9,11 @@ import {
   ChevronUp,
   Clock,
   Download,
-  Filter,
-  Plus,
   Search,
   Store,
   Target,
   TrendingUp,
 } from "lucide-react";
-import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -23,136 +21,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useMemo } from "react";
+import type { Dealer } from "@/data/dealers";
+import { useDealers } from "@/queries/dealers";
+import {
+  EmptyState,
+  ErrorState,
+  TableSkeleton,
+  TableStateRow,
+} from "@/ui/async-states";
 import { Badge, MiniBar } from "@/ui/badge";
 import { Card } from "@/ui/card";
 import { StatCard } from "@/ui/stat-card";
 import { useDataTable } from "@/ui/use-data-table";
 import { BankShell } from "../bank-shell";
 
-interface Dealer {
-  bolge: string;
-  donusum: number;
-  durum: "Aktif" | "Pasif" | "Beklemede";
-  id: string;
-  initials: string;
-  kod: string;
-  logoTone: string;
-  name: string;
-  sehir: string;
-  teklif: number;
-  yanit: string;
-}
-
-const DEALERS: Dealer[] = [
-  {
-    id: "1",
-    name: "Doğuş Otomotiv",
-    sehir: "İstanbul / Maslak",
-    initials: "DO",
-    logoTone: "bg-bank-tint text-bank-700",
-    kod: "BYİ-1024",
-    bolge: "Marmara",
-    durum: "Aktif",
-    teklif: 1248,
-    donusum: 38,
-    yanit: "1,8 saat",
-  },
-  {
-    id: "2",
-    name: "Borusan Otomotiv",
-    sehir: "İstanbul / Şişli",
-    initials: "BO",
-    logoTone: "bg-dealer-tint text-dealer-700",
-    kod: "BYİ-1077",
-    bolge: "Marmara",
-    durum: "Aktif",
-    teklif: 1086,
-    donusum: 41,
-    yanit: "2,1 saat",
-  },
-  {
-    id: "3",
-    name: "Otokoç Otomotiv",
-    sehir: "Ankara / Çankaya",
-    initials: "OO",
-    logoTone: "bg-cust-tint text-cust-600",
-    kod: "BYİ-0931",
-    bolge: "İç Anadolu",
-    durum: "Aktif",
-    teklif: 974,
-    donusum: 35,
-    yanit: "2,6 saat",
-  },
-  {
-    id: "4",
-    name: "Groupe PSA Bayi",
-    sehir: "İzmir / Bornova",
-    initials: "GP",
-    logoTone: "bg-warn-tint text-warn",
-    kod: "BYİ-1153",
-    bolge: "Ege",
-    durum: "Beklemede",
-    teklif: 612,
-    donusum: 29,
-    yanit: "4,2 saat",
-  },
-  {
-    id: "5",
-    name: "Çetaş Otomotiv",
-    sehir: "Bursa / Nilüfer",
-    initials: "ÇO",
-    logoTone: "bg-bank-tint text-bank-700",
-    kod: "BYİ-1208",
-    bolge: "Marmara",
-    durum: "Aktif",
-    teklif: 845,
-    donusum: 33,
-    yanit: "2,3 saat",
-  },
-  {
-    id: "6",
-    name: "Aydın Otomotiv",
-    sehir: "Antalya / Muratpaşa",
-    initials: "AO",
-    logoTone: "bg-dealer-tint text-dealer-700",
-    kod: "BYİ-0884",
-    bolge: "Akdeniz",
-    durum: "Aktif",
-    teklif: 738,
-    donusum: 31,
-    yanit: "3,0 saat",
-  },
-  {
-    id: "7",
-    name: "Maslak Motors",
-    sehir: "İstanbul / Sarıyer",
-    initials: "MM",
-    logoTone: "bg-cust-tint text-cust-600",
-    kod: "BYİ-1291",
-    bolge: "Marmara",
-    durum: "Pasif",
-    teklif: 421,
-    donusum: 22,
-    yanit: "5,4 saat",
-  },
-  {
-    id: "8",
-    name: "Ege Oto Plaza",
-    sehir: "İzmir / Karşıyaka",
-    initials: "EO",
-    logoTone: "bg-warn-tint text-warn",
-    kod: "BYİ-1042",
-    bolge: "Ege",
-    durum: "Aktif",
-    teklif: 690,
-    donusum: 36,
-    yanit: "2,5 saat",
-  },
-];
-
-// Distinct values present in the data — guarantees the filters match.
-const BOLGELER = [...new Set(DEALERS.map((d) => d.bolge))];
-const DURUMLAR = [...new Set(DEALERS.map((d) => d.durum))];
+// Dealer type + seed live in src/data/dealers.ts; rows arrive via useDealers().
 
 interface FilterDef {
   /** table column id this filter drives; omitted = visual only */
@@ -162,30 +46,23 @@ interface FilterDef {
   placeholder: string;
 }
 
-const FILTERS: FilterDef[] = [
-  {
-    label: "Bölge",
-    placeholder: "Tümü",
-    options: BOLGELER,
-    column: "bolge",
-  },
-  {
-    label: "Durum",
-    placeholder: "Tümü",
-    options: DURUMLAR,
-    column: "durum",
-  },
-  {
-    label: "Dönüşüm Oranı",
-    placeholder: "Tümü",
-    options: ["Yüksek (%35+)", "Orta (%25-35)", "Düşük (<%25)"],
-  },
-  {
-    label: "Sıralama",
-    placeholder: "Teklif Başarısı",
-    options: ["Teklif Başarısı", "Dönüşüm Oranı", "Yanıt Süresi"],
-  },
-];
+// Bölge/Durum options come from the loaded rows; the rest are fixed buckets.
+function buildFilters(bolgeler: string[], durumlar: string[]): FilterDef[] {
+  return [
+    { label: "Bölge", placeholder: "Tümü", options: bolgeler, column: "bolge" },
+    { label: "Durum", placeholder: "Tümü", options: durumlar, column: "durum" },
+    {
+      label: "Dönüşüm Oranı",
+      placeholder: "Tümü",
+      options: ["Yüksek (%35+)", "Orta (%25-35)", "Düşük (<%25)"],
+    },
+    {
+      label: "Sıralama",
+      placeholder: "Teklif Başarısı",
+      options: ["Teklif Başarısı", "Dönüşüm Oranı", "Yanıt Süresi"],
+    },
+  ];
+}
 
 const ALL = "__all__";
 
@@ -305,18 +182,23 @@ const columns = [
     id: "actions",
     header: "",
     cell: () => (
-      <button
+      <Link
         className="flex size-8 items-center justify-center rounded-lg text-ink-muted hover:bg-canvas hover:text-ink"
-        onClick={() => toast.info("Bayi detayı yakında")}
-        type="button"
+        to="/banka/bayi-detay"
       >
         <ChevronRight size={18} />
-      </button>
+      </Link>
     ),
   }),
 ];
 
-function Toolbar({ table }: { table: Table<Dealer> }) {
+function Toolbar({
+  table,
+  filters,
+}: {
+  table: Table<Dealer>;
+  filters: FilterDef[];
+}) {
   return (
     <Card className="mt-5 px-5 py-4">
       <div className="flex flex-wrap items-end gap-4">
@@ -334,7 +216,7 @@ function Toolbar({ table }: { table: Table<Dealer> }) {
             />
           </div>
         </div>
-        {FILTERS.map((f) => (
+        {filters.map((f) => (
           <div className="w-[160px]" key={f.label}>
             <div className="mb-1.5 font-medium text-[12px] text-ink-soft">
               {f.label}
@@ -367,27 +249,60 @@ function Toolbar({ table }: { table: Table<Dealer> }) {
 }
 
 export function BankBayiYonetimi() {
-  const table = useDataTable({ data: DEALERS, columns, pageSize: 6 });
+  const { data, isPending, isError, refetch } = useDealers();
+  const dealers = useMemo(() => data ?? [], [data]);
+  const table = useDataTable({ data: dealers, columns, pageSize: 6 });
+
+  const bolgeler = useMemo(
+    () => [...new Set(dealers.map((d) => d.bolge))],
+    [dealers]
+  );
+  const durumlar = useMemo(
+    () => [...new Set(dealers.map((d) => d.durum))],
+    [dealers]
+  );
+  const filters = useMemo(
+    () => buildFilters(bolgeler, durumlar),
+    [bolgeler, durumlar]
+  );
+
+  const rows = table.getRowModel().rows;
+  const filteredCount = table.getFilteredRowModel().rows.length;
+
+  function renderBody() {
+    if (isPending) {
+      return <TableSkeleton cols={columns.length} rows={6} />;
+    }
+    if (isError) {
+      return (
+        <TableStateRow colSpan={columns.length}>
+          <ErrorState
+            label="Bayi listesi yüklenemedi."
+            onRetry={() => refetch()}
+          />
+        </TableStateRow>
+      );
+    }
+    if (rows.length === 0) {
+      return (
+        <TableStateRow colSpan={columns.length}>
+          <EmptyState label="Eşleşen bayi bulunamadı." />
+        </TableStateRow>
+      );
+    }
+    return rows.map((row) => (
+      <tr className="border-line border-t hover:bg-canvas/50" key={row.id}>
+        {row.getVisibleCells().map((cell) => (
+          <td className="px-4 py-3 first:pl-5" key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </td>
+        ))}
+      </tr>
+    ));
+  }
 
   return (
     <BankShell
-      actions={
-        <>
-          <button
-            className="flex items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-3.5 py-2 font-medium text-[13px] text-ink-soft hover:bg-canvas"
-            type="button"
-          >
-            <Download size={16} /> Rapor Al
-          </button>
-          <button
-            className="flex items-center gap-2 rounded-[10px] bg-bank px-3.5 py-2 font-semibold text-[13px] text-white hover:bg-bank-600"
-            onClick={() => toast.success("Yeni bayi ekleme akışı açılıyor…")}
-            type="button"
-          >
-            <Plus size={16} /> Yeni Bayi
-          </button>
-        </>
-      }
       breadcrumb={["Bayi Yönetimi", "Bayi Listesi"]}
       info
       subtitle="Platforma bağlı bayileri görüntüleyin ve performanslarını takip edin."
@@ -430,7 +345,7 @@ export function BankBayiYonetimi() {
         />
       </div>
 
-      <Toolbar table={table} />
+      <Toolbar filters={filters} table={table} />
 
       {/* table */}
       <Card className="mt-5 overflow-hidden">
@@ -439,23 +354,15 @@ export function BankBayiYonetimi() {
             <Building2 className="text-ink-muted" size={17} strokeWidth={1.9} />
             Bayiler{" "}
             <span className="font-normal text-ink-muted">
-              ({table.getFilteredRowModel().rows.length})
+              ({isPending ? "…" : filteredCount})
             </span>
           </h3>
-          <div className="flex items-center gap-2.5">
-            <button
-              className="flex items-center gap-2 rounded-[10px] border border-line-strong px-3 py-1.5 font-medium text-[12.5px] text-ink-soft"
-              type="button"
-            >
-              <Filter size={15} /> Görünüm
-            </button>
-            <button
-              className="flex items-center gap-2 rounded-[10px] bg-bank px-3 py-1.5 font-semibold text-[12.5px] text-white hover:bg-bank-600"
-              type="button"
-            >
-              <Download size={15} /> CSV İndir
-            </button>
-          </div>
+          <button
+            className="flex items-center gap-2 rounded-[10px] bg-bank px-3 py-1.5 font-semibold text-[12.5px] text-white hover:bg-bank-600"
+            type="button"
+          >
+            <Download size={15} /> CSV İndir
+          </button>
         </div>
 
         <table className="w-full border-line border-t">
@@ -490,32 +397,21 @@ export function BankBayiYonetimi() {
               </tr>
             ))}
           </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                className="border-line border-t hover:bg-canvas/50"
-                key={row.id}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td className="px-4 py-3 first:pl-5" key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
+          <tbody>{renderBody()}</tbody>
         </table>
 
         {/* pagination */}
         <div className="flex items-center justify-between border-line border-t px-5 py-3.5 text-[12.5px] text-ink-muted">
           <span>
-            {table.getFilteredRowModel().rows.length === 0
-              ? "Sonuç bulunamadı"
-              : `${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${
-                  table.getState().pagination.pageIndex *
-                    table.getState().pagination.pageSize +
-                  table.getRowModel().rows.length
-                } / ${table.getFilteredRowModel().rows.length} bayi`}
+            {isPending && "Yükleniyor…"}
+            {!isPending && filteredCount === 0 && "Sonuç bulunamadı"}
+            {!isPending &&
+              filteredCount > 0 &&
+              `${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${
+                table.getState().pagination.pageIndex *
+                  table.getState().pagination.pageSize +
+                rows.length
+              } / ${filteredCount} bayi`}
           </span>
           <div className="flex items-center gap-1.5">
             <button

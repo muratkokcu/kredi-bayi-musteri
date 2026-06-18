@@ -1,11 +1,6 @@
 import {
   Bell,
   BellRing,
-  CalendarClock,
-  Car,
-  CircleCheck,
-  CircleX,
-  Eye,
   type LucideIcon,
   Mail,
   MessageSquare,
@@ -13,9 +8,7 @@ import {
   Plus,
   Search,
   Send,
-  Sparkles,
   TrendingUp,
-  Users2,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -27,130 +20,23 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type {
+  Channel,
+  NotificationRule as Trigger,
+} from "@/data/notification-rules";
+import { useNotificationRules } from "@/queries/notification-rules";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/ui/async-states";
 import { Badge } from "@/ui/badge";
 import { Card } from "@/ui/card";
 import { StatCard } from "@/ui/stat-card";
 import { BankShell } from "../bank-shell";
 
-type Channel = "sms" | "eposta" | "push";
-type Hedef = "Müşteri" | "Bayi";
-
-interface Trigger {
-  aciklama: string;
-  active: boolean;
-  ad: string;
-  hedef: Hedef;
-  icon: LucideIcon;
-  id: string;
-  kanallar: Channel[];
-  kosul: string;
-  son: string;
-  tone: string;
-}
-
-const TRIGGERS: Trigger[] = [
-  {
-    id: "kredi-bitis",
-    ad: "Kredi Bitişine X Gün Kala",
-    aciklama:
-      "Kredinin bitiş tarihine X gün kaldığında müşteriye bildirim gönderir.",
-    icon: CalendarClock,
-    tone: "bg-bank-tint text-bank-600",
-    hedef: "Müşteri",
-    kanallar: ["sms", "eposta", "push"],
-    kosul: "Bitişe 90, 60, 30 gün kala",
-    active: true,
-    son: "22.04.2025 14:30",
-  },
-  {
-    id: "arac-yas",
-    ad: "Araç X Yaşına Gelince",
-    aciklama:
-      "Araç yaşı belirlenen eşiğe ulaştığında müşteriye bildirim gönderir.",
-    icon: Car,
-    tone: "bg-cust-tint text-cust-600",
-    hedef: "Müşteri",
-    kanallar: ["sms", "eposta", "push"],
-    kosul: "Araç yaşı ≥ 3, 5, 7 yıl",
-    active: true,
-    son: "21.04.2025 11:15",
-  },
-  {
-    id: "bayi-teklif",
-    ad: "Bayi Teklif Gönderince",
-    aciklama:
-      "Bayi tarafından yeni teklif gönderildiğinde müşteriye bildirim gönderir.",
-    icon: Users2,
-    tone: "bg-dealer-tint text-dealer-700",
-    hedef: "Müşteri",
-    kanallar: ["sms", "eposta"],
-    kosul: "Teklif oluşturulduğunda",
-    active: true,
-    son: "20.04.2025 16:45",
-  },
-  {
-    id: "teklif-goruntu",
-    ad: "Teklif Görüntülendiğinde",
-    aciklama: "Müşteri teklif görüntülediğinde bayiye bildirim gönderir.",
-    icon: Eye,
-    tone: "bg-warn-tint text-warn",
-    hedef: "Bayi",
-    kanallar: ["push"],
-    kosul: "Müşteri teklif görüntülediğinde",
-    active: true,
-    son: "19.04.2025 09:20",
-  },
-  {
-    id: "teklif-kabul",
-    ad: "Teklif Kabul Edildiğinde",
-    aciklama: "Müşteri teklifi kabul ettiğinde bayiye bildirim gönderir.",
-    icon: CircleCheck,
-    tone: "bg-success-tint text-success",
-    hedef: "Bayi",
-    kanallar: ["push"],
-    kosul: "Teklif kabul edildiğinde",
-    active: true,
-    son: "18.04.2025 10:10",
-  },
-  {
-    id: "teklif-red",
-    ad: "Teklif Reddedildiğinde",
-    aciklama: "Müşteri teklifi reddettiğinde bayiye bildirim gönderir.",
-    icon: CircleX,
-    tone: "bg-danger-tint text-danger",
-    hedef: "Bayi",
-    kanallar: ["push"],
-    kosul: "Teklif reddedildiğinde",
-    active: false,
-    son: "15.04.2025 13:30",
-  },
-  {
-    id: "tercih-arac",
-    ad: "Tercihlere Uygun Araç Eklendiğinde",
-    aciklama:
-      "Müşterinin tercihlerine uygun yeni araç sisteme eklendiğinde bildirim gönderir.",
-    icon: Sparkles,
-    tone: "bg-[#e0f5f3] text-[#0e9488]",
-    hedef: "Müşteri",
-    kanallar: ["sms", "eposta"],
-    kosul: "Yeni araç sisteme eklendiğinde",
-    active: true,
-    son: "12.04.2025 08:45",
-  },
-  {
-    id: "yuksek-skor",
-    ad: "Yüksek Skor Değişiminde",
-    aciklama:
-      "Yenileme skoru belirli eşiğin üzerine çıktığında bayiye bildirim gönderir.",
-    icon: TrendingUp,
-    tone: "bg-bank-tint text-bank-600",
-    hedef: "Bayi",
-    kanallar: ["eposta"],
-    kosul: "Skor ≥ 70",
-    active: false,
-    son: "10.04.2025 17:25",
-  },
-];
+// Trigger type + seed live in src/data/notification-rules.ts;
+// rows arrive via useNotificationRules().
 
 const CHANNEL_META: Record<Channel, { icon: LucideIcon; label: string }> = {
   sms: { icon: MessageSquare, label: "SMS" },
@@ -296,7 +182,10 @@ export function BankBildirimAyarlari() {
   const [pageSize, setPageSize] = useState(5);
   const [pageIndex, setPageIndex] = useState(0);
 
-  const filtered = TRIGGERS.filter((t) =>
+  const { data, isPending, isError, refetch } = useNotificationRules();
+  const triggers = data ?? [];
+
+  const filtered = triggers.filter((t) =>
     matchesFilters(t, search, filterValues)
   );
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -427,17 +316,44 @@ export function BankBildirimAyarlari() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
+            {isPending && (
               <tr className="border-line border-t">
-                <td
-                  className="px-5 py-12 text-center text-[13px] text-ink-muted"
-                  colSpan={8}
-                >
-                  Bu filtrelerle eşleşen tetikleyici bulunamadı.
+                <td className="px-5 py-2" colSpan={8}>
+                  <LoadingState label="Tetikleyiciler yükleniyor…" />
                 </td>
               </tr>
             )}
-            {pageRows.map((t) => (
+            {!isPending && isError && (
+              <tr className="border-line border-t">
+                <td className="px-5 py-2" colSpan={8}>
+                  <ErrorState
+                    label="Tetikleyiciler yüklenemedi."
+                    onRetry={() => refetch()}
+                  />
+                </td>
+              </tr>
+            )}
+            {!(isPending || isError) && triggers.length === 0 && (
+              <tr className="border-line border-t">
+                <td className="px-5 py-2" colSpan={8}>
+                  <EmptyState label="Henüz tetikleyici tanımlanmamış." />
+                </td>
+              </tr>
+            )}
+            {!(isPending || isError) &&
+              triggers.length > 0 &&
+              filtered.length === 0 && (
+                <tr className="border-line border-t">
+                  <td
+                    className="px-5 py-12 text-center text-[13px] text-ink-muted"
+                    colSpan={8}
+                  >
+                    Bu filtrelerle eşleşen tetikleyici bulunamadı.
+                  </td>
+                </tr>
+              )}
+            {!(isPending || isError) &&
+              pageRows.map((t) => (
               <tr
                 className="border-line border-t hover:bg-canvas/40"
                 key={t.id}
@@ -519,7 +435,7 @@ export function BankBildirimAyarlari() {
               </Select>
             </div>
             <span className="ml-1 tabular-nums">
-              {filtered.length} tetikleyici
+              {isPending ? "…" : filtered.length} tetikleyici
             </span>
           </div>
           <div className="flex items-center gap-1.5">
