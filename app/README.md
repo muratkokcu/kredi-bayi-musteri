@@ -1,73 +1,66 @@
-# React + TypeScript + Vite
+# Kredi · Bayi · Müşteri
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Taşıt kredisi **yenileme** ekosistemi için üç personalı bir ürün prototipi:
 
-Currently, two official plugins are available:
+| Persona | Açıklama | Düzen |
+| --- | --- | --- |
+| **Banka** | Portföy, yenileme skoru, bayi yönetimi, raporlar | Masaüstü |
+| **Bayi** | Fırsat havuzu, stok, teklif oluşturma, performans | Masaüstü |
+| **Müşteri** | Teklifler, kredi simülatörü, ödeme planı, başvuru | Mobil |
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> Durum: arayüz prototipi. Veriler şu an gömülü seed olup gerçek bir backend yoktur.
+> Üretime geçiş yol haritası: [`../docs/production-readiness.md`](../docs/production-readiness.md).
 
-## React Compiler
+## Teknolojiler
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19 · Vite 8 · TypeScript 6 · TanStack Router & Table · Tailwind CSS v4 ·
+shadcn/ui (radix-ui) · react-hook-form + zod · sonner · lucide-react ·
+recharts (planlı) · Vitest.
 
-## Expanding the ESLint configuration
+## Başlangıç
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+cp .env.example .env   # ortam değişkenleri (opsiyonel; varsayılanlar çalışır)
+npm run dev            # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Komutlar
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Komut | Açıklama |
+| --- | --- |
+| `npm run dev` | Geliştirme sunucusu (HMR) |
+| `npm run build` | `tsc -b` (tip kontrolü) + üretim derlemesi |
+| `npm run test` | Vitest birim testleri (tek sefer) |
+| `npm run test:watch` | Vitest izleme modu |
+| `npm run lint` | ESLint |
+| `npm run check` / `npm run fix` | Ultracite (Biome) denetim / otomatik düzeltme |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+> **Tip kontrolü:** `tsc --noEmit` bu projede etkili değildir; tipler için
+> `tsc -b` ya da `npm run build` kullanın.
+
+## Dizin yapısı
+
 ```
+src/
+  app.tsx, main.tsx, router.tsx   # uygulama girişi ve rotalar
+  personas/{bank,dealer,customer} # persona shell'leri + ekranlar
+  components/ui/                  # shadcn/ui primitifleri
+  ui/                             # uygulamaya özel sunum bileşenleri (kart, kpi, grafik…)
+  data/                           # seed veri (arac-taksonomisi tek doğruluk kaynağı)
+  lib/                            # format, finance, env, utils
+```
+
+## Sözleşmeler (conventions)
+
+- **Araç verisi tek kaynak:** marka/model/varyant/segment yalnızca
+  [`src/data/arac-taksonomisi.ts`](src/data/arac-taksonomisi.ts)'ten türetilir, elle uydurulmaz.
+- **Biçimlendirme:** para/yüzde/tarih için her zaman
+  [`src/lib/format.ts`](src/lib/format.ts) kullanın; ekran içinde `Intl.NumberFormat` veya
+  manuel `₺` öneki yazmayın.
+- **Finansal hesap:** taksit/faiz/vergi için
+  [`src/lib/finance.ts`](src/lib/finance.ts). Taşıt kredisi taksiti, KKDF + BSMV'yi
+  içeren *efektif* oran üzerinden hesaplanır. ⚠️ Varsayılan KKDF/BSMV oranları
+  güncel GİB/BDDK cetveline göre **doğrulanmalıdır** (kod içinde `VERIFY` notu).
+- **Ortam değişkenleri:** [`src/lib/env.ts`](src/lib/env.ts) ile zod doğrulamalı;
+  yeni değişkeni hem oraya hem `.env.example`'a ekleyin.
