@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
-  ChevronDown,
   ChevronRight,
   Download,
   MessageSquare,
@@ -10,6 +9,14 @@ import {
   UserPlus,
   Users2,
 } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { DealerCustomer, DealerCustomerDurum } from "@/data/dealer-customers";
 import { useDealerCustomers } from "@/queries/dealer-customers";
 import { formatDate } from "@/lib/format";
@@ -38,53 +45,66 @@ const DURUM_TONE: Record<DealerCustomerDurum, DurumTone> = {
   Kayıp: "danger",
 };
 
-interface FilterDef {
-  label: string;
-  options: string[];
-  placeholder: string;
-}
+const ALL = "__all__";
 
-const FILTERS: FilterDef[] = [
-  {
-    label: "Durum",
-    placeholder: "Tüm Durumlar",
-    options: [
-      "Yeni",
-      "Görüşülüyor",
-      "Teklif Gönderildi",
-      "Kazanıldı",
-      "Kayıp",
-    ],
-  },
-  {
-    label: "Araç Segmenti",
-    placeholder: "Tüm Segmentler",
-    options: ["SUV", "Sedan", "Hatchback"],
-  },
+const DURUM_OPTIONS: DealerCustomerDurum[] = [
+  "Yeni",
+  "Görüşülüyor",
+  "Teklif Gönderildi",
+  "Kazanıldı",
+  "Kayıp",
 ];
 
-function FilterSelect({ filter }: { filter: FilterDef }) {
+function FilterSelect({
+  label,
+  placeholder,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  options: string[];
+  placeholder: string;
+  value: string;
+}) {
   return (
     <div className="w-[170px]">
-      <div className="mb-1.5 font-medium text-[12px] text-ink-soft">
-        {filter.label}
-      </div>
-      <button
-        className="flex w-full items-center justify-between gap-2 rounded-[10px] border border-line-strong px-3 py-2 text-left hover:bg-canvas"
-        type="button"
-      >
-        <span className="text-[13px] text-ink-muted">{filter.placeholder}</span>
-        <ChevronDown
-          className="shrink-0 text-ink-muted"
-          size={15}
-          strokeWidth={1.9}
-        />
-      </button>
+      <div className="mb-1.5 font-medium text-[12px] text-ink-soft">{label}</div>
+      <Select onValueChange={onChange} value={value}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>{placeholder}</SelectItem>
+          {options.map((o) => (
+            <SelectItem key={o} value={o}>
+              {o}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
 
-function Toolbar() {
+function Toolbar({
+  search,
+  onSearch,
+  durum,
+  onDurum,
+  segment,
+  onSegment,
+  segmentler,
+}: {
+  durum: string;
+  onDurum: (value: string) => void;
+  onSearch: (value: string) => void;
+  onSegment: (value: string) => void;
+  search: string;
+  segment: string;
+  segmentler: string[];
+}) {
   return (
     <Card className="mt-5 px-5 py-4">
       <div className="flex flex-wrap items-end gap-4">
@@ -96,13 +116,26 @@ function Toolbar() {
             <Search className="text-ink-muted" size={16} />
             <input
               className="w-full bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-muted"
+              onChange={(e) => onSearch(e.target.value)}
               placeholder="Müşteri adı, ID, plaka, segment..."
+              value={search}
             />
           </div>
         </div>
-        {FILTERS.map((f) => (
-          <FilterSelect filter={f} key={f.label} />
-        ))}
+        <FilterSelect
+          label="Durum"
+          onChange={onDurum}
+          options={DURUM_OPTIONS}
+          placeholder="Tüm Durumlar"
+          value={durum}
+        />
+        <FilterSelect
+          label="Araç Segmenti"
+          onChange={onSegment}
+          options={segmentler}
+          placeholder="Tüm Segmentler"
+          value={segment}
+        />
       </div>
     </Card>
   );
@@ -175,7 +208,38 @@ function CustomerRow({ row }: { row: DealerCustomer }) {
 
 export function DealerMusteriler() {
   const { data, isPending, isError, refetch } = useDealerCustomers();
-  const customers = data ?? [];
+  const customers = useMemo(() => data ?? [], [data]);
+
+  const [search, setSearch] = useState("");
+  const [durum, setDurum] = useState(ALL);
+  const [segment, setSegment] = useState(ALL);
+
+  const segmentler = useMemo(
+    () => [...new Set(customers.map((c) => c.segment))],
+    [customers]
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLocaleLowerCase("tr");
+    return customers.filter((c) => {
+      if (durum !== ALL && c.durum !== durum) {
+        return false;
+      }
+      if (segment !== ALL && c.segment !== segment) {
+        return false;
+      }
+      if (q) {
+        const hay =
+          `${c.name} ${c.plate} ${c.initials} ${c.segment} ${c.budget}`.toLocaleLowerCase(
+            "tr"
+          );
+        if (!hay.includes(q)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [customers, search, durum, segment]);
 
   function renderBody() {
     if (isPending) {
@@ -191,14 +255,14 @@ export function DealerMusteriler() {
         </TableStateRow>
       );
     }
-    if (customers.length === 0) {
+    if (filtered.length === 0) {
       return (
         <TableStateRow colSpan={COLUMNS.length}>
-          <EmptyState label="Müşteri bulunamadı." />
+          <EmptyState label="Eşleşen müşteri bulunamadı." />
         </TableStateRow>
       );
     }
-    return customers.map((row) => <CustomerRow key={row.id} row={row} />);
+    return filtered.map((row) => <CustomerRow key={row.id} row={row} />);
   }
 
   return (
@@ -240,7 +304,15 @@ export function DealerMusteriler() {
         />
       </div>
 
-      <Toolbar />
+      <Toolbar
+        durum={durum}
+        onDurum={setDurum}
+        onSearch={setSearch}
+        onSegment={setSegment}
+        search={search}
+        segment={segment}
+        segmentler={segmentler}
+      />
 
       {/* table */}
       <Card className="mt-5 overflow-hidden">
@@ -248,7 +320,7 @@ export function DealerMusteriler() {
           <h3 className="font-semibold text-[15px] text-ink">
             Müşterilerim{" "}
             <span className="font-normal text-ink-muted">
-              ({isPending ? "…" : customers.length})
+              ({isPending ? "…" : filtered.length})
             </span>
           </h3>
           <div className="flex items-center gap-2.5">
@@ -287,10 +359,10 @@ export function DealerMusteriler() {
         <div className="flex items-center justify-between border-line border-t px-5 py-3.5 text-[12.5px] text-ink-muted">
           <span>
             {isPending && "Yükleniyor…"}
-            {!isPending && customers.length === 0 && "Sonuç bulunamadı"}
+            {!isPending && filtered.length === 0 && "Sonuç bulunamadı"}
             {!isPending &&
-              customers.length > 0 &&
-              `1-${customers.length} / ${customers.length} müşteri`}
+              filtered.length > 0 &&
+              `1-${filtered.length} / ${filtered.length} müşteri`}
           </span>
           <div className="flex items-center gap-1.5">
             <button
