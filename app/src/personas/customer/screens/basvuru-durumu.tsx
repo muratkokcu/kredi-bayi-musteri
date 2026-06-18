@@ -1,91 +1,28 @@
+import { Link, useRouter } from "@tanstack/react-router";
 import {
   Bell,
-  Car,
   Check,
   ChevronLeft,
   Clock,
   Headset,
   Info,
-  Percent,
   Phone,
-  Wallet,
   X,
 } from "lucide-react";
-import type { ComponentType } from "react";
 import { getModel, kategoriLabel } from "@/data/arac-taksonomisi";
+import type {
+  ApplicationStatus,
+  StepState,
+} from "@/data/application-status";
+import { useApplicationStatus } from "@/queries/application-status";
+import { ErrorState, LoadingState } from "@/ui/async-states";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { MobileShell } from "../mobile-shell";
 
 const tiguan = getModel("volkswagen", "tiguan");
 const tiguanName = `Volkswagen ${tiguan?.model ?? "Tiguan"}`;
 const tiguanVariant = `1.5 TSI · ${tiguan?.varyantlar[0] ?? "1.5 TSI"} DSG`;
 const tiguanSegment = kategoriLabel(tiguan?.kategori ?? "arazi-suv-pick-up");
-
-type StepState = "done" | "active" | "pending";
-
-interface StepItem {
-  date: string;
-  desc: string;
-  id: string;
-  state: StepState;
-  title: string;
-}
-
-const STEPS: StepItem[] = [
-  {
-    id: "alindi",
-    title: "Başvuru Alındı",
-    desc: "Başvurunuz başarıyla alındı.",
-    date: "10 Mayıs 2025",
-    state: "done",
-  },
-  {
-    id: "on-onay",
-    title: "Ön Onay",
-    desc: "Kredi ön onay süreci sonuçlandı.",
-    date: "11 Mayıs 2025",
-    state: "done",
-  },
-  {
-    id: "kredi-kontrol",
-    title: "Kredi Kontrolü",
-    desc: "Belgeleriniz kontrol ediliyor.",
-    date: "12 Mayıs 2025",
-    state: "done",
-  },
-  {
-    id: "evrak-kontrol",
-    title: "Evrak Kontrolü",
-    desc: "Yüklediğiniz evraklar inceleniyor.",
-    date: "13 Mayıs 2025",
-    state: "active",
-  },
-  {
-    id: "banka-onay",
-    title: "Banka Onayı",
-    desc: "Banka onayı bekleniyor.",
-    date: "Beklemede",
-    state: "pending",
-  },
-  {
-    id: "arac-teslim",
-    title: "Araç Teslimi",
-    desc: "Onay sonrası teslimat planlanacaktır.",
-    date: "Beklemede",
-    state: "pending",
-  },
-];
-
-interface LoanDetail {
-  icon: ComponentType<{ size?: number; strokeWidth?: number }>;
-  label: string;
-  value: string;
-}
-
-const LOAN_DETAILS: LoanDetail[] = [
-  { icon: Wallet, label: "Kredi Tutarı", value: "₺1.000.000" },
-  { icon: Clock, label: "Vade", value: "48 Ay" },
-  { icon: Percent, label: "Faiz Oranı", value: "%1,89" },
-];
 
 function StepIcon({ state }: { state: StepState }) {
   if (state === "done") {
@@ -110,13 +47,27 @@ function StepIcon({ state }: { state: StepState }) {
 }
 
 export function CustomerBasvuruDurumu() {
+  const router = useRouter();
+  const { data, isLoading, isError, refetch } = useApplicationStatus();
   return (
-    <MobileShell>
+    <MobileShell
+      bottomBar={
+        <div className="border-line border-t bg-surface px-5 pt-3 pb-5">
+          <Link
+            className="flex w-full items-center justify-center rounded-2xl bg-cust py-3.5 font-semibold text-[15px] text-white shadow-[var(--shadow-card)]"
+            to="/musteri/ana-sayfa"
+          >
+            Ana Sayfaya Dön
+          </Link>
+        </div>
+      }
+    >
       <div className="flex flex-col pb-8">
         {/* back-header */}
         <div className="flex items-center justify-between px-5 py-3">
           <button
             className="flex size-9 items-center justify-center rounded-full bg-surface text-ink-soft shadow-[var(--shadow-card)]"
+            onClick={() => router.history.back()}
             type="button"
           >
             <ChevronLeft size={20} strokeWidth={2.2} />
@@ -130,7 +81,22 @@ export function CustomerBasvuruDurumu() {
           </button>
         </div>
 
-        <div className="flex flex-col gap-4 px-5 pt-1">
+        {isLoading ? (
+          <LoadingState />
+        ) : isError || !data ? (
+          <ErrorState onRetry={() => refetch()} />
+        ) : (
+          <BasvuruContent data={data} />
+        )}
+      </div>
+    </MobileShell>
+  );
+}
+
+function BasvuruContent({ data }: { data: ApplicationStatus }) {
+  const { steps, loanDetails, basvuruTarihi, basvuruNo } = data;
+  return (
+    <div className="flex flex-col gap-4 px-5 pt-1">
           {/* hero title */}
           <div className="flex items-start gap-3">
             <div className="flex-1">
@@ -150,9 +116,12 @@ export function CustomerBasvuruDurumu() {
           {/* vehicle summary card */}
           <div className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-card)]">
             <div className="flex items-start gap-3">
-              <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-xl bg-canvas text-ink-muted">
-                <Car size={26} strokeWidth={1.6} />
-              </span>
+              <VehicleImage
+                className="h-14 w-20 shrink-0 rounded-xl"
+                iconSize={26}
+                name="Volkswagen Tiguan"
+                segment="SUV"
+              />
               <div className="min-w-0 flex-1">
                 <div className="font-bold text-[15px] text-ink">
                   {tiguanName}
@@ -171,13 +140,13 @@ export function CustomerBasvuruDurumu() {
                   Başvuru Tarihi
                 </div>
                 <div className="font-semibold text-[12.5px] text-ink">
-                  10 Mayıs 2025
+                  {basvuruTarihi}
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-[10.5px] text-ink-muted">Başvuru No</div>
                 <div className="font-semibold text-[12.5px] text-ink">
-                  BAS-2025-00124
+                  {basvuruNo}
                 </div>
               </div>
             </div>
@@ -186,8 +155,8 @@ export function CustomerBasvuruDurumu() {
           {/* stepper timeline */}
           <div className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-card)]">
             <ol className="flex flex-col">
-              {STEPS.map((step, index) => {
-                const isLast = index === STEPS.length - 1;
+              {steps.map((step, index) => {
+                const isLast = index === steps.length - 1;
                 const lineDone = step.state === "done";
                 return (
                   <li
@@ -271,7 +240,7 @@ export function CustomerBasvuruDurumu() {
               </button>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {LOAN_DETAILS.map((d) => (
+              {loanDetails.map((d) => (
                 <div
                   className="flex flex-col items-center rounded-xl bg-canvas py-3 text-center"
                   key={d.label}
@@ -328,7 +297,5 @@ export function CustomerBasvuruDurumu() {
             </div>
           </div>
         </div>
-      </div>
-    </MobileShell>
   );
 }

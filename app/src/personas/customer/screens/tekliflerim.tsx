@@ -3,98 +3,16 @@ import {
   ArrowRight,
   ArrowUpDown,
   Bell,
-  Car,
   Heart,
   SlidersHorizontal,
 } from "lucide-react";
 import { useState } from "react";
 import { getModel } from "@/data/arac-taksonomisi";
+import type { Offer } from "@/data/my-offers";
+import { useMyOffers } from "@/queries/my-offers";
+import { EmptyState, ErrorState, LoadingState } from "@/ui/async-states";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { MobileShell } from "../mobile-shell";
-
-interface OfferSpecs {
-  km: string;
-  vites: string;
-  yakit: string;
-  yil: string;
-}
-
-interface Offer {
-  aylik: string;
-  bayi: string;
-  bayiKisa: string;
-  durum?: "yeni" | "goruntulenen";
-  enUygun?: boolean;
-  faiz: string;
-  geriOdeme: string;
-  id: string;
-  markaSlug: string;
-  modelSlug: string;
-  specs: OfferSpecs;
-  toplam: string;
-  varyantIndex: number;
-  vurgu?: boolean;
-}
-
-const OFFERS: Offer[] = [
-  {
-    id: "tiguan-kaya",
-    markaSlug: "volkswagen",
-    modelSlug: "tiguan",
-    varyantIndex: 0,
-    bayi: "Kaya Otomotiv",
-    bayiKisa: "KAYA",
-    specs: { yil: "2023", km: "18.500 km", yakit: "Benzin", vites: "Otomatik" },
-    faiz: "%1,89",
-    aylik: "₺16.250",
-    toplam: "₺1.165.000",
-    geriOdeme: "₺975.000",
-    durum: "yeni",
-    enUygun: true,
-  },
-  {
-    id: "corolla-zirve",
-    markaSlug: "toyota",
-    modelSlug: "corolla",
-    varyantIndex: 1,
-    bayi: "Zirve Motors",
-    bayiKisa: "ZIRVE",
-    specs: { yil: "2022", km: "32.000 km", yakit: "Hibrit", vites: "Otomatik" },
-    faiz: "%2,09",
-    aylik: "₺16.750",
-    toplam: "₺1.005.000",
-    geriOdeme: "₺1.005.000",
-    durum: "yeni",
-  },
-  {
-    id: "3008-yildiz",
-    markaSlug: "peugeot",
-    modelSlug: "3008",
-    varyantIndex: 1,
-    bayi: "Yıldız Oto",
-    bayiKisa: "YILDIZ",
-    specs: { yil: "2023", km: "21.300 km", yakit: "Hibrit", vites: "Otomatik" },
-    faiz: "%2,19",
-    aylik: "₺17.100",
-    toplam: "₺1.195.000",
-    geriOdeme: "₺1.026.000",
-    durum: "goruntulenen",
-  },
-  {
-    id: "clio-max",
-    markaSlug: "renault",
-    modelSlug: "clio",
-    varyantIndex: 0,
-    bayi: "Max Otomotiv",
-    bayiKisa: "MAX",
-    specs: { yil: "2022", km: "27.800 km", yakit: "Benzin", vites: "Manuel" },
-    faiz: "%2,29",
-    aylik: "₺15.450",
-    toplam: "₺1.075.000",
-    geriOdeme: "₺927.000",
-    durum: "goruntulenen",
-    vurgu: true,
-  },
-];
 
 type FilterId = "tumu" | "yeni" | "goruntulenen" | "favoriler" | "reddedilen";
 
@@ -133,8 +51,12 @@ function filterMatches(
   return true;
 }
 
-function filterCount(filter: FilterId, favorites: Set<string>): number {
-  return OFFERS.filter((offer) => filterMatches(offer, filter, favorites))
+function filterCount(
+  offers: Offer[],
+  filter: FilterId,
+  favorites: Set<string>
+): number {
+  return offers.filter((offer) => filterMatches(offer, filter, favorites))
     .length;
 }
 
@@ -212,9 +134,13 @@ function OfferCard({ isFavorite, offer, onToggleFavorite }: OfferCardProps) {
       </button>
 
       <div className="flex gap-3">
-        <span className="flex h-16 w-20 shrink-0 flex-col items-center justify-center rounded-xl bg-canvas">
-          <Car className="text-ink-muted" size={26} strokeWidth={1.5} />
-          <span className="mt-1 font-semibold text-[8px] text-ink-muted tracking-wide">
+        <span className="relative flex h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-canvas">
+          <VehicleImage
+            className="size-full bg-transparent"
+            iconSize={26}
+            name={ad}
+          />
+          <span className="absolute inset-x-0 bottom-0.5 text-center font-semibold text-[8px] text-ink-muted tracking-wide">
             {offer.bayiKisa}
           </span>
         </span>
@@ -280,6 +206,7 @@ function OfferCard({ isFavorite, offer, onToggleFavorite }: OfferCardProps) {
 }
 
 export function CustomerTekliflerim() {
+  const { data, isPending, isError, refetch } = useMyOffers();
   const [favorites, setFavorites] = useState<Set<string>>(
     () => new Set(SEED_FAVORITES)
   );
@@ -297,7 +224,27 @@ export function CustomerTekliflerim() {
     });
   };
 
-  const filteredOffers = OFFERS.filter((offer) =>
+  if (isPending) {
+    return (
+      <MobileShell tab="Tekliflerim">
+        <LoadingState />
+      </MobileShell>
+    );
+  }
+
+  if (isError) {
+    return (
+      <MobileShell tab="Tekliflerim">
+        <ErrorState
+          label="Teklifler yüklenemedi."
+          onRetry={() => refetch()}
+        />
+      </MobileShell>
+    );
+  }
+
+  const offers = data;
+  const filteredOffers = offers.filter((offer) =>
     filterMatches(offer, activeFilter, favorites)
   );
 
@@ -338,7 +285,7 @@ export function CustomerTekliflerim() {
         <div className="-mx-5 flex gap-2 overflow-x-auto px-5">
           {FILTERS.map((f) => {
             const isActive = f.id === activeFilter;
-            const count = filterCount(f.id, favorites);
+            const count = filterCount(offers, f.id, favorites);
             return (
               <button
                 className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 font-semibold text-[12px] ${
@@ -369,7 +316,9 @@ export function CustomerTekliflerim() {
 
         {/* offer list */}
         <div className="flex flex-col gap-3">
-          {filteredOffers.length === 0 ? (
+          {offers.length === 0 ? (
+            <EmptyState label="Henüz teklif yok." />
+          ) : filteredOffers.length === 0 ? (
             <p className="py-10 text-center text-[12px] text-ink-muted">
               Bu filtrede teklif yok
             </p>

@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Car, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { getModel } from "@/data/arac-taksonomisi";
+import { computeLoan } from "@/lib/finance";
+import { formatPercent, formatTRY } from "@/lib/format";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { MobileShell } from "../mobile-shell";
 
 const tiguan = getModel("volkswagen", "tiguan");
@@ -10,25 +13,8 @@ const tiguanName = `Volkswagen ${tiguan?.model ?? "Tiguan"}`;
 const tiguanVariant = `${tiguan?.varyantlar[0] ?? "1.5 TSI"} 150 DSG`;
 
 const ARAC_FIYATI = 1_250_000;
-const BSMV_RATE = 0.0189;
+// Insurance (kasko/hayat) estimate — separate from KKDF/BSMV taxes handled in finance.ts.
 const SIGORTA_RATE = 0.0587;
-
-function formatTRY(value: number): string {
-  return `₺${new Intl.NumberFormat("tr-TR", {
-    maximumFractionDigits: 0,
-  }).format(Math.round(value))}`;
-}
-
-function formatPercent(value: number): string {
-  return `%${value.toLocaleString("tr-TR")}`;
-}
-
-function annuity(loan: number, monthlyRate: number, months: number): number {
-  if (monthlyRate === 0) {
-    return loan / months;
-  }
-  return (loan * monthlyRate) / (1 - (1 + monthlyRate) ** -months);
-}
 
 interface Step {
   id: number;
@@ -87,12 +73,13 @@ export function CustomerSimulator() {
   const [vade, setVade] = useState(48);
   const [faiz, setFaiz] = useState(1.89);
 
-  const loan = Math.max(price - pesinat, 0);
-  const monthlyRate = faiz / 100;
-  const taksit = annuity(loan, monthlyRate, vade);
-  const toplamGeriOdeme = taksit * vade;
-  const pesinatYuzde = price > 0 ? Math.round((pesinat / price) * 100) : 0;
-  const bsmv = loan * BSMV_RATE;
+  const { loan, monthlyPayment: taksit, toplamGeriOdeme, toplamVergi, pesinatYuzde } =
+    computeLoan({
+      price,
+      downPayment: pesinat,
+      months: vade,
+      baseMonthlyRate: faiz / 100,
+    });
   const sigorta = loan * SIGORTA_RATE;
 
   return (
@@ -132,9 +119,12 @@ export function CustomerSimulator() {
                 {tiguanVariant}
               </div>
             </div>
-            <span className="flex h-14 w-24 shrink-0 items-center justify-center rounded-xl bg-canvas text-ink-muted">
-              <Car size={30} strokeWidth={1.5} />
-            </span>
+            <VehicleImage
+              className="h-14 w-24 shrink-0 rounded-xl"
+              iconSize={30}
+              name="Volkswagen Tiguan"
+              segment="SUV"
+            />
           </div>
         </div>
 
@@ -251,9 +241,11 @@ export function CustomerSimulator() {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[12px] text-white/70">BSMV</span>
+              <span className="text-[12px] text-white/70">
+                Vergiler (KKDF + BSMV)
+              </span>
               <span className="font-semibold text-[12.5px] text-white">
-                {formatTRY(bsmv)}
+                {formatTRY(toplamVergi)}
               </span>
             </div>
             <div className="flex items-center justify-between">

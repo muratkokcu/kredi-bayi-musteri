@@ -4,38 +4,40 @@ import {
   Calculator,
   Car,
   ChevronRight,
+  ClipboardList,
   FileText,
-  Heart,
   TrendingUp,
   User,
 } from "lucide-react";
 import { getModel } from "@/data/arac-taksonomisi";
+import { useCustomerHome } from "@/queries/customer-home";
+import { ErrorState, LoadingState } from "@/ui/async-states";
+import { VehicleImage } from "@/ui/vehicle-image";
 import { MobileShell } from "../mobile-shell";
 
 const tiguan = getModel("volkswagen", "tiguan");
 const tiguanName = `Volkswagen ${tiguan?.model ?? "Tiguan"}`;
 const tiguanVariant = `1.5 TSI · ${tiguan?.varyantlar[0] ?? "1.5 TSI"} DSG`;
 
-const MINI_STATS = [
-  { label: "Tekliflerim", value: "6", sub: "yeni teklif" },
-  { label: "Araç Değerim", value: "₺1.125.000", sub: "Tahmini" },
-  { label: "Aylık Ödemem", value: "₺18.750", sub: "Taksit" },
-  { label: "Kredi Bitiş Tarihi", value: "15.08.2025", sub: "" },
-];
-
 const QUICK_ACTIONS = [
   { icon: FileText, label: "Teklifler", to: "/musteri/tekliflerim" },
   { icon: Car, label: "Araçlar", to: "/musteri/arac-tercihlerim" },
   { icon: Calculator, label: "Simülatör", to: "/musteri/simulator" },
-  { icon: Heart, label: "Favoriler", to: "/musteri/tekliflerim" },
-  { icon: FileText, label: "Belgeler", to: "/musteri/basvuru-durumu" },
+  { icon: ClipboardList, label: "Başvurum", to: "/musteri/basvuru-durumu" },
+  { icon: User, label: "Profilim", to: "/musteri/profil" },
 ];
 
-function CountdownRing() {
+function CountdownRing({
+  monthsLeft,
+  frac,
+}: {
+  monthsLeft: string;
+  frac: number;
+}) {
   const size = 64;
   const r = (size - 8) / 2;
   const c = 2 * Math.PI * r;
-  const dash = 0.62 * c;
+  const dash = frac * c;
   return (
     <span
       className="relative inline-flex items-center justify-center"
@@ -68,7 +70,9 @@ function CountdownRing() {
         />
       </svg>
       <span className="absolute text-center leading-none">
-        <span className="block font-bold text-[20px] text-cust">4</span>
+        <span className="block font-bold text-[20px] text-cust">
+          {monthsLeft}
+        </span>
         <span className="block text-[8px] text-ink-muted">AY KALDI</span>
       </span>
     </span>
@@ -76,20 +80,38 @@ function CountdownRing() {
 }
 
 export function CustomerAnaSayfa() {
+  const { data, isPending, isError, refetch } = useCustomerHome();
+
+  if (isPending) {
+    return (
+      <MobileShell tab="Ana Sayfa">
+        <LoadingState />
+      </MobileShell>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <MobileShell tab="Ana Sayfa">
+        <ErrorState onRetry={() => refetch()} />
+      </MobileShell>
+    );
+  }
+
   return (
     <MobileShell tab="Ana Sayfa">
       <div className="flex flex-col gap-4 px-5 pt-2 pb-6">
         {/* header */}
         <div className="flex items-center gap-3">
           <span className="flex size-11 items-center justify-center rounded-full bg-cust-tint font-bold text-[14px] text-cust-600">
-            MK
+            {data.header.initials}
           </span>
           <div className="flex-1">
             <div className="font-bold text-[16px] text-ink">
-              Merhaba, Mehmet Kaya 👋
+              Merhaba, {data.header.name} 👋
             </div>
             <div className="text-[12px] text-ink-muted">
-              Kredi yenileme fırsatınız hazırlandı.
+              {data.header.subtitle}
             </div>
           </div>
           <button
@@ -114,20 +136,24 @@ export function CustomerAnaSayfa() {
           </div>
           <div className="flex-1">
             <div className="font-semibold text-[14px] text-ink">
-              Kredine <span className="text-cust">4 ay</span> kaldı
+              Kredine{" "}
+              <span className="text-cust">{data.countdown.monthsLeft} ay</span>{" "}
+              kaldı
             </div>
             <div className="text-[11.5px] text-ink-soft leading-4">
-              Yenileme fırsatları seni bekliyor. Şimdi inceleyip avantajlı
-              faizlerden faydalanabilirsin.
+              {data.countdown.blurb}
             </div>
           </div>
-          <CountdownRing />
+          <CountdownRing
+            frac={data.countdown.ringFrac}
+            monthsLeft={data.countdown.monthsLeft}
+          />
           <ChevronRight className="text-ink-muted" size={18} />
         </div>
 
         {/* mini stats 2x2 */}
         <div className="grid grid-cols-2 gap-3">
-          {MINI_STATS.map((s) => (
+          {data.miniStats.map((s) => (
             <div
               className="rounded-2xl bg-surface p-3.5 shadow-[var(--shadow-card)]"
               key={s.label}
@@ -157,9 +183,12 @@ export function CustomerAnaSayfa() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <span className="flex h-14 w-20 items-center justify-center rounded-xl bg-canvas text-ink-muted">
-              <Car size={26} strokeWidth={1.6} />
-            </span>
+            <VehicleImage
+              className="h-14 w-20 rounded-xl"
+              iconSize={26}
+              name="Volkswagen Tiguan"
+              segment="SUV"
+            />
             <div>
               <div className="font-semibold text-[14px] text-ink">
                 {tiguanName}
@@ -172,15 +201,21 @@ export function CustomerAnaSayfa() {
           <div className="mt-3 grid grid-cols-3 gap-2 border-line border-t pt-3 text-center">
             <div>
               <div className="text-[10.5px] text-ink-muted">Kalan Borç</div>
-              <div className="font-bold text-[13px] text-ink">₺425.000</div>
+              <div className="font-bold text-[13px] text-ink">
+                {data.currentLoan.kalanBorc}
+              </div>
             </div>
             <div>
               <div className="text-[10.5px] text-ink-muted">Faiz Oranı</div>
-              <div className="font-bold text-[13px] text-ink">%1,89</div>
+              <div className="font-bold text-[13px] text-ink">
+                {data.currentLoan.faizOrani}
+              </div>
             </div>
             <div>
               <div className="text-[10.5px] text-ink-muted">Aylık Taksit</div>
-              <div className="font-bold text-[13px] text-ink">₺18.750</div>
+              <div className="font-bold text-[13px] text-ink">
+                {data.currentLoan.aylikTaksit}
+              </div>
             </div>
           </div>
         </div>
@@ -190,7 +225,9 @@ export function CustomerAnaSayfa() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[12px] text-white/70">Sana özel</div>
-              <div className="font-bold text-[22px]">6 teklif</div>
+              <div className="font-bold text-[22px]">
+                {data.offers.count} teklif
+              </div>
               <div className="text-[11.5px] text-white/70">
                 en iyi faiz oranlarıyla seni bekliyor
               </div>
@@ -206,11 +243,13 @@ export function CustomerAnaSayfa() {
                 En Uygun
               </div>
               <div className="mt-0.5 text-[11px] text-white/80">
-                Kaya Otomotiv
+                {data.offers.best.bayi}
               </div>
-              <div className="font-bold text-[18px]">%1,89</div>
+              <div className="font-bold text-[18px]">{data.offers.best.faiz}</div>
               <div className="text-[10px] text-white/60">Faiz Oranı</div>
-              <div className="mt-1 font-semibold text-[12px]">₺16.250</div>
+              <div className="mt-1 font-semibold text-[12px]">
+                {data.offers.best.aylik}
+              </div>
             </div>
           </div>
         </div>
@@ -222,10 +261,10 @@ export function CustomerAnaSayfa() {
               Aracının Piyasa Değeri
             </div>
             <div className="mt-1 font-bold text-[16px] text-ink">
-              ₺1.125.000
+              {data.marketValue.value}
             </div>
             <div className="mt-1 flex items-center gap-1 text-[11px] text-success">
-              <TrendingUp size={13} /> %3,2
+              <TrendingUp size={13} /> {data.marketValue.change}
             </div>
           </div>
           <Link

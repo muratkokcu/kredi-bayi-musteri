@@ -1,3 +1,4 @@
+import { useRouter } from "@tanstack/react-router";
 import {
   ArrowRight,
   Calendar,
@@ -8,7 +9,10 @@ import {
   Wallet,
 } from "lucide-react";
 import { useState } from "react";
+import { Bar, BarChart, ResponsiveContainer } from "recharts";
 import { getModel } from "@/data/arac-taksonomisi";
+import { computeLoan } from "@/lib/finance";
+import { formatPercent, formatTRY } from "@/lib/format";
 import { MobileShell } from "../mobile-shell";
 
 const tiguan = getModel("volkswagen", "tiguan");
@@ -19,23 +23,6 @@ const ARAC_FIYATI = 1_250_000;
 const PESINAT = 250_000;
 const VADE = 48;
 const FAIZ = 1.89;
-
-function formatTRY(value: number): string {
-  return `₺${new Intl.NumberFormat("tr-TR", {
-    maximumFractionDigits: 0,
-  }).format(Math.round(value))}`;
-}
-
-function formatPercent(value: number): string {
-  return `%${value.toLocaleString("tr-TR")}`;
-}
-
-function annuity(loan: number, monthlyRate: number, months: number): number {
-  if (monthlyRate === 0) {
-    return loan / months;
-  }
-  return (loan * monthlyRate) / (1 - (1 + monthlyRate) ** -months);
-}
 
 interface PlanOption {
   desc: string;
@@ -138,60 +125,30 @@ function Stepper() {
 }
 
 function AmortizationChart() {
+  const chartData = BARS.map((b) => ({ name: b.id, value: b.h }));
   return (
-    <svg
-      aria-hidden="true"
-      className="h-28 w-full"
-      preserveAspectRatio="none"
-      viewBox="0 0 240 110"
-    >
-      <title>Eşit taksit amortisman grafiği</title>
-      <line
-        stroke="var(--color-line)"
-        strokeWidth={1}
-        x1={0}
-        x2={240}
-        y1={101}
-        y2={101}
-      />
-      {BARS.map((b, i) => {
-        const barW = 14;
-        const gap = 6;
-        const x = 2 + i * (barW + gap);
-        const y = 100 - b.h;
-        return (
-          <g key={b.id}>
-            <rect
-              fill="var(--color-cust-tint)"
-              height={100 - y}
-              rx={3}
-              width={barW}
-              x={x}
-              y={y}
-            />
-            <rect
-              fill="var(--color-cust)"
-              height={Math.min(100 - y, 22)}
-              rx={3}
-              width={barW}
-              x={x}
-              y={y}
-            />
-          </g>
-        );
-      })}
-    </svg>
+    <ResponsiveContainer height={112} width="100%">
+      <BarChart data={chartData}>
+        <Bar dataKey="value" fill="var(--color-cust)" radius={[3, 3, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
 
 export function CustomerOdemePlani() {
+  const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState("esit");
 
-  const loan = Math.max(ARAC_FIYATI - PESINAT, 0);
-  const monthlyRate = FAIZ / 100;
-  const taksit = annuity(loan, monthlyRate, VADE);
-  const toplamGeriOdeme = taksit * VADE;
-  const toplamFaiz = toplamGeriOdeme - loan;
+  const {
+    monthlyPayment: taksit,
+    toplamGeriOdeme,
+    faizTutari: toplamFaiz,
+  } = computeLoan({
+    price: ARAC_FIYATI,
+    downPayment: PESINAT,
+    months: VADE,
+    baseMonthlyRate: FAIZ / 100,
+  });
 
   const summary = [
     { label: "Araç Fiyatı", value: formatTRY(ARAC_FIYATI) },
@@ -217,6 +174,7 @@ export function CustomerOdemePlani() {
       <div className="flex items-center justify-between px-5 py-3">
         <button
           className="flex size-9 items-center justify-center rounded-full bg-surface text-ink-soft shadow-[var(--shadow-card)]"
+          onClick={() => router.history.back()}
           type="button"
         >
           <ChevronLeft size={20} strokeWidth={2.2} />
