@@ -1,17 +1,151 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, LogOut, Pencil, Sparkles } from "lucide-react";
+import { type ReactNode, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 import { useAuth } from "@/auth/auth-context";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getModel } from "@/data/arac-taksonomisi";
 import type {
   CustomerProfile,
   IletisimSatiri,
   KrediStat,
   MenuSatiri,
 } from "@/data/customer-profile";
-import { getModel } from "@/data/arac-taksonomisi";
+import { ibanField, tcKimlikField, telefonField } from "@/lib/validators";
 import { useCustomerProfile } from "@/queries/customer-profile";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { VehicleImage } from "@/ui/vehicle-image";
 import { MobileShell } from "../mobile-shell";
+
+const editSchema = z.object({
+  ad: z.string().min(1, "Ad Soyad gerekli"),
+  telefon: telefonField,
+  tcKimlik: tcKimlikField,
+  iban: ibanField,
+});
+type EditValues = z.infer<typeof editSchema>;
+
+const FIELD_INPUT =
+  "w-full rounded-[10px] border border-line-strong bg-surface px-3 py-2.5 text-[13.5px] text-ink outline-none placeholder:text-ink-muted focus:border-cust";
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  children: ReactNode;
+  error?: string;
+  label: string;
+}) {
+  return (
+    <div>
+      <span className="mb-1.5 block font-medium text-[12.5px] text-ink-soft">
+        {label}
+      </span>
+      {children}
+      {error && <p className="mt-1 text-[11.5px] text-danger">{error}</p>}
+    </div>
+  );
+}
+
+function ProfilDuzenleDialog({
+  ad,
+  open,
+  onOpenChange,
+}: {
+  ad: string;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+}) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<EditValues>({
+    resolver: zodResolver(editSchema),
+    defaultValues: {
+      ad,
+      telefon: "0532 123 45 67",
+      tcKimlik: "10000000146",
+      iban: "TR33 0006 1005 1978 6457 8413 26",
+    },
+  });
+
+  const onSubmit = handleSubmit((values) => {
+    // Demo: no backend — validation passed, confirm and close.
+    toast.success("Bilgilerin güncellendi.");
+    reset(values);
+    onOpenChange(false);
+  });
+
+  return (
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent className="max-w-[420px]">
+        <DialogHeader>
+          <DialogTitle>İletişim Bilgilerini Düzenle</DialogTitle>
+          <DialogDescription>
+            TC Kimlik, telefon ve IBAN anlık olarak doğrulanır.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="flex flex-col gap-3.5" onSubmit={onSubmit}>
+          <Field error={errors.ad?.message} label="Ad Soyad">
+            <input className={FIELD_INPUT} {...register("ad")} />
+          </Field>
+          <Field error={errors.telefon?.message} label="Telefon">
+            <input
+              className={FIELD_INPUT}
+              inputMode="tel"
+              placeholder="0532 123 45 67"
+              {...register("telefon")}
+            />
+          </Field>
+          <Field error={errors.tcKimlik?.message} label="TC Kimlik No">
+            <input
+              className={FIELD_INPUT}
+              inputMode="numeric"
+              maxLength={11}
+              placeholder="11 haneli"
+              {...register("tcKimlik")}
+            />
+          </Field>
+          <Field error={errors.iban?.message} label="İade / Ödeme IBAN">
+            <input
+              className={FIELD_INPUT}
+              placeholder="TR.."
+              {...register("iban")}
+            />
+          </Field>
+          <DialogFooter className="mt-2">
+            <button
+              className="rounded-[10px] border border-line-strong bg-surface px-4 py-2.5 font-semibold text-[13px] text-ink-soft hover:bg-canvas"
+              onClick={() => onOpenChange(false)}
+              type="button"
+            >
+              İptal
+            </button>
+            <button
+              className="rounded-[10px] bg-cust px-4 py-2.5 font-semibold text-[13px] text-white hover:bg-cust-600"
+              type="submit"
+            >
+              Kaydet
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const tiguan = getModel("volkswagen", "tiguan");
 const tiguanName = `Volkswagen ${tiguan?.model ?? "Tiguan"}`;
@@ -45,7 +179,13 @@ function ProfileHeader({
   );
 }
 
-function IletisimCard({ rows }: { rows: IletisimSatiri[] }) {
+function IletisimCard({
+  rows,
+  onEdit,
+}: {
+  onEdit: () => void;
+  rows: IletisimSatiri[];
+}) {
   return (
     <div className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-card)]">
       <div className="mb-3 flex items-center justify-between">
@@ -54,6 +194,7 @@ function IletisimCard({ rows }: { rows: IletisimSatiri[] }) {
         </span>
         <button
           className="flex items-center gap-1 font-semibold text-[12px] text-cust"
+          onClick={onEdit}
           type="button"
         >
           Düzenle <Pencil size={12} strokeWidth={2.1} />
@@ -178,6 +319,7 @@ function MenuList({ rows }: { rows: MenuSatiri[] }) {
 }
 
 function ProfilBody({ data }: { data: CustomerProfile }) {
+  const [editOpen, setEditOpen] = useState(false);
   return (
     <div className="flex flex-col gap-4 px-5 pt-2 pb-6">
       <ProfileHeader
@@ -186,10 +328,18 @@ function ProfilBody({ data }: { data: CustomerProfile }) {
         rozet={data.rozet}
         uyelik={data.uyelik}
       />
-      <IletisimCard rows={data.iletisimBilgileri} />
+      <IletisimCard
+        onEdit={() => setEditOpen(true)}
+        rows={data.iletisimBilgileri}
+      />
       <AracimCard />
       <KrediOzetimCard stats={data.krediOzetim} />
       <MenuList rows={data.menuSatirlari} />
+      <ProfilDuzenleDialog
+        ad={data.isim}
+        onOpenChange={setEditOpen}
+        open={editOpen}
+      />
     </div>
   );
 }
