@@ -11,6 +11,8 @@ import {
   LayoutDashboard,
   LineChart,
   PlusCircle,
+  ScrollText,
+  ShieldCheck,
   TrendingUp,
   Upload,
   Users,
@@ -60,6 +62,8 @@ export const BANK_NAV = [
   { icon: Upload, label: "Portföy Import", to: "/banka/portfoy-import" },
   { icon: Bell, label: "Bildirim Ayarları", to: "/banka/bildirim-ayarlari" },
   { icon: FileBarChart, label: "Raporlar", to: "/banka/raporlar" },
+  { icon: ScrollText, label: "Denetim Kaydı", to: "/banka/denetim-kaydi" },
+  { icon: ShieldCheck, label: "Rıza Yönetimi", to: "/banka/riza-yonetimi" },
 ];
 
 function Logo() {
