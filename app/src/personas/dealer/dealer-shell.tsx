@@ -3,6 +3,7 @@ import {
   BarChart3,
   Bell,
   Car,
+  CarFront,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -67,29 +68,19 @@ export const DEALER_NAV = [
 
 function Logo() {
   return (
-    <div className="flex items-center gap-2.5 px-5 pt-5">
-      <div className="flex size-9 items-center justify-center rounded-[10px] bg-bank">
-        <svg
-          aria-hidden="true"
-          fill="none"
-          height="20"
-          viewBox="0 0 24 24"
-          width="20"
-        >
-          <path d="M12 2 22 12 12 22 2 12Z" stroke="#fff" strokeWidth="1.6" />
-          <path
-            d="M12 6.5 17.5 12 12 17.5 6.5 12Z"
-            stroke="#fff"
-            strokeWidth="1.6"
-          />
-        </svg>
-      </div>
+    <div className="flex items-center gap-2 px-5 pt-5">
+      <CarFront
+        aria-hidden="true"
+        className="text-dealer"
+        size={28}
+        strokeWidth={2.1}
+      />
       <div className="leading-none">
-        <div className="font-bold text-[15px] text-ink tracking-tight">
-          BAYİ PORTALI
+        <div className="font-bold text-[17px] text-ink tracking-tight">
+          Kaya<span className="text-dealer">Oto</span>
         </div>
         <div className="mt-1 font-semibold text-[9px] text-ink-muted tracking-[0.12em]">
-          YENİLEME PLATFORMU
+          BAYİ PORTALI
         </div>
       </div>
     </div>
