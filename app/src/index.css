@@ -155,3 +155,17 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* Tailwind v4 defaults buttons to cursor:default; restore pointer for all
+ * interactive controls (buttons, role=button, selectable inputs). */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  [role="tab"]:not([aria-disabled="true"]),
+  [role="menuitem"],
+  [role="option"],
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+}
