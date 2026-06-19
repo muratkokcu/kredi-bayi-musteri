@@ -70,6 +70,16 @@ const BankBayiDetay = lazy(() =>
     default: m.BankBayiDetay,
   }))
 );
+const BankDenetimKaydi = lazy(() =>
+  import("./personas/bank/screens/denetim-kaydi").then((m) => ({
+    default: m.BankDenetimKaydi,
+  }))
+);
+const BankRizaYonetimi = lazy(() =>
+  import("./personas/bank/screens/riza-yonetimi").then((m) => ({
+    default: m.BankRizaYonetimi,
+  }))
+);
 
 const DealerDashboard = lazy(() =>
   import("./personas/dealer/screens/ana-sayfa").then((m) => ({
@@ -177,6 +187,11 @@ const CustomerBasvuruDurumu = lazy(() =>
     default: m.CustomerBasvuruDurumu,
   }))
 );
+const CustomerKvkkRiza = lazy(() =>
+  import("./personas/customer/screens/kvkk-riza").then((m) => ({
+    default: m.CustomerKvkkRiza,
+  }))
+);
 
 interface RouterContext {
   user: User | null;
@@ -230,6 +245,8 @@ const BANK_SCREENS: Record<string, FC> = {
   "/banka/portfoy-import": BankPortfoyImport,
   "/banka/bildirim-ayarlari": BankBildirimAyarlari,
   "/banka/raporlar": BankRaporlar,
+  "/banka/denetim-kaydi": BankDenetimKaydi,
+  "/banka/riza-yonetimi": BankRizaYonetimi,
 };
 
 /** Implemented dealer screens keyed by route path. */
@@ -321,6 +338,7 @@ const subPages = [
   { path: "/musteri/arac-tercihlerim", component: CustomerAracTercihlerim },
   { path: "/musteri/odeme-plani", component: CustomerOdemePlani },
   { path: "/musteri/basvuru-durumu", component: CustomerBasvuruDurumu },
+  { path: "/musteri/kvkk-riza", component: CustomerKvkkRiza },
 ].map(({ path, component }) =>
   createRoute({
     getParentRoute: () => rootRoute,

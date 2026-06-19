@@ -6,6 +6,7 @@ import {
   ChevronRight,
   ClipboardList,
   FileText,
+  ShieldCheck,
   TrendingUp,
   User,
 } from "lucide-react";
@@ -150,6 +151,25 @@ export function CustomerAnaSayfa() {
           />
           <ChevronRight className="text-ink-muted" size={18} />
         </div>
+
+        {/* KVKK consent shortcut */}
+        <Link
+          className="flex items-center gap-3 rounded-2xl border border-cust/20 bg-cust-tint/50 px-4 py-3"
+          to="/musteri/kvkk-riza"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-cust/15 text-cust">
+            <ShieldCheck size={18} strokeWidth={1.9} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-[13px] text-ink">
+              KVKK İzinlerim
+            </span>
+            <span className="block text-[11px] text-ink-muted">
+              Açık rıza tercihlerini görüntüle ve yönet
+            </span>
+          </span>
+          <ChevronRight className="shrink-0 text-ink-muted" size={18} />
+        </Link>
 
         {/* mini stats 2x2 */}
         <div className="grid grid-cols-2 gap-3">
