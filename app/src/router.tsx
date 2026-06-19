@@ -15,6 +15,7 @@ import { CustomerPlaceholder } from "./personas/customer/screens/placeholder";
 import { DEALER_NAV } from "./personas/dealer/dealer-shell";
 import { DealerPlaceholder } from "./personas/dealer/screens/placeholder";
 import { LoadingState } from "./ui/async-states";
+import { NotFoundPage, RouteError } from "./ui/page-states";
 
 /**
  * Screens are lazy-loaded so each persona's screens land in their own chunks,
@@ -341,4 +342,6 @@ const routeTree = rootRoute.addChildren([
 export const router = createRouter({
   routeTree,
   context: { user: null },
+  defaultNotFoundComponent: NotFoundPage,
+  defaultErrorComponent: RouteError,
 });
