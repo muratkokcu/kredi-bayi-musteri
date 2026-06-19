@@ -1,5 +1,6 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, LogOut, Pencil, Sparkles } from "lucide-react";
+import { useAuth } from "@/auth/auth-context";
 import type {
   CustomerProfile,
   IletisimSatiri,
@@ -133,6 +134,8 @@ function KrediOzetimCard({ stats }: { stats: KrediStat[] }) {
 }
 
 function MenuList({ rows }: { rows: MenuSatiri[] }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col gap-2">
       {rows.map(({ icon: Icon, label }) => (
@@ -157,6 +160,10 @@ function MenuList({ rows }: { rows: MenuSatiri[] }) {
 
       <button
         className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-[var(--shadow-card)]"
+        onClick={() => {
+          logout();
+          navigate({ to: "/login" });
+        }}
         type="button"
       >
         <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-danger/10 text-danger">

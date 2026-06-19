@@ -1,11 +1,12 @@
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   createRoute,
   createRouter,
   Outlet,
   redirect,
 } from "@tanstack/react-router";
 import { type FC, lazy, Suspense } from "react";
+import { type Role, ROLE_HOME, type User } from "@/data/users";
 import { PersonaSwitcher } from "./persona-switcher";
 import { BANK_NAV } from "./personas/bank/bank-shell";
 import { BankPlaceholder } from "./personas/bank/screens/placeholder";
@@ -17,9 +18,12 @@ import { LoadingState } from "./ui/async-states";
 
 /**
  * Screens are lazy-loaded so each persona's screens land in their own chunks,
- * fetched on navigation. This keeps the initial bundle small (route-based code
- * splitting). Placeholders + nav metadata stay static (tiny, always needed).
+ * fetched on navigation. Placeholders + nav metadata stay static.
  */
+const LoginScreen = lazy(() =>
+  import("./auth/login-screen").then((m) => ({ default: m.LoginScreen }))
+);
+
 const BankDashboard = lazy(() =>
   import("./personas/bank/screens/dashboard").then((m) => ({
     default: m.BankDashboard,
@@ -173,6 +177,32 @@ const CustomerBasvuruDurumu = lazy(() =>
   }))
 );
 
+interface RouterContext {
+  user: User | null;
+}
+
+/** RBAC guard: require a session and the matching role; else redirect. */
+function guard(persona: Role) {
+  return ({ context }: { context: RouterContext }) => {
+    if (!context.user) {
+      throw redirect({ to: "/login" });
+    }
+    if (context.user.role !== persona) {
+      throw redirect({ to: ROLE_HOME[context.user.role] });
+    }
+  };
+}
+
+function personaOf(path: string): Role {
+  if (path.startsWith("/banka")) {
+    return "banka";
+  }
+  if (path.startsWith("/bayi")) {
+    return "bayi";
+  }
+  return "musteri";
+}
+
 function RootLayout() {
   return (
     <>
@@ -223,13 +253,28 @@ const CUSTOMER_SCREENS: Record<string, FC> = {
   "/musteri/profil": CustomerProfil,
 };
 
-const rootRoute = createRootRoute({ component: RootLayout });
+const rootRoute = createRootRouteWithContext<RouterContext>()({
+  component: RootLayout,
+});
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  beforeLoad: () => {
-    throw redirect({ to: "/banka/dashboard" });
+  beforeLoad: ({ context }) => {
+    throw redirect({
+      to: context.user ? ROLE_HOME[context.user.role] : "/login",
+    });
+  },
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: LoginScreen,
+  beforeLoad: ({ context }) => {
+    if (context.user) {
+      throw redirect({ to: ROLE_HOME[context.user.role] });
+    }
   },
 });
 
@@ -237,6 +282,7 @@ const bankRoutes = BANK_NAV.map((nav) =>
   createRoute({
     getParentRoute: () => rootRoute,
     path: nav.to,
+    beforeLoad: guard("banka"),
     component:
       BANK_SCREENS[nav.to] ?? (() => <BankPlaceholder title={nav.label} />),
   })
@@ -246,6 +292,7 @@ const dealerRoutes = DEALER_NAV.map((nav) =>
   createRoute({
     getParentRoute: () => rootRoute,
     path: nav.to,
+    beforeLoad: guard("bayi"),
     component:
       DEALER_SCREENS[nav.to] ?? (() => <DealerPlaceholder title={nav.label} />),
   })
@@ -255,6 +302,7 @@ const customerTabRoutes = CUSTOMER_TABS.map((tab) =>
   createRoute({
     getParentRoute: () => rootRoute,
     path: tab.to,
+    beforeLoad: guard("musteri"),
     component:
       CUSTOMER_SCREENS[tab.to] ??
       (() => <CustomerPlaceholder tab={tab.label} title={tab.label} />),
@@ -273,15 +321,24 @@ const subPages = [
   { path: "/musteri/odeme-plani", component: CustomerOdemePlani },
   { path: "/musteri/basvuru-durumu", component: CustomerBasvuruDurumu },
 ].map(({ path, component }) =>
-  createRoute({ getParentRoute: () => rootRoute, path, component })
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path,
+    beforeLoad: guard(personaOf(path)),
+    component,
+  })
 );
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  loginRoute,
   ...bankRoutes,
   ...dealerRoutes,
   ...customerTabRoutes,
   ...subPages,
 ]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({
+  routeTree,
+  context: { user: null },
+});
