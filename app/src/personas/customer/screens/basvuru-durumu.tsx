@@ -130,7 +130,7 @@ function BasvuruContent({ data }: { data: ApplicationStatus }) {
                   {tiguanVariant}
                 </div>
                 <div className="mt-1 inline-flex items-center rounded-md bg-cust-tint px-2 py-0.5 font-semibold text-[10px] text-cust-600">
-                  Kaya Otomotiv · {tiguanSegment}
+                  Bayi Otomotiv · {tiguanSegment}
                 </div>
               </div>
             </div>

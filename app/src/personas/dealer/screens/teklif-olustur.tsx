@@ -651,7 +651,7 @@ function OfferPreview({ v, fin }: { v: OfferVehicle; fin: FinanceState }) {
             </div>
           </div>
           <div className="mt-3 flex items-center justify-between">
-            <span className="text-[11.5px] text-ink-soft">Kaya Otomotiv</span>
+            <span className="text-[11.5px] text-ink-soft">Bayi Otomotiv</span>
             <span className="font-semibold text-[12px] text-cust">
               Teklifi İncele →
             </span>

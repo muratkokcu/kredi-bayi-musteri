@@ -57,7 +57,7 @@ export const OFFER_DETAIL: OfferDetail = {
   aracSpec: "2022 · SUV · Otomatik · Benzin",
   badgeIcon: BadgeCheck,
   badgeLabel: "En Uygun Teklif",
-  bayiAdi: "Kaya Otomotiv",
+  bayiAdi: "Bayi Otomotiv",
   bayiPuan: "4.8",
   keyStats: [
     { label: "Faiz Oranı", value: "%1,89" },

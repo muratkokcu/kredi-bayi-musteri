@@ -147,7 +147,7 @@ export const BANK_DASHBOARD: BankDashboard = {
     { logo: "BO", name: "Borusan Otomotiv", count: "1.102", conv: 35 },
     { logo: "OTO", name: "Otokoç", count: "987", conv: 32 },
     { logo: "PSA", name: "Groupe PSA", count: "765", conv: 28 },
-    { logo: "KO", name: "Kaya Otomotiv", count: "612", conv: 25 },
+    { logo: "BO", name: "Bayi Otomotiv", count: "612", conv: 25 },
   ],
   funnel: [
     {

@@ -52,7 +52,7 @@ export interface DealerDetail {
 }
 
 export const DEALER_DETAIL: DealerDetail = {
-  bayiAdi: "Kaya Otomotiv",
+  bayiAdi: "Bayi Otomotiv",
   bayiSkor: 88,
   ozetAlanlar: [
     { label: "Bayi Kodu", value: "BYİ-000341" },
@@ -63,7 +63,7 @@ export const DEALER_DETAIL: DealerDetail = {
   iletisimSol: [
     { label: "Yetkili", value: "Mehmet Kaya" },
     { label: "Telefon", value: "+90 216 442 18 90" },
-    { label: "E-posta", value: "info@kayaoto.com.tr" },
+    { label: "E-posta", value: "info@bayi.com.tr" },
     {
       label: "Adres",
       value: "Ataşehir, İstanbul",

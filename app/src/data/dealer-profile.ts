@@ -15,10 +15,10 @@ export interface ProfileRow {
 }
 
 export const DEALER_PROFILE: ProfileRow[] = [
-  { icon: Store, label: "Bayi Adı", value: "Kaya Otomotiv" },
+  { icon: Store, label: "Bayi Adı", value: "Bayi Otomotiv" },
   { icon: Store, label: "Yetkili", value: "Mehmet Kaya" },
   { icon: Phone, label: "Telefon", value: "+90 532 *** ** **" },
-  { icon: Mail, label: "E-posta", value: "mehmet.kaya@kayaotomotiv.com" },
+  { icon: Mail, label: "E-posta", value: "mehmet.kaya@bayi.com" },
   { icon: MapPin, label: "Adres", value: "Ataşehir, İstanbul Anadolu" },
   { icon: KeyRound, label: "Vergi No", value: "1234567890" },
 ];

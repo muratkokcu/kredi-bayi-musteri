@@ -33,7 +33,7 @@ export const NOTIFICATIONS: Notification[] = [
     icon: BadgePercent,
     tone: "cust",
     title: "Yeni teklif aldın",
-    body: "Kaya Otomotiv %1,89 faiz oranıyla yeni bir yenileme teklifi gönderdi.",
+    body: "Bayi Otomotiv %1,89 faiz oranıyla yeni bir yenileme teklifi gönderdi.",
     time: "10 dk önce",
     group: "Bugün",
     unread: true,

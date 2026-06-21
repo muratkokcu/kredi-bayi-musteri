@@ -32,7 +32,7 @@ export const OFFERS: Offer[] = [
     markaSlug: "volkswagen",
     modelSlug: "tiguan",
     varyantIndex: 0,
-    bayi: "Kaya Otomotiv",
+    bayi: "Bayi Otomotiv",
     bayiKisa: "KAYA",
     specs: { yil: "2023", km: "18.500 km", yakit: "Benzin", vites: "Otomatik" },
     faiz: "%1,89",

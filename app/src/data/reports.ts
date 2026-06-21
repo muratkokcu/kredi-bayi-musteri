@@ -111,7 +111,7 @@ export const REPORTS: Reports = {
     { ad: "Borusan Otomotiv", teklif: "1.102", oran: "%17,3", hacim: "₺238.7 M" },
     { ad: "Otokoç", teklif: "987", oran: "%16,2", hacim: "₺212.3 M" },
     { ad: "Groupe PSA", teklif: "765", oran: "%15,8", hacim: "₺162.6 M" },
-    { ad: "Kaya Otomotiv", teklif: "612", oran: "%14,9", hacim: "₺128.9 M" },
+    { ad: "Bayi Otomotiv", teklif: "612", oran: "%14,9", hacim: "₺128.9 M" },
   ],
   regions: [
     { bolge: "Marmara", oran: 48 },
@@ -159,6 +159,6 @@ export const REPORTS: Reports = {
     { ad: "Borusan Otomotiv", oran: "%36,1", pct: 93 },
     { ad: "Otokoç", oran: "%33,4", pct: 86 },
     { ad: "Groupe PSA", oran: "%31,2", pct: 81 },
-    { ad: "Kaya Otomotiv", oran: "%28,9", pct: 75 },
+    { ad: "Bayi Otomotiv", oran: "%28,9", pct: 75 },
   ],
 };

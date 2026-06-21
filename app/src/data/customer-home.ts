@@ -85,7 +85,7 @@ export const CUSTOMER_HOME: CustomerHome = {
   offers: {
     count: "6",
     best: {
-      bayi: "Kaya Otomotiv",
+      bayi: "Bayi Otomotiv",
       faiz: "%1,89",
       aylik: "₺16.250",
     },
