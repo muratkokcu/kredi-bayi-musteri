@@ -1,10 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
-import { LogIn } from "lucide-react";
+import { Landmark, LogIn } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import quickFinansLogo from "@/assets/quick-finans-logo.svg";
 import { DEMO_ACCOUNTS, ROLE_HOME, ROLE_LABEL, type Role } from "@/data/users";
 import { useAuth } from "./auth-context";
 
@@ -47,13 +46,9 @@ export function LoginScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
       <div className="w-full max-w-[400px]">
-        <div className="mb-6 flex flex-col items-center text-center">
-          <img
-            alt="QuickFinans"
-            className="h-8 w-auto"
-            src={quickFinansLogo}
-          />
-          <div className="mt-1.5 font-semibold text-[10px] text-ink-muted uppercase tracking-[0.14em]">
+        <div className="mb-6 flex flex-col items-center gap-2 text-center">
+          <Landmark className="text-bank" size={34} strokeWidth={2} />
+          <div className="font-bold text-[18px] text-ink tracking-tight">
             Yenileme Platformu
           </div>
         </div>
@@ -76,7 +71,7 @@ export function LoginScreen() {
                 autoComplete="email"
                 className="w-full rounded-[10px] border border-line-strong bg-surface px-3 py-2.5 text-[13.5px] text-ink outline-none placeholder:text-ink-muted focus:border-bank"
                 id="email"
-                placeholder="ornek@quickfinans.com"
+                placeholder="ornek@eposta.com"
                 type="email"
                 {...register("email")}
               />

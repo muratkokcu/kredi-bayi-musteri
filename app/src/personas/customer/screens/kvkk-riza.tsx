@@ -106,7 +106,7 @@ export function CustomerKvkkRiza() {
           <p className="text-[12px] text-ink-soft leading-5">
             6698 sayılı KVKK kapsamında, kredi başvurunuzun değerlendirilmesi
             amacıyla kimlik, iletişim ve finansal verileriniz veri sorumlusu
-            sıfatıyla QuickFinans tarafından işlenir. Verileriniz yasal saklama
+            tarafından işlenir. Verileriniz yasal saklama
             süresi boyunca güvenli biçimde saklanır ve süre sonunda imha edilir.
             Dilediğiniz zaman rızanızı geri çekebilirsiniz.
           </p>

@@ -459,7 +459,7 @@ export function BankMusteriPortfoyu() {
       title="Müşteri Portföyü"
     >
       {/* stat cards */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard
           icon={<Users2 size={20} strokeWidth={1.9} />}
           label="Toplam Müşteri"
@@ -523,7 +523,8 @@ export function BankMusteriPortfoyu() {
           </div>
         </div>
 
-        <table className="w-full border-line border-t">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1100px] border-line border-t">
           <thead>
             {table.getHeaderGroups().map((hg) => (
               <tr className="bg-canvas/60" key={hg.id}>
@@ -556,7 +557,8 @@ export function BankMusteriPortfoyu() {
             ))}
           </thead>
           <tbody>{renderBody()}</tbody>
-        </table>
+          </table>
+        </div>
 
         {/* pagination */}
         <div className="flex items-center justify-between border-line border-t px-5 py-3.5 text-[12.5px] text-ink-muted">
