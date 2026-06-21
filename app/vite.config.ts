@@ -8,7 +8,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: true,
-    port: 5173,
+    port: 5220,
+    strictPort: true,
+    // Cloudflare Tunnel (*.trycloudflare.com) host adıyla gelen istekleri kabul et
+    allowedHosts: ['.trycloudflare.com'],
   },
   resolve: {
     alias: {
