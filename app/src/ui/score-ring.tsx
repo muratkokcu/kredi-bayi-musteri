@@ -1,8 +1,12 @@
 interface ScoreRingProps {
+  /** override the arc color (default: threshold tone red/amber/green) */
+  color?: string;
   /** hide the numeric label (e.g. very small rings) */
   showValue?: boolean;
   size?: number;
   stroke?: number;
+  /** override the background track color (default: --color-line) */
+  trackColor?: string;
   /** 0..100 */
   value: number;
 }
@@ -23,11 +27,13 @@ export function ScoreRing({
   size = 40,
   stroke = 4,
   showValue = true,
+  color,
+  trackColor = "var(--color-line)",
 }: ScoreRingProps) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const dash = (value / 100) * c;
-  const color = toneFor(value);
+  const arc = color ?? toneFor(value);
 
   return (
     <span
@@ -45,7 +51,7 @@ export function ScoreRing({
           cy={size / 2}
           fill="none"
           r={r}
-          stroke="var(--color-line)"
+          stroke={trackColor}
           strokeWidth={stroke}
         />
         <circle
@@ -53,7 +59,7 @@ export function ScoreRing({
           cy={size / 2}
           fill="none"
           r={r}
-          stroke={color}
+          stroke={arc}
           strokeDasharray={`${dash} ${c}`}
           strokeLinecap="round"
           strokeWidth={stroke}

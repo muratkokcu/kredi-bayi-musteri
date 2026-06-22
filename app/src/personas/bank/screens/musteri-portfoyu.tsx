@@ -494,7 +494,16 @@ export function BankMusteriPortfoyu() {
           value="21,4"
         />
         <StatCard
-          icon={<ScoreRing showValue={false} size={26} stroke={4} value={33} />}
+          icon={
+            <ScoreRing
+              color="currentColor"
+              showValue={false}
+              size={26}
+              stroke={4}
+              trackColor="color-mix(in oklab, currentColor 22%, transparent)"
+              value={33}
+            />
+          }
           label="Yenileme Oranı"
           sub="Bu ayki dönüşüm"
           tone="teal"
