@@ -60,6 +60,11 @@ const BankRaporlar = lazy(() =>
     default: m.BankRaporlar,
   }))
 );
+const BankBayiKarlilik = lazy(() =>
+  import("./personas/bank/screens/bayi-karlilik").then((m) => ({
+    default: m.BankBayiKarlilik,
+  }))
+);
 const BankMusteriDetay = lazy(() =>
   import("./personas/bank/screens/musteri-detay").then((m) => ({
     default: m.BankMusteriDetay,
@@ -245,6 +250,7 @@ const BANK_SCREENS: Record<string, FC> = {
   "/banka/portfoy-import": BankPortfoyImport,
   "/banka/bildirim-ayarlari": BankBildirimAyarlari,
   "/banka/raporlar": BankRaporlar,
+  "/banka/bayi-karlilik": BankBayiKarlilik,
   "/banka/denetim-kaydi": BankDenetimKaydi,
   "/banka/riza-yonetimi": BankRizaYonetimi,
 };

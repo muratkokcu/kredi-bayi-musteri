@@ -19,6 +19,7 @@ export const queryKeys = {
   dealerOffers: ["dealer-offers"] as const,
   dealerPerformance: ["dealer-performance"] as const,
   dealerProfile: ["dealer-profile"] as const,
+  dealerProfitability: ["dealer-profitability"] as const,
   dealers: ["dealers", "list"] as const,
   importHistory: ["import-history"] as const,
   myOffers: ["my-offers"] as const,
