@@ -117,11 +117,7 @@ export const DEALER_CUSTOMER_DETAIL: DealerCustomerDetail = {
   musteriOzet: [
     { label: "Ad Soyad", value: "A*** Y******" },
     { label: "Plaka", value: "34 *** 123" },
-    { label: "Yaş", value: "34" },
     { label: "İl / İlçe", value: "İstanbul / Kadıköy" },
-    { label: "Meslek", value: "Özel Sektör" },
-    { label: "Medeni Durum", value: "Evli" },
-    { label: "Çocuk", value: "1" },
     { label: "Müşteri Tipi", value: "Bireysel" },
   ],
   aracKredi: [
