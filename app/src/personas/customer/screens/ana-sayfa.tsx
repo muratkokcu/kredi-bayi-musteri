@@ -5,7 +5,6 @@ import {
   Car,
   ChevronRight,
   ClipboardList,
-  FileText,
   ShieldCheck,
   TrendingUp,
   User,
@@ -21,7 +20,6 @@ const tiguanName = `Volkswagen ${tiguan?.model ?? "Tiguan"}`;
 const tiguanVariant = `1.5 TSI · ${tiguan?.varyantlar[0] ?? "1.5 TSI"} DSG`;
 
 const QUICK_ACTIONS = [
-  { icon: FileText, label: "Teklifler", to: "/musteri/tekliflerim" },
   { icon: Car, label: "Araçlar", to: "/musteri/arac-tercihlerim" },
   { icon: Calculator, label: "Simülatör", to: "/musteri/simulator" },
   { icon: ClipboardList, label: "Başvurum", to: "/musteri/basvuru-durumu" },
