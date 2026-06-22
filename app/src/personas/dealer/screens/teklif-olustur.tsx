@@ -896,17 +896,20 @@ function FinancingCard({
         </div>
       </div>
 
-      <div className="border-line border-t px-5 pt-5">
-        <h4 className="font-semibold text-[14px] text-ink">Notlar</h4>
-        <textarea
-          className="mt-3 h-24 w-full resize-none rounded-[10px] border border-line-strong bg-surface p-3 text-[13px] text-ink outline-none placeholder:text-ink-muted focus:border-dealer"
-          maxLength={500}
-          placeholder="Bu teklif ile ilgili notunuzu buraya yazabilirsiniz..."
-        />
-        <div className="mt-1 text-right text-[11.5px] text-ink-muted">
-          0 / 500
-        </div>
-      </div>
+    </Card>
+  );
+}
+
+function NotesCard() {
+  return (
+    <Card className="p-5">
+      <h4 className="font-semibold text-[14px] text-ink">Notlar</h4>
+      <textarea
+        className="mt-3 h-24 w-full resize-none rounded-[10px] border border-line-strong bg-surface p-3 text-[13px] text-ink outline-none placeholder:text-ink-muted focus:border-dealer"
+        maxLength={500}
+        placeholder="Bu teklif ile ilgili notunuzu buraya yazabilirsiniz..."
+      />
+      <div className="mt-1 text-right text-[11.5px] text-ink-muted">0 / 500</div>
     </Card>
   );
 }
@@ -1284,13 +1287,13 @@ export function DealerTeklifOlustur() {
             vehicles={vehicles}
           />
           <div className="flex flex-col gap-5">
-            <MusteriFirsatCard />
             {selected && (
               <>
                 <SelectedVehicleCard v={selected} />
                 <SegmentMatchCard segment={selected.segment} />
               </>
             )}
+            <NotesCard />
           </div>
         </div>
       )}
@@ -1300,6 +1303,7 @@ export function DealerTeklifOlustur() {
           <FinancingCard fin={fin} setFin={setFin} />
           <div className="flex flex-col gap-5">
             {selected && <SelectedVehicleCard v={selected} />}
+            <MusteriFirsatCard />
           </div>
         </div>
       )}
