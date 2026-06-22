@@ -13,13 +13,11 @@ import {
   MoreHorizontal,
   Phone,
   PhoneCall,
-  Plus,
   SlidersHorizontal,
   Trophy,
 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
@@ -771,15 +769,6 @@ export function DealerTeklifler() {
 
   return (
     <DealerShell
-      actions={
-        <button
-          className="flex items-center gap-2 rounded-[10px] bg-dealer px-3.5 py-2 font-semibold text-[13px] text-white hover:bg-dealer-600"
-          onClick={() => toast.success("Yeni teklif oluşturma akışı açılıyor…")}
-          type="button"
-        >
-          <Plus size={16} /> Teklif Oluştur
-        </button>
-      }
       breadcrumb={["Teklifler", "Aktif Teklifler"]}
       info
       subtitle="Teklif süreçlerinizi aşamalara göre takip edin ve müşteri etkileşimlerinizi yönetin."
