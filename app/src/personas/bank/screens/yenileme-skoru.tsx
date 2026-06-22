@@ -4,7 +4,6 @@ import {
   Car,
   type Clock,
   History,
-  Info,
   Plus,
   Sigma,
   TrendingDown,
@@ -157,7 +156,7 @@ function ParamRow({ param }: { param: ScoreParam }) {
 
       <div>
         <div className="mb-1.5 flex items-center gap-1 font-medium text-[11.5px] text-ink-muted">
-          Ağırlık <Info size={12} />
+          Ağırlık
         </div>
         <div className="flex items-center gap-3">
           <Slider
@@ -183,10 +182,7 @@ function ScoreDistributionCard() {
 
   return (
     <Card className="pb-5">
-      <CardHeader
-        action={<Info className="text-ink-muted" size={15} />}
-        title="Skor Dağılımı Önizleme"
-      />
+      <CardHeader title="Skor Dağılımı Önizleme" />
       {isPending && <LoadingState label="Dağılım hesaplanıyor…" />}
       {!isPending && (isError || !data) && (
         <ErrorState

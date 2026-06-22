@@ -1,4 +1,4 @@
-import { ArrowRight, Download, History, Info, Pencil } from "lucide-react";
+import { ArrowRight, Download, History, Pencil } from "lucide-react";
 import type {
   CustomerDetail,
   Interaction,
@@ -139,14 +139,7 @@ function ScoreCard({
 }) {
   return (
     <Card className="pb-4">
-      <CardHeader
-        action={
-          <span className="text-ink-muted">
-            <Info size={16} strokeWidth={1.9} />
-          </span>
-        }
-        title="Yenileme Skoru Detayı"
-      />
+      <CardHeader title="Yenileme Skoru Detayı" />
       <div className="mt-4 flex items-center gap-4 px-5">
         <div className="relative inline-flex shrink-0 items-center justify-center">
           <ScoreRing showValue={false} size={104} stroke={9} value={score} />

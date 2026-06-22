@@ -3,7 +3,6 @@ import {
   Banknote,
   Clock,
   Download,
-  Info,
   Pencil,
   Repeat,
   Target,
@@ -251,14 +250,7 @@ export function BankBayiDetay() {
         {/* right column */}
         <div className="col-span-2 flex flex-col gap-5">
           <Card className="pb-4">
-            <CardHeader
-              action={
-                <span className="text-ink-muted">
-                  <Info size={16} strokeWidth={1.9} />
-                </span>
-              }
-              title="Performans Skoru Detayı"
-            />
+            <CardHeader title="Performans Skoru Detayı" />
             <div className="mt-4 flex items-center gap-4 px-5">
               <div className="relative inline-flex shrink-0 items-center justify-center">
                 <ScoreRing

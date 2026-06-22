@@ -4,7 +4,6 @@ import {
   CalendarRange,
   ChevronDown,
   Headphones,
-  Info,
   Phone,
   Sparkles,
 } from "lucide-react";
@@ -115,10 +114,7 @@ function PipelineCard({ funnel }: { funnel: DealerFunnelStage[] }) {
       <CardHeader
         action={<PeriodSelect label="Bu Hafta" />}
         title={
-          <span className="flex items-center gap-1.5">
-            Fırsat Pipeline
-            <Info className="text-ink-muted" size={14} strokeWidth={1.9} />
-          </span>
+          <span className="flex items-center gap-1.5">Fırsat Pipeline</span>
         }
       />
       <div className="mt-4 px-5">
