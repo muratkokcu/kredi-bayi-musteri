@@ -1284,6 +1284,7 @@ export function DealerTeklifOlustur() {
             vehicles={vehicles}
           />
           <div className="flex flex-col gap-5">
+            <MusteriFirsatCard />
             {selected && (
               <>
                 <SelectedVehicleCard v={selected} />
@@ -1299,7 +1300,6 @@ export function DealerTeklifOlustur() {
           <FinancingCard fin={fin} setFin={setFin} />
           <div className="flex flex-col gap-5">
             {selected && <SelectedVehicleCard v={selected} />}
-            <MusteriFirsatCard />
           </div>
         </div>
       )}
