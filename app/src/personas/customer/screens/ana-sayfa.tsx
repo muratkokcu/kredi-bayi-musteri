@@ -25,7 +25,6 @@ const QUICK_ACTIONS = [
   { icon: Car, label: "Araçlar", to: "/musteri/arac-tercihlerim" },
   { icon: Calculator, label: "Simülatör", to: "/musteri/simulator" },
   { icon: ClipboardList, label: "Başvurum", to: "/musteri/basvuru-durumu" },
-  { icon: User, label: "Profilim", to: "/musteri/profil" },
 ];
 
 function CountdownRing({
