@@ -55,7 +55,7 @@ export interface DealerProfit {
   initials: string;
   logoTone: string;
   bolge: string;
-  tip: "Bireysel" | "Kurumsal";
+  tip: "Bireysel" | "Ticari";
   series: Record<MetricKey, MetricSeries>;
 }
 
@@ -123,7 +123,7 @@ function buildDealer(d: Dealer, i: number): DealerProfit {
     initials: d.initials,
     logoTone: d.logoTone,
     bolge: d.bolge,
-    tip: i % 3 === 0 ? "Kurumsal" : "Bireysel",
+    tip: i % 3 === 0 ? "Ticari" : "Bireysel",
     series: { kabulHacmi, komisyon, yenilemeOrani, teklifSayisi },
   };
 }

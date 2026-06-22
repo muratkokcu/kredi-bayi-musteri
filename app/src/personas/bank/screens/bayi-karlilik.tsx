@@ -56,7 +56,7 @@ type FilterKey =
   | "volMid"
   | "volHi"
   | "Bireysel"
-  | "Kurumsal";
+  | "Ticari";
 
 const VOL_LO = 50_000_000;
 const VOL_HI = 150_000_000;
@@ -230,7 +230,7 @@ function ProfitBody({ rows }: { rows: DealerProfit[] }) {
       if (v < VOL_LO) lo += 1;
       else if (v < VOL_HI) mid += 1;
       else hi += 1;
-      if (d.tip === "Kurumsal") kur += 1;
+      if (d.tip === "Ticari") kur += 1;
       else bir += 1;
     }
     return { up, down, flat, lo, mid, hi, bir, kur };
@@ -370,11 +370,11 @@ function ProfitBody({ rows }: { rows: DealerProfit[] }) {
           onClick={() => toggle("Bireysel")}
         />
         <KpiPill
-          active={filter === "Kurumsal"}
+          active={filter === "Ticari"}
           count={counts.kur}
           icon={<Building2 size={17} strokeWidth={1.9} />}
-          label="Kurumsal"
-          onClick={() => toggle("Kurumsal")}
+          label="Ticari"
+          onClick={() => toggle("Ticari")}
         />
       </div>
 
