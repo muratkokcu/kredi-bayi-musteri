@@ -217,7 +217,13 @@ function OnerilenAraclarList({ araclar }: { araclar: OnerilenArac[] }) {
 
 export function CustomerAracTercihlerim() {
   const router = useRouter();
-  const [secilenTip, setSecilenTip] = useState("SUV");
+  const [secilenTipler, setSecilenTipler] = useState<string[]>(["SUV"]);
+  const toggleTip = (label: string) =>
+    setSecilenTipler((prev) =>
+      prev.includes(label)
+        ? prev.filter((t) => t !== label)
+        : [...prev, label]
+    );
   const [butce, setButce] = useState([10_000, 25_000]);
   const [pesinatLabel, setPesinatLabel] = useState(PESINAT_SECENEKLERI[0]);
   const [yakit, setYakit] = useState("Farketmez");
@@ -320,16 +326,17 @@ export function CustomerAracTercihlerim() {
             </div>
             <div className="grid grid-cols-6 gap-1.5">
               {TIP_ALANLARI.map(({ label, icon: Icon }) => {
-                const on = label === secilenTip;
+                const on = secilenTipler.includes(label);
                 return (
                   <button
+                    aria-pressed={on}
                     className={`relative flex flex-col items-center gap-1.5 rounded-xl border py-2.5 transition-colors ${
                       on
                         ? "border-2 border-cust bg-cust-tint text-cust-600"
                         : "border-line bg-surface text-ink-soft"
                     }`}
                     key={label}
-                    onClick={() => setSecilenTip(label)}
+                    onClick={() => toggleTip(label)}
                     type="button"
                   >
                     {on ? (
