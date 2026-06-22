@@ -31,3 +31,6 @@ Thumbs.db
 *.ntvs*
 *.njsproj
 *.sln
+
+# Office geçici/kilit dosyaları
+~$*
