@@ -273,7 +273,7 @@ const CUSTOMER_SCREENS: Record<string, FC> = {
   "/musteri/ana-sayfa": CustomerAnaSayfa,
   "/musteri/tekliflerim": CustomerTekliflerim,
   "/musteri/simulator": CustomerSimulator,
-  "/musteri/bildirimler": CustomerBildirimler,
+  "/musteri/arac-tercihlerim": CustomerAracTercihlerim,
   "/musteri/profil": CustomerProfil,
 };
 
@@ -341,7 +341,7 @@ const subPages = [
   { path: "/bayi/teklif-olustur", component: DealerTeklifOlustur },
   { path: "/bayi/musteri-detay", component: DealerMusteriDetay },
   { path: "/musteri/teklif-detayi", component: CustomerTeklifDetayi },
-  { path: "/musteri/arac-tercihlerim", component: CustomerAracTercihlerim },
+  { path: "/musteri/bildirimler", component: CustomerBildirimler },
   { path: "/musteri/odeme-plani", component: CustomerOdemePlani },
   { path: "/musteri/basvuru-durumu", component: CustomerBasvuruDurumu },
   { path: "/musteri/kvkk-riza", component: CustomerKvkkRiza },

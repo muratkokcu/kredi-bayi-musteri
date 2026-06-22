@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import {
   BatteryFull,
-  Bell,
   Calculator,
+  Car,
   FileText,
   House,
   SignalHigh,
@@ -15,7 +15,7 @@ export const CUSTOMER_TABS = [
   { icon: House, label: "Ana Sayfa", to: "/musteri/ana-sayfa" },
   { icon: FileText, label: "Tekliflerim", to: "/musteri/tekliflerim" },
   { icon: Calculator, label: "Simülatör", to: "/musteri/simulator" },
-  { icon: Bell, label: "Bildirimler", to: "/musteri/bildirimler", badge: 3 },
+  { icon: Car, label: "Araçlar", to: "/musteri/arac-tercihlerim" },
   { icon: User, label: "Profilim", to: "/musteri/profil" },
 ];
 
@@ -35,7 +35,7 @@ function StatusBar() {
 function TabBar({ active }: { active?: string }) {
   return (
     <nav className="sticky bottom-0 flex items-stretch justify-between border-line border-t bg-surface px-3 pt-2 pb-3">
-      {CUSTOMER_TABS.map(({ icon: Icon, label, to, badge }) => {
+      {CUSTOMER_TABS.map(({ icon: Icon, label, to }) => {
         const on = label === active;
         return (
           <Link
@@ -49,11 +49,6 @@ function TabBar({ active }: { active?: string }) {
               }`}
             >
               <Icon size={20} strokeWidth={on ? 2.4 : 1.9} />
-              {badge ? (
-                <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-danger font-bold text-[9px] text-white">
-                  {badge}
-                </span>
-              ) : null}
             </span>
             <span
               className={`text-[10.5px] ${on ? "font-semibold text-cust" : "text-ink-muted"}`}

@@ -112,13 +112,14 @@ export function CustomerAnaSayfa() {
               {data.header.subtitle}
             </div>
           </div>
-          <button
+          <Link
+            aria-label="Bildirimler"
             className="relative flex size-9 items-center justify-center rounded-full bg-surface text-ink-soft"
-            type="button"
+            to="/musteri/bildirimler"
           >
             <Bell size={18} strokeWidth={1.9} />
             <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-danger" />
-          </button>
+          </Link>
           <button
             className="flex size-9 items-center justify-center rounded-full bg-surface text-ink-soft"
             type="button"
