@@ -62,7 +62,16 @@ const KPIS: Kpi[] = [
     tone: "bank",
   },
   {
-    icon: <ScoreRing showValue={false} size={26} stroke={4} value={32} />,
+    icon: (
+      <ScoreRing
+        color="currentColor"
+        showValue={false}
+        size={26}
+        stroke={4}
+        trackColor="color-mix(in oklab, currentColor 22%, transparent)"
+        value={32}
+      />
+    ),
     label: "Kazanma Oranı",
     value: "%32",
     sub: "Son 30 gün",

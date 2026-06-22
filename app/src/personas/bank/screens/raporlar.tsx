@@ -39,7 +39,16 @@ const KPI_PRESENTATION: Record<
   { icon: ReactNode; tone: "bank" | "dealer" | "cust" | "warn" | "teal" }
 > = {
   "Yenileme Oranı": {
-    icon: <ScoreRing showValue={false} size={26} stroke={4} value={33} />,
+    icon: (
+      <ScoreRing
+        color="currentColor"
+        showValue={false}
+        size={26}
+        stroke={4}
+        trackColor="color-mix(in oklab, currentColor 22%, transparent)"
+        value={33}
+      />
+    ),
     tone: "teal",
   },
   "Toplam Uygun Müşteri": {
