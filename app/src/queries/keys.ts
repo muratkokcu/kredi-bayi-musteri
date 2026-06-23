@@ -24,6 +24,7 @@ export const queryKeys = {
   dealerSales: ["dealer-sales"] as const,
   dealers: ["dealers", "list"] as const,
   importHistory: ["import-history"] as const,
+  limits: ["limits"] as const,
   missingDocs: ["missing-docs"] as const,
   myOffers: ["my-offers"] as const,
   notificationRules: ["notification-rules"] as const,

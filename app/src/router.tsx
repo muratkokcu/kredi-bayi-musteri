@@ -95,6 +95,11 @@ const BankEksikEvrak = lazy(() =>
     default: m.BankEksikEvrak,
   }))
 );
+const BankLimitTakip = lazy(() =>
+  import("./personas/bank/screens/limit-takip").then((m) => ({
+    default: m.BankLimitTakip,
+  }))
+);
 const BankMusteriDetay = lazy(() =>
   import("./personas/bank/screens/musteri-detay").then((m) => ({
     default: m.BankMusteriDetay,
@@ -286,6 +291,7 @@ const BANK_SCREENS: Record<string, FC> = {
   "/banka/satis-penetrasyon": BankBayiPerformans,
   "/banka/stok-finansmani": BankStokFinansmani,
   "/banka/risk-izleme": BankRiskIzleme,
+  "/banka/limit-takip": BankLimitTakip,
   "/banka/eksik-evrak": BankEksikEvrak,
   "/banka/denetim-kaydi": BankDenetimKaydi,
   "/banka/riza-yonetimi": BankRizaYonetimi,

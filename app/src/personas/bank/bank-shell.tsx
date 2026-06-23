@@ -25,6 +25,7 @@ import {
   Upload,
   Users,
   Users2,
+  Wallet,
 } from "lucide-react";
 import { type ComponentType, type ReactNode, useState } from "react";
 import {
@@ -76,6 +77,7 @@ export const BANK_NAV = [
   { icon: Gauge, label: "Satış & Penetrasyon", to: "/banka/satis-penetrasyon" },
   { icon: Boxes, label: "Stok Finansmanı", to: "/banka/stok-finansmani" },
   { icon: ShieldAlert, label: "Risk & İzleme", to: "/banka/risk-izleme" },
+  { icon: Wallet, label: "Limit Takip", to: "/banka/limit-takip" },
   { icon: FileWarning, label: "Eksik Evrak", to: "/banka/eksik-evrak" },
   { icon: ScrollText, label: "Denetim Kaydı", to: "/banka/denetim-kaydi" },
   { icon: ShieldCheck, label: "Rıza Yönetimi", to: "/banka/riza-yonetimi" },
