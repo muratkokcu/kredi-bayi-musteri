@@ -1,5 +1,13 @@
-import { Car, Gauge, RotateCcw, ShieldCheck, Store } from "lucide-react";
-import { type ReactNode, useMemo, useState } from "react";
+import {
+  Car,
+  ChevronRight,
+  Download,
+  Gauge,
+  RotateCcw,
+  ShieldCheck,
+  Store,
+} from "lucide-react";
+import { Fragment, type ReactNode, useMemo, useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -13,6 +21,7 @@ import {
 } from "recharts";
 import { type DealerSalesRow, SATIS_AYLAR } from "@/data/dealer-sales";
 import { formatNumber, formatPercent } from "@/lib/format";
+import { downloadCsv } from "@/lib/csv";
 import { useDealerSales } from "@/queries/dealer-sales";
 import {
   Select,
@@ -70,26 +79,50 @@ function FilterSelect({
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <Card className="p-5">
+    <Card>
       <CardHeader title={title} />
-      <div className="mt-3 h-[240px]">{children}</div>
+      <div className="mt-3 h-[240px] px-5 pb-5">{children}</div>
     </Card>
   );
 }
 
-function group(
-  rows: DealerSalesRow[],
-  dim: "bayi" | "bolge"
-): { name: string; toplam: number; kredili: number; pen: number }[] {
-  const m = new Map<string, { toplam: number; kredili: number }>();
+interface PenNode {
+  name: string;
+  toplam: number;
+  kredili: number;
+  pen: number;
+}
+interface BolgeNode extends PenNode {
+  bayiler: PenNode[];
+}
+
+/** Bölge → altında bayiler; penetrasyon = kredili/toplam (oran toplamı). */
+function nestByBolge(rows: DealerSalesRow[]): BolgeNode[] {
+  const bm = new Map<string, Map<string, { toplam: number; kredili: number }>>();
   for (const r of rows) {
-    const e = m.get(r[dim]) ?? { toplam: 0, kredili: 0 };
+    if (!bm.has(r.bolge)) {
+      bm.set(r.bolge, new Map());
+    }
+    const inner = bm.get(r.bolge)!;
+    const e = inner.get(r.bayi) ?? { toplam: 0, kredili: 0 };
     e.toplam += r.toplamSatis;
     e.kredili += r.krediliSatis;
-    m.set(r[dim], e);
+    inner.set(r.bayi, e);
   }
-  return [...m.entries()]
-    .map(([name, e]) => ({ name, ...e, pen: pct(e.kredili, e.toplam) * 100 }))
+  return [...bm.entries()]
+    .map(([name, inner]) => {
+      const bayiler = [...inner.entries()]
+        .map(([bn, e]) => ({
+          name: bn,
+          toplam: e.toplam,
+          kredili: e.kredili,
+          pen: pct(e.kredili, e.toplam) * 100,
+        }))
+        .sort((a, b) => b.pen - a.pen);
+      const toplam = bayiler.reduce((a, b) => a + b.toplam, 0);
+      const kredili = bayiler.reduce((a, b) => a + b.kredili, 0);
+      return { name, toplam, kredili, pen: pct(kredili, toplam) * 100, bayiler };
+    })
     .sort((a, b) => b.pen - a.pen);
 }
 
@@ -140,15 +173,39 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
     return g.map((x) => ({ ...x, pen: pct(x.kredili, x.toplam) * 100 }));
   }, [f]);
 
-  const byBayi = useMemo(() => group(f, "bayi"), [f]);
-  const byBolge = useMemo(() => group(f, "bolge"), [f]);
-  const maxPen = Math.max(...byBayi.map((b) => b.pen), 1);
+  const nested = useMemo(() => nestByBolge(f), [f]);
+  const maxPen = Math.max(
+    ...nested.flatMap((b) => [b.pen, ...b.bayiler.map((x) => x.pen)]),
+    1
+  );
+  const [closed, setClosed] = useState<Set<string>>(new Set());
+  const toggleBolge = (name: string) =>
+    setClosed((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
 
   const reset = () => {
     setYil("2025");
     setBolge(ALL);
     setBayi(ALL);
   };
+
+  const exportCsv = () =>
+    downloadCsv(
+      "satis-penetrasyon",
+      ["Bölge", "Bayi", "Toplam Satış", "Kredili Satış", "QF Penetrasyonu (%)"],
+      nested.flatMap((b) =>
+        b.bayiler.map((x) => [
+          b.name, x.name, x.toplam, x.kredili, x.pen.toFixed(1),
+        ])
+      )
+    );
 
   return (
     <>
@@ -162,6 +219,13 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
           type="button"
         >
           <RotateCcw size={15} /> Temizle
+        </button>
+        <button
+          className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+          onClick={exportCsv}
+          type="button"
+        >
+          <Download size={15} /> CSV İndir
         </button>
       </Card>
 
@@ -257,12 +321,12 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
       </div>
 
       <Card className="mt-5 pb-3">
-        <CardHeader title="Bayi Bazında Penetrasyon" />
+        <CardHeader title="Bölge / Bayi Penetrasyonu" />
         <div className="mt-3 overflow-x-auto px-5">
           <table className="w-full min-w-[680px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Bayi</th>
+                <th className="py-2 text-left font-medium">Bölge / Bayi</th>
                 <th className="py-2 text-right font-medium">Toplam Satış</th>
                 <th className="py-2 text-right font-medium">Kredili Satış</th>
                 <th className="py-2 pr-1 text-right font-medium">QF Penetrasyonu</th>
@@ -270,38 +334,65 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
               </tr>
             </thead>
             <tbody>
-              {byBayi.map((b) => (
-                <tr className="border-line border-b last:border-0" key={b.name}>
-                  <td className="py-2.5 font-medium text-[13px] text-ink">{b.name}</td>
-                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(b.toplam)}</td>
-                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(b.kredili)}</td>
-                  <td className="py-2.5 pr-1 text-right font-semibold text-[12.5px] text-bank-700 tabular-nums">
-                    {formatPercent(b.pen, 1)}
-                  </td>
-                  <td className="py-2.5 pl-3">
-                    <MiniBar value={(b.pen / maxPen) * 100} />
-                  </td>
-                </tr>
-              ))}
+              {nested.map((bo) => {
+                const open = !closed.has(bo.name);
+                return (
+                  <Fragment key={bo.name}>
+                    <tr
+                      className="cursor-pointer border-line border-b bg-canvas/40 hover:bg-canvas"
+                      onClick={() => toggleBolge(bo.name)}
+                    >
+                      <td className="py-2.5">
+                        <span className="flex items-center gap-1.5 font-semibold text-[13px] text-ink">
+                          <ChevronRight
+                            className={`text-ink-muted transition-transform ${open ? "rotate-90" : ""}`}
+                            size={15}
+                          />
+                          {bo.name}
+                          <span className="ml-1 font-normal text-[11px] text-ink-muted">
+                            ({bo.bayiler.length} bayi)
+                          </span>
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-right font-semibold text-[12.5px] tabular-nums">
+                        {formatNumber(bo.toplam)}
+                      </td>
+                      <td className="py-2.5 text-right font-semibold text-[12.5px] tabular-nums">
+                        {formatNumber(bo.kredili)}
+                      </td>
+                      <td className="py-2.5 pr-1 text-right font-bold text-[12.5px] text-bank-700 tabular-nums">
+                        {formatPercent(bo.pen, 1)}
+                      </td>
+                      <td className="py-2.5 pl-3">
+                        <MiniBar value={(bo.pen / maxPen) * 100} />
+                      </td>
+                    </tr>
+                    {open &&
+                      bo.bayiler.map((x) => (
+                        <tr
+                          className="border-line border-b last:border-0"
+                          key={`${bo.name}-${x.name}`}
+                        >
+                          <td className="py-2 pl-7 text-[12.5px] text-ink-soft">{x.name}</td>
+                          <td className="py-2 text-right text-[12.5px] tabular-nums">
+                            {formatNumber(x.toplam)}
+                          </td>
+                          <td className="py-2 text-right text-[12.5px] tabular-nums">
+                            {formatNumber(x.kredili)}
+                          </td>
+                          <td className="py-2 pr-1 text-right font-semibold text-[12.5px] text-ink tabular-nums">
+                            {formatPercent(x.pen, 1)}
+                          </td>
+                          <td className="py-2 pl-3">
+                            <MiniBar value={(x.pen / maxPen) * 100} />
+                          </td>
+                        </tr>
+                      ))}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
-        </div>
-      </Card>
-
-      <Card className="mt-5 p-5">
-        <CardHeader title="Bölge Bazında QF Penetrasyonu" />
-        <div className="mt-4 flex flex-col gap-3">
-          {byBolge.map((b) => (
-            <div className="flex items-center gap-3" key={b.name}>
-              <span className="w-28 shrink-0 text-[12.5px] text-ink-soft">{b.name}</span>
-              <div className="flex-1">
-                <MiniBar value={(b.pen / maxPen) * 100} />
-              </div>
-              <span className="w-14 shrink-0 text-right font-semibold text-[12.5px] text-ink tabular-nums">
-                {formatPercent(b.pen, 1)}
-              </span>
-            </div>
-          ))}
         </div>
       </Card>
     </>

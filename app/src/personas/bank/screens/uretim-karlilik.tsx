@@ -1,6 +1,7 @@
 import {
   Banknote,
   Car,
+  Download,
   FileStack,
   Percent,
   RotateCcw,
@@ -32,6 +33,7 @@ import {
   formatTRY,
   formatTRYCompact,
 } from "@/lib/format";
+import { downloadCsv } from "@/lib/csv";
 import { useProductionLoans } from "@/queries/production-loans";
 import {
   Select,
@@ -99,9 +101,9 @@ function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="p-5">
+    <Card>
       <CardHeader title={title} />
-      <div className="mt-3 h-[240px]">{children}</div>
+      <div className="mt-3 h-[240px] px-5 pb-5">{children}</div>
     </Card>
   );
 }
@@ -221,6 +223,22 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
     setTip(ALL);
   };
 
+  const exportCsv = () =>
+    downloadCsv(
+      "uretim-karlilik",
+      [
+        "Yıl", "Ay", "Bölge", "Bayi", "Distribütör", "Marka", "Kasa",
+        "Müşteri Tipi", "Model Yıl", "Kredi Tutarı", "Vade (Ay)", "Faiz (%)",
+        "Dosya Masrafı", "Teşvik", "Sigorta", "Ekspertiz",
+      ],
+      f.map((r) => [
+        r.yil, URETIM_AYLAR[r.ay - 1], r.bolge, r.bayi, r.distributor, r.marka,
+        r.kasa, r.musteriTipi, r.modelYil, r.krediTutari, r.vade, r.faiz,
+        r.dosyaMasrafi, r.tesvik, r.sigorta ? "Var" : "Yok",
+        r.ekspertiz ? "Var" : "Yok",
+      ])
+    );
+
   return (
     <>
       {/* FİLTRE BANDI */}
@@ -236,6 +254,13 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           type="button"
         >
           <RotateCcw size={15} /> Temizle
+        </button>
+        <button
+          className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+          onClick={exportCsv}
+          type="button"
+        >
+          <Download size={15} /> CSV İndir
         </button>
       </Card>
 
@@ -403,7 +428,13 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
             </thead>
             <tbody>
               {bayiKar.map((b) => (
-                <tr className="border-line border-b last:border-0" key={b.name}>
+                <tr
+                  className={`cursor-pointer border-line border-b last:border-0 hover:bg-canvas/60 ${
+                    bayi === b.name ? "bg-bank-tint/40" : ""
+                  }`}
+                  key={b.name}
+                  onClick={() => setBayi((p) => (p === b.name ? ALL : b.name))}
+                >
                   <td className="py-2.5 font-medium text-[13px] text-ink">{b.name}</td>
                   <td className="py-2.5 text-right text-[12.5px] tabular-nums">
                     {formatTRYCompact(b.hacim)}
@@ -435,6 +466,59 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
                   </td>
                 </tr>
               )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* DETAY — Açılan Krediler (kredi-bazlı) */}
+      <Card className="mt-5 pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
+          <CardHeader title="Açılan Krediler — Detay" />
+          <span className="text-[12px] text-ink-muted">
+            {formatNumber(f.length)} kayıt
+            {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
+          </span>
+        </div>
+        <div className="mt-3 overflow-x-auto px-5">
+          <table className="w-full min-w-[920px]">
+            <thead>
+              <tr className="border-line border-b text-[11.5px] text-ink-muted">
+                <th className="py-2 text-left font-medium">Dönem</th>
+                <th className="py-2 text-left font-medium">Bayi</th>
+                <th className="py-2 text-left font-medium">Marka / Kasa</th>
+                <th className="py-2 text-left font-medium">Müşteri</th>
+                <th className="py-2 text-right font-medium">Model Yıl</th>
+                <th className="py-2 text-right font-medium">Kredi Tutarı</th>
+                <th className="py-2 text-right font-medium">Vade</th>
+                <th className="py-2 text-right font-medium">Faiz</th>
+                <th className="py-2 pr-1 text-right font-medium">Dosya Masrafı</th>
+              </tr>
+            </thead>
+            <tbody>
+              {f.slice(0, 100).map((r, i) => (
+                <tr className="border-line border-b last:border-0" key={`${r.bayi}-${i}`}>
+                  <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">
+                    {r.yil} {URETIM_AYLAR[r.ay - 1]}
+                  </td>
+                  <td className="py-2 text-[12.5px] text-ink">{r.bayi}</td>
+                  <td className="py-2 text-[12.5px] text-ink-soft">
+                    {r.marka} · {r.kasa}
+                  </td>
+                  <td className="py-2 text-[12.5px] text-ink-soft">{r.musteriTipi}</td>
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">{r.modelYil}</td>
+                  <td className="py-2 text-right font-semibold text-[12.5px] text-ink tabular-nums">
+                    {formatTRY(r.krediTutari)}
+                  </td>
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">{r.vade} ay</td>
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">
+                    {formatPercent(r.faiz, 2)}
+                  </td>
+                  <td className="py-2 pr-1 text-right text-[12.5px] tabular-nums">
+                    {formatTRY(r.dosyaMasrafi)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

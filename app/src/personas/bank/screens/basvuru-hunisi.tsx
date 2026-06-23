@@ -1,5 +1,6 @@
 import {
   CheckCircle2,
+  Download,
   FileInput,
   Percent,
   RotateCcw,
@@ -22,6 +23,7 @@ import {
 } from "recharts";
 import { type Application, BASVURU_AYLAR } from "@/data/applications";
 import { formatNumber, formatPercent, formatTRYCompact } from "@/lib/format";
+import { downloadCsv } from "@/lib/csv";
 import { useApplications } from "@/queries/applications";
 import {
   Select,
@@ -79,9 +81,9 @@ function FilterSelect({
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <Card className="p-5">
+    <Card>
       <CardHeader title={title} />
-      <div className="mt-3 h-[240px]">{children}</div>
+      <div className="mt-3 h-[240px] px-5 pb-5">{children}</div>
     </Card>
   );
 }
@@ -211,6 +213,16 @@ function Body({ rows }: { rows: Application[] }) {
     setTip(ALL);
   };
 
+  const exportCsv = () =>
+    downloadCsv(
+      "basvuru-hunisi",
+      ["Yıl", "Ay", "Bölge", "Bayi", "Müşteri Tipi", "Tutar", "Durum", "Ret Nedeni"],
+      f.map((r) => [
+        r.yil, BASVURU_AYLAR[r.ay - 1], r.bolge, r.bayi, r.musteriTipi,
+        r.tutar, r.durum, r.retNedeni,
+      ])
+    );
+
   return (
     <>
       <Card className="flex flex-wrap items-end gap-3 p-4">
@@ -224,6 +236,13 @@ function Body({ rows }: { rows: Application[] }) {
           type="button"
         >
           <RotateCcw size={15} /> Temizle
+        </button>
+        <button
+          className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+          onClick={exportCsv}
+          type="button"
+        >
+          <Download size={15} /> CSV İndir
         </button>
       </Card>
 
@@ -273,9 +292,9 @@ function Body({ rows }: { rows: Application[] }) {
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <Card className="p-5">
+        <Card>
           <CardHeader title="Dönüşüm Hunisi" />
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="mt-4 flex flex-col gap-3 px-5 pb-5">
             <FunnelBar color="var(--color-bank)" label="Başvuru" pct={100} value={k.n} />
             <FunnelBar
               color="var(--color-bank-600)"
@@ -358,7 +377,13 @@ function Body({ rows }: { rows: Application[] }) {
               </thead>
               <tbody>
                 {bayiTablo.map((b) => (
-                  <tr className="border-line border-b last:border-0" key={b.name}>
+                  <tr
+                    className={`cursor-pointer border-line border-b last:border-0 hover:bg-canvas/60 ${
+                      bayi === b.name ? "bg-bank-tint/40" : ""
+                    }`}
+                    key={b.name}
+                    onClick={() => setBayi((p) => (p === b.name ? ALL : b.name))}
+                  >
                     <td className="py-2.5 font-medium text-[13px] text-ink">{b.name}</td>
                     <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(b.basvuru)}</td>
                     <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(b.ret)}</td>
@@ -383,6 +408,49 @@ function Body({ rows }: { rows: Application[] }) {
           </div>
         </Card>
       </div>
+
+      {/* DETAY — Başvuru kayıtları */}
+      <Card className="mt-5 pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
+          <CardHeader title="Başvuru Kayıtları — Detay" />
+          <span className="text-[12px] text-ink-muted">
+            {formatNumber(f.length)} kayıt
+            {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
+          </span>
+        </div>
+        <div className="mt-3 overflow-x-auto px-5">
+          <table className="w-full min-w-[760px]">
+            <thead>
+              <tr className="border-line border-b text-[11.5px] text-ink-muted">
+                <th className="py-2 text-left font-medium">Dönem</th>
+                <th className="py-2 text-left font-medium">Bölge</th>
+                <th className="py-2 text-left font-medium">Bayi</th>
+                <th className="py-2 text-left font-medium">Müşteri</th>
+                <th className="py-2 text-right font-medium">Tutar</th>
+                <th className="py-2 text-left font-medium">Durum</th>
+                <th className="py-2 pr-1 text-left font-medium">Ret Nedeni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {f.slice(0, 100).map((r, i) => (
+                <tr className="border-line border-b last:border-0" key={`${r.bayi}-${i}`}>
+                  <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">
+                    {r.yil} {BASVURU_AYLAR[r.ay - 1]}
+                  </td>
+                  <td className="py-2 text-[12.5px] text-ink-soft">{r.bolge}</td>
+                  <td className="py-2 text-[12.5px] text-ink">{r.bayi}</td>
+                  <td className="py-2 text-[12.5px] text-ink-soft">{r.musteriTipi}</td>
+                  <td className="py-2 text-right font-semibold text-[12.5px] text-ink tabular-nums">
+                    {formatTRYCompact(r.tutar)}
+                  </td>
+                  <td className="py-2 text-[12.5px] text-ink-soft">{r.durum}</td>
+                  <td className="py-2 pr-1 text-[12.5px] text-ink-muted">{r.retNedeni}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </>
   );
 }
