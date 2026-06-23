@@ -80,6 +80,21 @@ const BankBayiPerformans = lazy(() =>
     default: m.BankBayiPerformans,
   }))
 );
+const BankStokFinansmani = lazy(() =>
+  import("./personas/bank/screens/stok-finansmani").then((m) => ({
+    default: m.BankStokFinansmani,
+  }))
+);
+const BankRiskIzleme = lazy(() =>
+  import("./personas/bank/screens/risk-izleme").then((m) => ({
+    default: m.BankRiskIzleme,
+  }))
+);
+const BankEksikEvrak = lazy(() =>
+  import("./personas/bank/screens/eksik-evrak").then((m) => ({
+    default: m.BankEksikEvrak,
+  }))
+);
 const BankMusteriDetay = lazy(() =>
   import("./personas/bank/screens/musteri-detay").then((m) => ({
     default: m.BankMusteriDetay,
@@ -269,6 +284,9 @@ const BANK_SCREENS: Record<string, FC> = {
   "/banka/uretim-karlilik": BankUretimKarlilik,
   "/banka/basvuru-hunisi": BankBasvuruHunisi,
   "/banka/satis-penetrasyon": BankBayiPerformans,
+  "/banka/stok-finansmani": BankStokFinansmani,
+  "/banka/risk-izleme": BankRiskIzleme,
+  "/banka/eksik-evrak": BankEksikEvrak,
   "/banka/denetim-kaydi": BankDenetimKaydi,
   "/banka/riza-yonetimi": BankRizaYonetimi,
 };

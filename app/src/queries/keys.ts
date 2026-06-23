@@ -24,6 +24,7 @@ export const queryKeys = {
   dealerSales: ["dealer-sales"] as const,
   dealers: ["dealers", "list"] as const,
   importHistory: ["import-history"] as const,
+  missingDocs: ["missing-docs"] as const,
   myOffers: ["my-offers"] as const,
   notificationRules: ["notification-rules"] as const,
   offerDetail: ["offer-detail"] as const,
@@ -31,8 +32,10 @@ export const queryKeys = {
   opportunities: ["opportunities"] as const,
   productionLoans: ["production-loans"] as const,
   reports: ["reports"] as const,
+  riskContracts: ["risk-contracts"] as const,
   scoreDistribution: ["score-distribution"] as const,
   stock: ["stock"] as const,
+  stockLoans: ["stock-loans"] as const,
   vehicleDetail: ["vehicle-detail"] as const,
   vehiclePreferences: ["vehicle-preferences"] as const,
 } as const;
