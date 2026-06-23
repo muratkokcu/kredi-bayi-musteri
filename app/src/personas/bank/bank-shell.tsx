@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import {
   Activity,
   AlertTriangle,
+  Banknote,
   Bell,
   CheckCircle2,
   ChevronDown,
@@ -65,6 +66,7 @@ export const BANK_NAV = [
   { icon: Bell, label: "Bildirim Ayarları", to: "/banka/bildirim-ayarlari" },
   { icon: FileBarChart, label: "Raporlar", to: "/banka/raporlar" },
   { icon: Activity, label: "Bayi Karlılık", to: "/banka/bayi-karlilik" },
+  { icon: Banknote, label: "Üretim & Karlılık", to: "/banka/uretim-karlilik" },
   { icon: ScrollText, label: "Denetim Kaydı", to: "/banka/denetim-kaydi" },
   { icon: ShieldCheck, label: "Rıza Yönetimi", to: "/banka/riza-yonetimi" },
 ];

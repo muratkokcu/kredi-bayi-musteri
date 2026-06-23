@@ -27,6 +27,7 @@ export const queryKeys = {
   offerDetail: ["offer-detail"] as const,
   offerVehicles: ["offer-vehicles"] as const,
   opportunities: ["opportunities"] as const,
+  productionLoans: ["production-loans"] as const,
   reports: ["reports"] as const,
   scoreDistribution: ["score-distribution"] as const,
   stock: ["stock"] as const,
