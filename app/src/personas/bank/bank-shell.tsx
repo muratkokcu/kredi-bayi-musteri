@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   FileBarChart,
+  Filter,
   HelpCircle,
   Landmark,
   LayoutDashboard,
@@ -67,6 +68,7 @@ export const BANK_NAV = [
   { icon: FileBarChart, label: "Raporlar", to: "/banka/raporlar" },
   { icon: Activity, label: "Bayi Karlılık", to: "/banka/bayi-karlilik" },
   { icon: Banknote, label: "Üretim & Karlılık", to: "/banka/uretim-karlilik" },
+  { icon: Filter, label: "Başvuru Hunisi", to: "/banka/basvuru-hunisi" },
   { icon: ScrollText, label: "Denetim Kaydı", to: "/banka/denetim-kaydi" },
   { icon: ShieldCheck, label: "Rıza Yönetimi", to: "/banka/riza-yonetimi" },
 ];

@@ -4,6 +4,7 @@
  */
 export const queryKeys = {
   applicationStatus: ["application-status"] as const,
+  applications: ["applications"] as const,
   bankDashboard: ["bank-dashboard"] as const,
   commissions: ["commissions"] as const,
   customerDetail: ["customer-detail"] as const,
