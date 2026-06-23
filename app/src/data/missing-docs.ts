@@ -3,17 +3,23 @@
  * Kurum rapor şablonundaki "Eksik Evrak Takip (Tüketici/Bayi + Stok/Filo)".
  * Deterministik (mulberry32). Servis: src/services/missing-docs.
  */
+import { orgFields } from "./org";
+
 export type EvrakTur = "Tüketici/Bayi" | "Stok/Filo";
 
 export interface MissingDoc {
+  altSektor: string;
   bayi: string;
   bolge: string;
+  bolgeYoneticisi: string;
+  danisman: string;
   distributor: string;
   evrakTarihi: string; // gg.aa.yyyy
   evrakTuru: string;
   hataTuru: string;
   il: string;
   musteriTedarikci: string;
+  sektorMuduru: string;
   sozlesmeNo: string;
   sozlesmeTuru: string; // Stok/Filo için: Stok Finansmanı | Filo · Tüketici için —
   tur: EvrakTur;
@@ -67,9 +73,13 @@ function generate(): MissingDoc[] {
     const yil = r() < 0.45 ? 2024 : 2025;
     const ay = 1 + Math.floor(r() * 12);
     const gun = 1 + Math.floor(r() * 28);
+    const o = orgFields(bayi, r);
     out.push({
+      altSektor: o.altSektor,
       bayi,
       bolge,
+      bolgeYoneticisi: o.bolgeYoneticisi,
+      danisman: o.danisman,
       distributor,
       evrakTarihi: `${String(gun).padStart(2, "0")}.${String(ay).padStart(2, "0")}.${yil}`,
       evrakTuru: tur === "Tüketici/Bayi" ? EVRAK_TUK[Math.floor(r() * EVRAK_TUK.length)] : EVRAK_STOK[Math.floor(r() * EVRAK_STOK.length)],
@@ -79,6 +89,7 @@ function generate(): MissingDoc[] {
         tur === "Tüketici/Bayi"
           ? `${HARF[Math.floor(r() * HARF.length)]}*** ${HARF[Math.floor(r() * HARF.length)]}***`
           : TEDARIKCI[Math.floor(r() * TEDARIKCI.length)],
+      sektorMuduru: o.sektorMuduru,
       sozlesmeNo: `SZ-${300000 + i}`,
       sozlesmeTuru:
         tur === "Stok/Filo" ? (r() < 0.6 ? "Stok Finansmanı" : "Filo") : "—",

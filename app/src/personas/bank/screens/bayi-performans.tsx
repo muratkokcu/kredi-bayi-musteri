@@ -149,6 +149,11 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
   const [distributor, setDistributor] = useState(ALL);
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
+  const [altSektor, setAltSektor] = useState(ALL);
+  const [danisman, setDanisman] = useState(ALL);
+  const [sektorMuduru, setSektorMuduru] = useState(ALL);
+  const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [ilce, setIlce] = useState(ALL);
 
   const opts = useMemo(
     () => ({
@@ -156,6 +161,11 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
       distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
+      altSektor: uniq(rows.map((r) => r.altSektor)),
+      danisman: uniq(rows.map((r) => r.danisman)),
+      sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
+      bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
+      ilce: uniq(rows.map((r) => r.ilce)),
     }),
     [rows]
   );
@@ -167,9 +177,14 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
           (yil === ALL || String(r.yil) === yil) &&
           (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
-          (bayi === ALL || r.bayi === bayi)
+          (bayi === ALL || r.bayi === bayi) &&
+          (altSektor === ALL || r.altSektor === altSektor) &&
+          (danisman === ALL || r.danisman === danisman) &&
+          (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
+          (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi) &&
+          (ilce === ALL || r.ilce === ilce)
       ),
-    [rows, yil, distributor, bolge, bayi]
+    [rows, yil, distributor, bolge, bayi, altSektor, danisman, sektorMuduru, bolgeYoneticisi, ilce]
   );
 
   const k = useMemo(() => {
@@ -221,17 +236,24 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
     setDistributor(ALL);
     setBolge(ALL);
     setBayi(ALL);
+    setAltSektor(ALL);
+    setDanisman(ALL);
+    setSektorMuduru(ALL);
+    setBolgeYoneticisi(ALL);
+    setIlce(ALL);
   };
 
   const exportCsv = () =>
     downloadCsv(
       "satis-penetrasyon",
       [
-        "Yıl", "Ay", "Distribütör", "Bölge", "İl", "Bayi", "Toplam Satış",
+        "Yıl", "Ay", "Distribütör", "Bölge", "İl", "İlçe", "Bayi", "Alt Sektör",
+        "Danışman", "Sektör Müdürü", "Bölge Yöneticisi", "Toplam Satış",
         "Kredili Satış", "Sigortalı", "QF Penetrasyonu (%)", "Sigorta Penetrasyonu (%)",
       ],
       f.map((r) => [
-        r.yil, SATIS_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.bayi,
+        r.yil, SATIS_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.ilce, r.bayi,
+        r.altSektor, r.danisman, r.sektorMuduru, r.bolgeYoneticisi,
         r.toplamSatis, r.krediliSatis, r.sigortali,
         (pct(r.krediliSatis, r.toplamSatis) * 100).toFixed(1),
         (pct(r.sigortali, r.krediliSatis) * 100).toFixed(1),
@@ -245,6 +267,11 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
         <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
+        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
+        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
+        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
+        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
+        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
         <button
           className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas"
           onClick={reset}

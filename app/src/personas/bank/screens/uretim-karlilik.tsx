@@ -132,6 +132,11 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
   const [bayi, setBayi] = useState(ALL);
   const [kasa, setKasa] = useState(ALL);
   const [tip, setTip] = useState(ALL);
+  const [altSektor, setAltSektor] = useState(ALL);
+  const [danisman, setDanisman] = useState(ALL);
+  const [sektorMuduru, setSektorMuduru] = useState(ALL);
+  const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [ilce, setIlce] = useState(ALL);
 
   const opts = useMemo(
     () => ({
@@ -141,6 +146,11 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       bayi: uniq(rows.map((r) => r.bayi)),
       kasa: uniq(rows.map((r) => r.kasa)),
       tip: uniq(rows.map((r) => r.musteriTipi)),
+      altSektor: uniq(rows.map((r) => r.altSektor)),
+      danisman: uniq(rows.map((r) => r.danisman)),
+      sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
+      bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
+      ilce: uniq(rows.map((r) => r.ilce)),
     }),
     [rows]
   );
@@ -154,9 +164,27 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (kasa === ALL || r.kasa === kasa) &&
-          (tip === ALL || r.musteriTipi === tip)
+          (tip === ALL || r.musteriTipi === tip) &&
+          (altSektor === ALL || r.altSektor === altSektor) &&
+          (danisman === ALL || r.danisman === danisman) &&
+          (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
+          (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi) &&
+          (ilce === ALL || r.ilce === ilce)
       ),
-    [rows, yil, distributor, bolge, bayi, kasa, tip]
+    [
+      rows,
+      yil,
+      distributor,
+      bolge,
+      bayi,
+      kasa,
+      tip,
+      altSektor,
+      danisman,
+      sektorMuduru,
+      bolgeYoneticisi,
+      ilce,
+    ]
   );
 
   const k = useMemo(() => {
@@ -230,6 +258,11 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
     setBayi(ALL);
     setKasa(ALL);
     setTip(ALL);
+    setAltSektor(ALL);
+    setDanisman(ALL);
+    setSektorMuduru(ALL);
+    setBolgeYoneticisi(ALL);
+    setIlce(ALL);
   };
 
   const exportCsv = () =>
@@ -240,6 +273,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
         "Kasa", "Müşteri Tipi", "Model Yıl", "Araç Yaşı", "Plaka",
         "Satış Bedeli", "Kasko Değeri", "Kredi Tutarı", "Vade (Ay)", "Faiz (%)",
         "Dosya Masrafı", "Teşvik", "Sigorta", "Ekspertiz", "Ekspertiz Firması",
+        "Alt Sektör", "Danışman", "Sektör Müdürü", "Bölge Yöneticisi", "İlçe",
       ],
       f.map((r) => [
         r.yil, URETIM_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.bayi,
@@ -247,6 +281,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
         r.satisBedeli, r.kaskoDegeri, r.krediTutari, r.vade, r.faiz,
         r.dosyaMasrafi, r.tesvik, r.sigorta ? "Var" : "Yok",
         r.ekspertiz ? "Var" : "Yok", r.ekspertizFirma,
+        r.altSektor, r.danisman, r.sektorMuduru, r.bolgeYoneticisi, r.ilce,
       ])
     );
 
@@ -260,6 +295,11 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Kasa / Segment" onChange={setKasa} options={opts.kasa} value={kasa} />
         <FilterSelect label="Müşteri Tipi" onChange={setTip} options={opts.tip} value={tip} />
+        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
+        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
+        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
+        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
+        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
         <button
           className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas"
           onClick={reset}

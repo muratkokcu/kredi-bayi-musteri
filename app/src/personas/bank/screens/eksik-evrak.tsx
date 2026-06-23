@@ -45,6 +45,10 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
   const [hata, setHata] = useState(ALL);
+  const [altSektor, setAltSektor] = useState(ALL);
+  const [danisman, setDanisman] = useState(ALL);
+  const [sektorMuduru, setSektorMuduru] = useState(ALL);
+  const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
 
   const opts = useMemo(
     () => ({
@@ -54,6 +58,10 @@ function Body({ rows }: { rows: MissingDoc[] }) {
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
       hata: uniq(rows.map((r) => r.hataTuru)),
+      altSektor: uniq(rows.map((r) => r.altSektor)),
+      danisman: uniq(rows.map((r) => r.danisman)),
+      sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
+      bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
     }),
     [rows]
   );
@@ -67,9 +75,13 @@ function Body({ rows }: { rows: MissingDoc[] }) {
           (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
-          (hata === ALL || r.hataTuru === hata)
+          (hata === ALL || r.hataTuru === hata) &&
+          (altSektor === ALL || r.altSektor === altSektor) &&
+          (danisman === ALL || r.danisman === danisman) &&
+          (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
+          (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi)
       ),
-    [rows, tur, sozlesmeTuru, distributor, bolge, bayi, hata]
+    [rows, tur, sozlesmeTuru, distributor, bolge, bayi, hata, altSektor, danisman, sektorMuduru, bolgeYoneticisi]
   );
 
   const hataDag = useMemo(() => countBy(f, "hataTuru"), [f]);
@@ -94,12 +106,16 @@ function Body({ rows }: { rows: MissingDoc[] }) {
     setBolge(ALL);
     setBayi(ALL);
     setHata(ALL);
+    setAltSektor(ALL);
+    setDanisman(ALL);
+    setSektorMuduru(ALL);
+    setBolgeYoneticisi(ALL);
   };
   const exportCsv = () =>
     downloadCsv(
       "eksik-evrak",
-      ["Sözleşme No", "Tür", "Sözleşme Türü", "Müşteri/Tedarikçi", "Distribütör", "Bölge", "İl", "Bayi", "Evrak Tarihi", "Evrak Türü", "Hata Türü"],
-      f.map((r) => [r.sozlesmeNo, r.tur, r.sozlesmeTuru, r.musteriTedarikci, r.distributor, r.bolge, r.il, r.bayi, r.evrakTarihi, r.evrakTuru, r.hataTuru])
+      ["Sözleşme No", "Tür", "Sözleşme Türü", "Müşteri/Tedarikçi", "Distribütör", "Bölge", "İl", "Bayi", "Evrak Tarihi", "Evrak Türü", "Hata Türü", "Alt Sektör", "Danışman", "Sektör Müdürü", "Bölge Yöneticisi"],
+      f.map((r) => [r.sozlesmeNo, r.tur, r.sozlesmeTuru, r.musteriTedarikci, r.distributor, r.bolge, r.il, r.bayi, r.evrakTarihi, r.evrakTuru, r.hataTuru, r.altSektor, r.danisman, r.sektorMuduru, r.bolgeYoneticisi])
     );
 
   return (
@@ -111,6 +127,10 @@ function Body({ rows }: { rows: MissingDoc[] }) {
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Hata Türü" onChange={setHata} options={opts.hata} value={hata} width={170} />
+        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
+        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
+        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
+        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
         <button className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas" onClick={reset} type="button">
           <RotateCcw size={15} /> Temizle
         </button>

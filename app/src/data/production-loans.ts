@@ -5,14 +5,21 @@
  * (ortak filtre bandı gerçekten çalışsın diye). Deterministik (mulberry32).
  * Servis: src/services/production-loans.
  */
+import { orgFields } from "./org";
+
 export const URETIM_AYLAR = [
   "Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara",
 ] as const;
 
 export interface ProductionLoan {
+  altSektor: string;
   aracYas: number;
   ay: number; // 1..12
   bayi: string;
+  bolgeYoneticisi: string;
+  danisman: string;
+  ilce: string;
+  sektorMuduru: string;
   bolge: string;
   distributor: string;
   dosyaMasrafi: number;
@@ -135,11 +142,15 @@ function generate(): ProductionLoan[] {
     const tesvik = r1000(krediTutari * (0.002 + r() * 0.007));
     const modelYil = 2008 + Math.floor(r() * 18); // 2008..2025
     const ekspertiz = r() < 0.6;
+    const o = orgFields(bayi, r);
     out.push({
+      altSektor: o.altSektor,
       aracYas: 2025 - modelYil,
       ay,
       bayi,
       bolge,
+      bolgeYoneticisi: o.bolgeYoneticisi,
+      danisman: o.danisman,
       distributor,
       dosyaMasrafi,
       ekspertiz,
@@ -147,6 +158,7 @@ function generate(): ProductionLoan[] {
       faiz,
       hedefTutar: r1000(krediTutari * (0.88 + r() * 0.28)),
       il,
+      ilce: o.ilce,
       kasa,
       kaskoDegeri: r1000(satisBedeli * (0.85 + r() * 0.2)),
       krediTutari,
@@ -157,6 +169,7 @@ function generate(): ProductionLoan[] {
       plaka: `${IL_PLAKA[il] ?? "34"} *** ${10 + Math.floor(r() * 89)}`,
       satisBedeli,
       segment,
+      sektorMuduru: o.sektorMuduru,
       sigorta: r() < 0.72,
       tesvik,
       vade,

@@ -3,15 +3,21 @@
  * Kurum rapor şablonundaki "Stok Finansmanı Raporu (Özet + Detay)" karşılığı.
  * Deterministik (mulberry32). Servis: src/services/stock-financing.
  */
+import { orgFields } from "./org";
+
 export const STOK_AYLAR = [
   "Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara",
 ] as const;
 
 export interface StockLoan {
+  altSektor: string;
   aracYas: number;
   ay: number;
   bayi: string;
   bolge: string;
+  bolgeYoneticisi: string;
+  ilce: string;
+  sektorMuduru: string;
   distributor: string;
   durum: "Açık" | "Kapalı";
   dosyaMasrafi: number;
@@ -82,7 +88,12 @@ function generate(): StockLoan[] {
     const kapamaGun = durum === "Kapalı" ? Math.round(20 + r() * (vadeGun + 25)) : 0;
     const tahsilat = durum === "Kapalı" ? r1000(kredi * (1.0 + r() * 0.06)) : 0;
     const modelYil = 2018 + Math.floor(r() * 8);
+    const o = orgFields(bayi, r);
     out.push({
+      altSektor: o.altSektor,
+      bolgeYoneticisi: o.bolgeYoneticisi,
+      ilce: o.ilce,
+      sektorMuduru: o.sektorMuduru,
       aracYas: 2025 - modelYil,
       ay: 1 + Math.floor(r() * 12),
       bayi,

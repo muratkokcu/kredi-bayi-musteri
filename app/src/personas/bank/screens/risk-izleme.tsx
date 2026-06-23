@@ -48,6 +48,11 @@ function Body({ rows }: { rows: RiskContract[] }) {
   const [bayi, setBayi] = useState(ALL);
   const [tip, setTip] = useState(ALL);
   const [durum, setDurum] = useState(ALL);
+  const [altSektor, setAltSektor] = useState(ALL);
+  const [danisman, setDanisman] = useState(ALL);
+  const [sektorMuduru, setSektorMuduru] = useState(ALL);
+  const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [ilce, setIlce] = useState(ALL);
 
   const opts = useMemo(
     () => ({
@@ -56,6 +61,11 @@ function Body({ rows }: { rows: RiskContract[] }) {
       bayi: uniq(rows.map((r) => r.bayi)),
       tip: uniq(rows.map((r) => r.musteriTipi)),
       durum: uniq(rows.map((r) => r.durum)),
+      altSektor: uniq(rows.map((r) => r.altSektor)),
+      danisman: uniq(rows.map((r) => r.danisman)),
+      sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
+      bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
+      ilce: uniq(rows.map((r) => r.ilce)),
     }),
     [rows]
   );
@@ -68,9 +78,14 @@ function Body({ rows }: { rows: RiskContract[] }) {
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (tip === ALL || r.musteriTipi === tip) &&
-          (durum === ALL || r.durum === durum)
+          (durum === ALL || r.durum === durum) &&
+          (altSektor === ALL || r.altSektor === altSektor) &&
+          (danisman === ALL || r.danisman === danisman) &&
+          (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
+          (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi) &&
+          (ilce === ALL || r.ilce === ilce)
       ),
-    [rows, distributor, bolge, bayi, tip, durum]
+    [rows, distributor, bolge, bayi, tip, durum, altSektor, danisman, sektorMuduru, bolgeYoneticisi, ilce]
   );
 
   const k = useMemo(() => {
@@ -133,12 +148,17 @@ function Body({ rows }: { rows: RiskContract[] }) {
     setBayi(ALL);
     setTip(ALL);
     setDurum(ALL);
+    setAltSektor(ALL);
+    setDanisman(ALL);
+    setSektorMuduru(ALL);
+    setBolgeYoneticisi(ALL);
+    setIlce(ALL);
   };
   const exportCsv = () =>
     downloadCsv(
       "risk-izleme",
-      ["Sözleşme No", "Müşteri", "Müşteri Tipi", "Distribütör", "Bölge", "İl", "Bayi", "Kredi Tutarı", "Kalan Bakiye", "Gecikme Gün", "Taksit Gecikme", "Durum", "FPD", "Tahsilat Oranı"],
-      liste.map((r) => [r.sozlesmeNo, r.musteri, r.musteriTipi, r.distributor, r.bolge, r.il, r.bayi, r.krediTutari, r.kalanBakiye, r.gecikmeGun, r.taksitGecikme, r.durum, r.fpd ? "Evet" : "Hayır", (r.tahsilatOrani * 100).toFixed(1)])
+      ["Sözleşme No", "Müşteri", "Müşteri Tipi", "Distribütör", "Bölge", "İl", "Bayi", "Alt Sektör", "Danışman", "Sektör Müdürü", "Bölge Yöneticisi", "İlçe", "Kredi Tutarı", "Kalan Bakiye", "Gecikme Gün", "Taksit Gecikme", "Durum", "FPD", "Tahsilat Oranı"],
+      liste.map((r) => [r.sozlesmeNo, r.musteri, r.musteriTipi, r.distributor, r.bolge, r.il, r.bayi, r.altSektor, r.danisman, r.sektorMuduru, r.bolgeYoneticisi, r.ilce, r.krediTutari, r.kalanBakiye, r.gecikmeGun, r.taksitGecikme, r.durum, r.fpd ? "Evet" : "Hayır", (r.tahsilatOrani * 100).toFixed(1)])
     );
 
   return (
@@ -149,6 +169,11 @@ function Body({ rows }: { rows: RiskContract[] }) {
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Müşteri Tipi" onChange={setTip} options={opts.tip} value={tip} />
         <FilterSelect label="Durum" onChange={setDurum} options={opts.durum} value={durum} />
+        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
+        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
+        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
+        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
+        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
         <button className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas" onClick={reset} type="button">
           <RotateCcw size={15} /> Temizle
         </button>

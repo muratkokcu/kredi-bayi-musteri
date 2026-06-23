@@ -123,6 +123,11 @@ function Body({ rows }: { rows: Application[] }) {
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
   const [tip, setTip] = useState(ALL);
+  const [altSektor, setAltSektor] = useState(ALL);
+  const [danisman, setDanisman] = useState(ALL);
+  const [sektorMuduru, setSektorMuduru] = useState(ALL);
+  const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [ilce, setIlce] = useState(ALL);
 
   const opts = useMemo(
     () => ({
@@ -131,6 +136,11 @@ function Body({ rows }: { rows: Application[] }) {
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
       tip: uniq(rows.map((r) => r.musteriTipi)),
+      altSektor: uniq(rows.map((r) => r.altSektor)),
+      danisman: uniq(rows.map((r) => r.danisman)),
+      sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
+      bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
+      ilce: uniq(rows.map((r) => r.ilce)),
     }),
     [rows]
   );
@@ -143,9 +153,26 @@ function Body({ rows }: { rows: Application[] }) {
           (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
-          (tip === ALL || r.musteriTipi === tip)
+          (tip === ALL || r.musteriTipi === tip) &&
+          (altSektor === ALL || r.altSektor === altSektor) &&
+          (danisman === ALL || r.danisman === danisman) &&
+          (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
+          (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi) &&
+          (ilce === ALL || r.ilce === ilce)
       ),
-    [rows, yil, distributor, bolge, bayi, tip]
+    [
+      rows,
+      yil,
+      distributor,
+      bolge,
+      bayi,
+      tip,
+      altSektor,
+      danisman,
+      sektorMuduru,
+      bolgeYoneticisi,
+      ilce,
+    ]
   );
 
   // şablon: tüm durumlar için adet + tutar + oran
@@ -232,15 +259,21 @@ function Body({ rows }: { rows: Application[] }) {
     setBolge(ALL);
     setBayi(ALL);
     setTip(ALL);
+    setAltSektor(ALL);
+    setDanisman(ALL);
+    setSektorMuduru(ALL);
+    setBolgeYoneticisi(ALL);
+    setIlce(ALL);
   };
 
   const exportCsv = () =>
     downloadCsv(
       "basvuru-hunisi",
-      ["Yıl", "Ay", "Distribütör", "Bölge", "İl", "Bayi", "Müşteri Tipi", "Tutar", "Durum", "Ret Nedeni"],
+      ["Yıl", "Ay", "Distribütör", "Bölge", "İl", "Bayi", "Müşteri Tipi", "Tutar", "Durum", "Ret Nedeni", "Alt Sektör", "Danışman", "Sektör Müdürü", "Bölge Yöneticisi", "İlçe"],
       f.map((r) => [
         r.yil, BASVURU_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.bayi,
         r.musteriTipi, r.tutar, r.durum, r.retNedeni,
+        r.altSektor, r.danisman, r.sektorMuduru, r.bolgeYoneticisi, r.ilce,
       ])
     );
 
@@ -252,6 +285,11 @@ function Body({ rows }: { rows: Application[] }) {
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Müşteri Tipi" onChange={setTip} options={opts.tip} value={tip} />
+        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
+        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
+        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
+        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
+        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
         <button
           className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas"
           onClick={reset}

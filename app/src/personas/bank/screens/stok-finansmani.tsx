@@ -35,6 +35,10 @@ function Body({ rows }: { rows: StockLoan[] }) {
   const [bayi, setBayi] = useState(ALL);
   const [tedarikci, setTedarikci] = useState(ALL);
   const [durum, setDurum] = useState(ALL);
+  const [altSektor, setAltSektor] = useState(ALL);
+  const [sektorMuduru, setSektorMuduru] = useState(ALL);
+  const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [ilce, setIlce] = useState(ALL);
 
   const opts = useMemo(
     () => ({
@@ -44,6 +48,10 @@ function Body({ rows }: { rows: StockLoan[] }) {
       bayi: uniq(rows.map((r) => r.bayi)),
       tedarikci: uniq(rows.map((r) => r.tedarikci)),
       durum: uniq(rows.map((r) => r.durum)),
+      altSektor: uniq(rows.map((r) => r.altSektor)),
+      sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
+      bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
+      ilce: uniq(rows.map((r) => r.ilce)),
     }),
     [rows]
   );
@@ -57,9 +65,13 @@ function Body({ rows }: { rows: StockLoan[] }) {
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (tedarikci === ALL || r.tedarikci === tedarikci) &&
-          (durum === ALL || r.durum === durum)
+          (durum === ALL || r.durum === durum) &&
+          (altSektor === ALL || r.altSektor === altSektor) &&
+          (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
+          (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi) &&
+          (ilce === ALL || r.ilce === ilce)
       ),
-    [rows, yil, distributor, bolge, bayi, tedarikci, durum]
+    [rows, yil, distributor, bolge, bayi, tedarikci, durum, altSektor, sektorMuduru, bolgeYoneticisi, ilce]
   );
 
   const k = useMemo(() => {
@@ -147,19 +159,25 @@ function Body({ rows }: { rows: StockLoan[] }) {
     setBayi(ALL);
     setTedarikci(ALL);
     setDurum(ALL);
+    setAltSektor(ALL);
+    setSektorMuduru(ALL);
+    setBolgeYoneticisi(ALL);
+    setIlce(ALL);
   };
   const exportCsv = () =>
     downloadCsv(
       "stok-finansmani",
       [
         "Yıl", "Ay", "Distribütör", "Bölge", "İl", "Bayi", "Tedarikçi",
+        "Alt Sektör", "Sektör Müdürü", "Bölge Yöneticisi", "İlçe",
         "Marka", "Model", "Model Yıl", "Araç Yaşı", "Plaka", "Satış Bedeli",
         "Kasko Değeri", "Kredi Tutarı", "Vade (Gün)", "Faiz (%)", "Dosya Masrafı",
         "Durum", "Kapama Gün", "Tahsilat",
       ],
       f.map((r) => [
         r.yil, STOK_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.bayi,
-        r.tedarikci, r.marka, r.model, r.modelYil, r.aracYas, r.plaka,
+        r.tedarikci, r.altSektor, r.sektorMuduru, r.bolgeYoneticisi, r.ilce,
+        r.marka, r.model, r.modelYil, r.aracYas, r.plaka,
         r.satisBedeli, r.kaskoDegeri, r.krediTutari, r.vadeGun, r.faiz,
         r.dosyaMasrafi, r.durum, r.kapamaGun || "", r.tahsilat || "",
       ])
@@ -174,6 +192,10 @@ function Body({ rows }: { rows: StockLoan[] }) {
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Tedarikçi" onChange={setTedarikci} options={opts.tedarikci} value={tedarikci} />
         <FilterSelect label="Durum" onChange={setDurum} options={opts.durum} value={durum} width={120} />
+        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
+        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
+        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
+        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
         <button
           className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas"
           onClick={reset}

@@ -4,6 +4,8 @@
  * Ekran client-side filtreleyip toplar. Deterministik (mulberry32).
  * Servis: src/services/applications.
  */
+import { orgFields } from "./org";
+
 export const BASVURU_AYLAR = [
   "Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara",
 ] as const;
@@ -11,14 +13,19 @@ export const BASVURU_AYLAR = [
 export type BasvuruDurum = "Kullandırım" | "Onay" | "Ret" | "İade" | "İptal";
 
 export interface Application {
+  altSektor: string;
   ay: number; // 1..12
   bayi: string;
   bolge: string;
+  bolgeYoneticisi: string;
+  danisman: string;
   distributor: string;
   durum: BasvuruDurum;
   il: string;
+  ilce: string;
   musteriTipi: "Bireysel" | "Ticari";
   retNedeni: string;
+  sektorMuduru: string;
   tutar: number;
   yil: number;
 }
@@ -72,15 +79,21 @@ function generate(): Application[] {
   for (let i = 0; i < 900; i++) {
     const [bayi, distributor, bolge, il] = BAYILER[Math.floor(r() * BAYILER.length)];
     const durum = weighted(r, DURUMLAR, DURUM_W);
+    const o = orgFields(bayi, r);
     out.push({
+      altSektor: o.altSektor,
       ay: 1 + Math.floor(r() * 12),
       bayi,
       bolge,
+      bolgeYoneticisi: o.bolgeYoneticisi,
+      danisman: o.danisman,
       distributor,
       durum,
       il,
+      ilce: o.ilce,
       musteriTipi: r() < 0.7 ? "Bireysel" : "Ticari",
       retNedeni: durum === "Ret" ? weighted(r, RET_NEDEN, [4, 3, 2, 2, 1]) : "—",
+      sektorMuduru: o.sektorMuduru,
       tutar: r1000(400_000 + r() * 2_800_000),
       yil: r() < 0.45 ? 2024 : 2025,
     });

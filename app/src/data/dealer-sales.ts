@@ -4,17 +4,29 @@
  * Penetrasyon = kredili satış / toplam satış. Deterministik (mulberry32).
  * Servis: src/services/dealer-sales.
  */
+import {
+  ALT_SEKTOR_W,
+  ALT_SEKTORLER,
+  BAYI_ORG,
+  sektorMuduruFor,
+} from "./org";
+
 export const SATIS_AYLAR = [
   "Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara",
 ] as const;
 
 export interface DealerSalesRow {
+  altSektor: string;
   ay: number; // 1..12
   bayi: string;
   bolge: string;
+  bolgeYoneticisi: string;
+  danisman: string;
   distributor: string;
   il: string;
+  ilce: string;
   krediliSatis: number;
+  sektorMuduru: string;
   sigortali: number;
   toplamSatis: number;
   yil: number;
@@ -51,14 +63,31 @@ function generate(): DealerSalesRow[] {
       const season = 1 + 0.12 * Math.sin(((ay - 1) / 12) * Math.PI * 2);
       for (let bi = 0; bi < BAYILER.length; bi++) {
         const [bayi, bolge, distributor, il] = BAYILER[bi];
-        const toplam = Math.round((40 + r() * 180) * yMul * season * (1 - bi * 0.03));
-        const qfPen = 0.18 + r() * 0.28;
-        const kredili = Math.round(toplam * qfPen);
-        const sigPen = 0.45 + r() * 0.4;
-        const sigortali = Math.round(kredili * sigPen);
-        out.push({
-          ay, bayi, bolge, distributor, il,
-          krediliSatis: kredili, sigortali, toplamSatis: toplam, yil,
+        const org = BAYI_ORG[bayi];
+        const aylikToplam = (40 + r() * 180) * yMul * season * (1 - bi * 0.03);
+        const altW = ALT_SEKTOR_W.reduce((a, b) => a + b, 0);
+        // aylık satışı alt sektörlere böl (grain: bayi × ay × alt sektör)
+        ALT_SEKTORLER.forEach((altSektor, ai) => {
+          const toplam = Math.max(1, Math.round((aylikToplam * ALT_SEKTOR_W[ai]) / altW));
+          const qfPen = 0.18 + r() * 0.28;
+          const kredili = Math.round(toplam * qfPen);
+          const sigPen = 0.45 + r() * 0.4;
+          out.push({
+            altSektor,
+            ay,
+            bayi,
+            bolge,
+            bolgeYoneticisi: org.bolgeYoneticisi,
+            danisman: org.danismanlar[ai % org.danismanlar.length],
+            distributor,
+            il,
+            ilce: org.ilce,
+            krediliSatis: kredili,
+            sektorMuduru: sektorMuduruFor(altSektor),
+            sigortali: Math.round(kredili * sigPen),
+            toplamSatis: toplam,
+            yil,
+          });
         });
       }
     }

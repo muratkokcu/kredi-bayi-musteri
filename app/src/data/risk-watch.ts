@@ -3,11 +3,18 @@
  * Kurum rapor şablonundaki "İzleme Listesi" + "Kanuni Takip" karşılığı.
  * Deterministik (mulberry32). Servis: src/services/risk-watch.
  */
+import { orgFields } from "./org";
+
 export type RiskDurum = "Güncel" | "İzleme" | "NPL" | "Kanuni Takip";
 
 export interface RiskContract {
+  altSektor: string;
   bayi: string;
   bolge: string;
+  bolgeYoneticisi: string;
+  danisman: string;
+  ilce: string;
+  sektorMuduru: string;
   distributor: string;
   durum: RiskDurum;
   fpd: boolean; // first payment default
@@ -78,18 +85,24 @@ function generate(): RiskContract[] {
     }
     const gecikme = Math.round(buckets[bi] * (0.7 + r() * 0.6));
     const kredi = r1000(500_000 + r() * 2_500_000);
+    const o = orgFields(bayi, r);
     out.push({
+      altSektor: o.altSektor,
       bayi,
       bolge,
+      bolgeYoneticisi: o.bolgeYoneticisi,
+      danisman: o.danisman,
       distributor,
       durum: durumOf(gecikme),
       fpd: r() < 0.12,
       gecikmeGun: gecikme,
       il,
+      ilce: o.ilce,
       kalanBakiye: r1000(kredi * (0.2 + r() * 0.7)),
       krediTutari: kredi,
       musteri: `${HARF[Math.floor(r() * HARF.length)]}*** ${HARF[Math.floor(r() * HARF.length)]}***`,
       musteriTipi: r() < 0.7 ? "Bireysel" : "Ticari",
+      sektorMuduru: o.sektorMuduru,
       sozlesmeNo: `SZ-${200000 + i}`,
       taksitGecikme: Math.max(1, Math.floor(gecikme / 30) + (r() < 0.5 ? 1 : 0)),
       tahsilatOrani: Math.round((0.55 + r() * 0.43) * 1000) / 1000,
