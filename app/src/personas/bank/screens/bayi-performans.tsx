@@ -12,6 +12,7 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -90,23 +91,29 @@ interface PenNode {
   name: string;
   toplam: number;
   kredili: number;
-  pen: number;
+  sigortali: number;
+  pen: number; // QF penetrasyonu %
+  sigPen: number; // sigorta penetrasyonu %
 }
 interface BolgeNode extends PenNode {
   bayiler: PenNode[];
 }
 
-/** Bölge → altında bayiler; penetrasyon = kredili/toplam (oran toplamı). */
+/** Bölge → altında bayiler; penetrasyonlar oran toplamı (Σkredili/Σtoplam). */
 function nestByBolge(rows: DealerSalesRow[]): BolgeNode[] {
-  const bm = new Map<string, Map<string, { toplam: number; kredili: number }>>();
+  const bm = new Map<
+    string,
+    Map<string, { toplam: number; kredili: number; sigortali: number }>
+  >();
   for (const r of rows) {
     if (!bm.has(r.bolge)) {
       bm.set(r.bolge, new Map());
     }
     const inner = bm.get(r.bolge)!;
-    const e = inner.get(r.bayi) ?? { toplam: 0, kredili: 0 };
+    const e = inner.get(r.bayi) ?? { toplam: 0, kredili: 0, sigortali: 0 };
     e.toplam += r.toplamSatis;
     e.kredili += r.krediliSatis;
+    e.sigortali += r.sigortali;
     inner.set(r.bayi, e);
   }
   return [...bm.entries()]
@@ -116,24 +123,37 @@ function nestByBolge(rows: DealerSalesRow[]): BolgeNode[] {
           name: bn,
           toplam: e.toplam,
           kredili: e.kredili,
+          sigortali: e.sigortali,
           pen: pct(e.kredili, e.toplam) * 100,
+          sigPen: pct(e.sigortali, e.kredili) * 100,
         }))
         .sort((a, b) => b.pen - a.pen);
       const toplam = bayiler.reduce((a, b) => a + b.toplam, 0);
       const kredili = bayiler.reduce((a, b) => a + b.kredili, 0);
-      return { name, toplam, kredili, pen: pct(kredili, toplam) * 100, bayiler };
+      const sigortali = bayiler.reduce((a, b) => a + b.sigortali, 0);
+      return {
+        name,
+        toplam,
+        kredili,
+        sigortali,
+        pen: pct(kredili, toplam) * 100,
+        sigPen: pct(sigortali, kredili) * 100,
+        bayiler,
+      };
     })
     .sort((a, b) => b.pen - a.pen);
 }
 
 function Body({ rows }: { rows: DealerSalesRow[] }) {
   const [yil, setYil] = useState("2025");
+  const [distributor, setDistributor] = useState(ALL);
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
 
   const opts = useMemo(
     () => ({
       yil: uniq(rows.map((r) => String(r.yil))),
+      distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
     }),
@@ -145,10 +165,11 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
       rows.filter(
         (r) =>
           (yil === ALL || String(r.yil) === yil) &&
+          (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi)
       ),
-    [rows, yil, bolge, bayi]
+    [rows, yil, distributor, bolge, bayi]
   );
 
   const k = useMemo(() => {
@@ -165,12 +186,17 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
   }, [f]);
 
   const aylik = useMemo(() => {
-    const g = SATIS_AYLAR.map((ay) => ({ ay, toplam: 0, kredili: 0 }));
+    const g = SATIS_AYLAR.map((ay) => ({ ay, toplam: 0, kredili: 0, sigortali: 0 }));
     for (const r of f) {
       g[r.ay - 1].toplam += r.toplamSatis;
       g[r.ay - 1].kredili += r.krediliSatis;
+      g[r.ay - 1].sigortali += r.sigortali;
     }
-    return g.map((x) => ({ ...x, pen: pct(x.kredili, x.toplam) * 100 }));
+    return g.map((x) => ({
+      ...x,
+      pen: pct(x.kredili, x.toplam) * 100,
+      sigPen: pct(x.sigortali, x.kredili) * 100,
+    }));
   }, [f]);
 
   const nested = useMemo(() => nestByBolge(f), [f]);
@@ -192,6 +218,7 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
 
   const reset = () => {
     setYil("2025");
+    setDistributor(ALL);
     setBolge(ALL);
     setBayi(ALL);
   };
@@ -199,18 +226,23 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
   const exportCsv = () =>
     downloadCsv(
       "satis-penetrasyon",
-      ["Bölge", "Bayi", "Toplam Satış", "Kredili Satış", "QF Penetrasyonu (%)"],
-      nested.flatMap((b) =>
-        b.bayiler.map((x) => [
-          b.name, x.name, x.toplam, x.kredili, x.pen.toFixed(1),
-        ])
-      )
+      [
+        "Yıl", "Ay", "Distribütör", "Bölge", "İl", "Bayi", "Toplam Satış",
+        "Kredili Satış", "Sigortalı", "QF Penetrasyonu (%)", "Sigorta Penetrasyonu (%)",
+      ],
+      f.map((r) => [
+        r.yil, SATIS_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.bayi,
+        r.toplamSatis, r.krediliSatis, r.sigortali,
+        (pct(r.krediliSatis, r.toplamSatis) * 100).toFixed(1),
+        (pct(r.sigortali, r.krediliSatis) * 100).toFixed(1),
+      ])
     );
 
   return (
     <>
       <Card className="flex flex-wrap items-end gap-3 p-4">
         <FilterSelect label="Dönem (Yıl)" onChange={setYil} options={opts.yil} value={yil} />
+        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <button
@@ -261,7 +293,7 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <ChartCard title="Aylık QF Penetrasyonu">
+        <ChartCard title="Aylık Penetrasyon (QF & Sigorta)">
           <ResponsiveContainer height="100%" width="100%">
             <LineChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
@@ -279,11 +311,19 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
                 width={40}
               />
               <Tooltip formatter={(v) => formatPercent(Number(v) || 0, 1)} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line
                 dataKey="pen"
                 dot={false}
                 name="QF Penetrasyonu"
                 stroke="var(--color-bank)"
+                strokeWidth={2.4}
+              />
+              <Line
+                dataKey="sigPen"
+                dot={false}
+                name="Sigorta Penetrasyonu"
+                stroke="var(--color-cust)"
                 strokeWidth={2.4}
               />
             </LineChart>
@@ -323,14 +363,15 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
       <Card className="mt-5 pb-3">
         <CardHeader title="Bölge / Bayi Penetrasyonu" />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[680px]">
+          <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Bölge / Bayi</th>
                 <th className="py-2 text-right font-medium">Toplam Satış</th>
                 <th className="py-2 text-right font-medium">Kredili Satış</th>
-                <th className="py-2 pr-1 text-right font-medium">QF Penetrasyonu</th>
-                <th className="w-28 py-2 font-medium" />
+                <th className="py-2 text-right font-medium">QF Penetrasyonu</th>
+                <th className="py-2 pr-1 text-right font-medium">Sigorta Pen.</th>
+                <th className="w-24 py-2 font-medium" />
               </tr>
             </thead>
             <tbody>
@@ -360,8 +401,11 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
                       <td className="py-2.5 text-right font-semibold text-[12.5px] tabular-nums">
                         {formatNumber(bo.kredili)}
                       </td>
-                      <td className="py-2.5 pr-1 text-right font-bold text-[12.5px] text-bank-700 tabular-nums">
+                      <td className="py-2.5 text-right font-bold text-[12.5px] text-bank-700 tabular-nums">
                         {formatPercent(bo.pen, 1)}
+                      </td>
+                      <td className="py-2.5 pr-1 text-right font-semibold text-[12.5px] text-cust-600 tabular-nums">
+                        {formatPercent(bo.sigPen, 1)}
                       </td>
                       <td className="py-2.5 pl-3">
                         <MiniBar value={(bo.pen / maxPen) * 100} />
@@ -380,8 +424,11 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
                           <td className="py-2 text-right text-[12.5px] tabular-nums">
                             {formatNumber(x.kredili)}
                           </td>
-                          <td className="py-2 pr-1 text-right font-semibold text-[12.5px] text-ink tabular-nums">
+                          <td className="py-2 text-right font-semibold text-[12.5px] text-ink tabular-nums">
                             {formatPercent(x.pen, 1)}
+                          </td>
+                          <td className="py-2 pr-1 text-right text-[12.5px] text-ink-soft tabular-nums">
+                            {formatPercent(x.sigPen, 1)}
                           </td>
                           <td className="py-2 pl-3">
                             <MiniBar value={(x.pen / maxPen) * 100} />

@@ -12,21 +12,24 @@ export interface DealerSalesRow {
   ay: number; // 1..12
   bayi: string;
   bolge: string;
+  distributor: string;
+  il: string;
   krediliSatis: number;
   sigortali: number;
   toplamSatis: number;
   yil: number;
 }
 
-const BAYILER: [string, string][] = [
-  ["Doğuş Otomotiv", "Marmara"],
-  ["Borusan Otomotiv", "Marmara"],
-  ["Otokoç Otomotiv", "İç Anadolu"],
-  ["Groupe PSA Bayi", "Ege"],
-  ["Çetaş Otomotiv", "Marmara"],
-  ["Aydın Otomotiv", "Akdeniz"],
-  ["Maslak Motors", "Marmara"],
-  ["Ege Oto Plaza", "Ege"],
+// bayi -> (bölge, distribütör, il)
+const BAYILER: [string, string, string, string][] = [
+  ["Doğuş Otomotiv", "Marmara", "Doğuş Oto Dağıtım", "İstanbul"],
+  ["Borusan Otomotiv", "Marmara", "Borusan Otomotiv Dağıtım", "İstanbul"],
+  ["Otokoç Otomotiv", "İç Anadolu", "Otokoç Dağıtım", "Ankara"],
+  ["Groupe PSA Bayi", "Ege", "Bağımsız Kanal", "İzmir"],
+  ["Çetaş Otomotiv", "Marmara", "Bağımsız Kanal", "Bursa"],
+  ["Aydın Otomotiv", "Akdeniz", "Bağımsız Kanal", "Antalya"],
+  ["Maslak Motors", "Marmara", "Bağımsız Kanal", "İstanbul"],
+  ["Ege Oto Plaza", "Ege", "Otokoç Dağıtım", "İzmir"],
 ];
 
 function rng(seed: number): () => number {
@@ -47,13 +50,16 @@ function generate(): DealerSalesRow[] {
     for (let ay = 1; ay <= 12; ay++) {
       const season = 1 + 0.12 * Math.sin(((ay - 1) / 12) * Math.PI * 2);
       for (let bi = 0; bi < BAYILER.length; bi++) {
-        const [bayi, bolge] = BAYILER[bi];
+        const [bayi, bolge, distributor, il] = BAYILER[bi];
         const toplam = Math.round((40 + r() * 180) * yMul * season * (1 - bi * 0.03));
         const qfPen = 0.18 + r() * 0.28;
         const kredili = Math.round(toplam * qfPen);
         const sigPen = 0.45 + r() * 0.4;
         const sigortali = Math.round(kredili * sigPen);
-        out.push({ ay, bayi, bolge, krediliSatis: kredili, sigortali, toplamSatis: toplam, yil });
+        out.push({
+          ay, bayi, bolge, distributor, il,
+          krediliSatis: kredili, sigortali, toplamSatis: toplam, yil,
+        });
       }
     }
   }
