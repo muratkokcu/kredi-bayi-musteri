@@ -127,6 +127,7 @@ function groupSum(
 
 function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
   const [yil, setYil] = useState(ALL);
+  const [distributor, setDistributor] = useState(ALL);
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
   const [kasa, setKasa] = useState(ALL);
@@ -135,6 +136,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
   const opts = useMemo(
     () => ({
       yil: uniq(rows.map((r) => String(r.yil))),
+      distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
       kasa: uniq(rows.map((r) => r.kasa)),
@@ -148,12 +150,13 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       rows.filter(
         (r) =>
           (yil === ALL || String(r.yil) === yil) &&
+          (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (kasa === ALL || r.kasa === kasa) &&
           (tip === ALL || r.musteriTipi === tip)
       ),
-    [rows, yil, bolge, bayi, kasa, tip]
+    [rows, yil, distributor, bolge, bayi, kasa, tip]
   );
 
   const k = useMemo(() => {
@@ -161,15 +164,20 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
     const hacim = sumBy(f, "krediTutari");
     const dosya = f.reduce((a, r) => a + r.dosyaMasrafi, 0);
     const tesvik = f.reduce((a, r) => a + r.tesvik, 0);
+    const yas15 = f.filter((r) => r.aracYas >= 15);
     return {
       n: f.length,
       hacim,
       ortKredi: hacim / n,
       ortVade: f.reduce((a, r) => a + r.vade, 0) / n,
       ortFaiz: f.reduce((a, r) => a + r.faiz, 0) / n,
+      tesvik,
       netKatki: dosya - tesvik,
       sigortaPen: f.filter((r) => r.sigorta).length / n,
-      yas15: f.filter((r) => r.modelYil <= 2010).length / n,
+      ekspertizPen: f.filter((r) => r.ekspertiz).length / n,
+      yas15Adet: yas15.length,
+      yas15Tutar: yas15.reduce((a, r) => a + r.krediTutari, 0),
+      yas15Oran: yas15.length / n,
     };
   }, [f]);
 
@@ -217,6 +225,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
 
   const reset = () => {
     setYil(ALL);
+    setDistributor(ALL);
     setBolge(ALL);
     setBayi(ALL);
     setKasa(ALL);
@@ -227,15 +236,17 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
     downloadCsv(
       "uretim-karlilik",
       [
-        "Yıl", "Ay", "Bölge", "Bayi", "Distribütör", "Marka", "Kasa",
-        "Müşteri Tipi", "Model Yıl", "Kredi Tutarı", "Vade (Ay)", "Faiz (%)",
-        "Dosya Masrafı", "Teşvik", "Sigorta", "Ekspertiz",
+        "Yıl", "Ay", "Distribütör", "Bölge", "İl", "Bayi", "Marka", "Model",
+        "Kasa", "Müşteri Tipi", "Model Yıl", "Araç Yaşı", "Plaka",
+        "Satış Bedeli", "Kasko Değeri", "Kredi Tutarı", "Vade (Ay)", "Faiz (%)",
+        "Dosya Masrafı", "Teşvik", "Sigorta", "Ekspertiz", "Ekspertiz Firması",
       ],
       f.map((r) => [
-        r.yil, URETIM_AYLAR[r.ay - 1], r.bolge, r.bayi, r.distributor, r.marka,
-        r.kasa, r.musteriTipi, r.modelYil, r.krediTutari, r.vade, r.faiz,
+        r.yil, URETIM_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.bayi,
+        r.marka, r.model, r.kasa, r.musteriTipi, r.modelYil, r.aracYas, r.plaka,
+        r.satisBedeli, r.kaskoDegeri, r.krediTutari, r.vade, r.faiz,
         r.dosyaMasrafi, r.tesvik, r.sigorta ? "Var" : "Yok",
-        r.ekspertiz ? "Var" : "Yok",
+        r.ekspertiz ? "Var" : "Yok", r.ekspertizFirma,
       ])
     );
 
@@ -244,6 +255,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       {/* FİLTRE BANDI */}
       <Card className="flex flex-wrap items-end gap-3 p-4">
         <FilterSelect label="Dönem (Yıl)" onChange={setYil} options={opts.yil} value={yil} />
+        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Kasa / Segment" onChange={setKasa} options={opts.kasa} value={kasa} />
@@ -265,7 +277,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       </Card>
 
       {/* KPI */}
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           icon={<Banknote size={20} strokeWidth={1.9} />}
           label="Kredi Hacmi"
@@ -295,6 +307,13 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           value={formatTRYCompact(k.netKatki)}
         />
         <StatCard
+          icon={<Banknote size={20} strokeWidth={1.9} />}
+          label="Ödenen Teşvik"
+          sub="Bayilere"
+          tone="warn"
+          value={formatTRYCompact(k.tesvik)}
+        />
+        <StatCard
           icon={<ShieldCheck size={20} strokeWidth={1.9} />}
           label="Sigorta Penetrasyonu"
           sub="Sigortalı / toplam"
@@ -302,11 +321,18 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           value={formatPercent(k.sigortaPen * 100, 1)}
         />
         <StatCard
+          icon={<FileStack size={20} strokeWidth={1.9} />}
+          label="Ekspertiz Penetrasyonu"
+          sub="Ekspertizli / toplam"
+          tone="dealer"
+          value={formatPercent(k.ekspertizPen * 100, 1)}
+        />
+        <StatCard
           icon={<Car size={20} strokeWidth={1.9} />}
-          label="15 Yaş Üstü Pay"
-          sub="Model yılına göre"
+          label="15 Yaş Üstü"
+          sub={`${formatPercent(k.yas15Oran * 100, 1)} · ${formatTRYCompact(k.yas15Tutar)}`}
           tone="bank"
-          value={formatPercent(k.yas15 * 100, 1)}
+          value={formatNumber(k.yas15Adet)}
         />
       </div>
 
@@ -473,26 +499,30 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
 
       {/* DETAY — Açılan Krediler (kredi-bazlı) */}
       <Card className="mt-5 pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
-          <CardHeader title="Açılan Krediler — Detay" />
-          <span className="text-[12px] text-ink-muted">
-            {formatNumber(f.length)} kayıt
-            {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
-          </span>
-        </div>
+        <CardHeader
+          action={
+            <span className="text-[12px] text-ink-muted">
+              {formatNumber(f.length)} kayıt
+              {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
+            </span>
+          }
+          title="Açılan Krediler — Detay"
+        />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[920px]">
+          <table className="w-full min-w-[1100px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Dönem</th>
                 <th className="py-2 text-left font-medium">Bayi</th>
-                <th className="py-2 text-left font-medium">Marka / Kasa</th>
-                <th className="py-2 text-left font-medium">Müşteri</th>
-                <th className="py-2 text-right font-medium">Model Yıl</th>
+                <th className="py-2 text-left font-medium">Araç</th>
+                <th className="py-2 text-left font-medium">Plaka</th>
+                <th className="py-2 text-right font-medium">Yıl / Yaş</th>
+                <th className="py-2 text-right font-medium">Satış Bedeli</th>
                 <th className="py-2 text-right font-medium">Kredi Tutarı</th>
                 <th className="py-2 text-right font-medium">Vade</th>
                 <th className="py-2 text-right font-medium">Faiz</th>
-                <th className="py-2 pr-1 text-right font-medium">Dosya Masrafı</th>
+                <th className="py-2 text-right font-medium">Teşvik</th>
+                <th className="py-2 pr-1 text-center font-medium">Sig. / Eksp.</th>
               </tr>
             </thead>
             <tbody>
@@ -501,21 +531,30 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
                   <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">
                     {r.yil} {URETIM_AYLAR[r.ay - 1]}
                   </td>
-                  <td className="py-2 text-[12.5px] text-ink">{r.bayi}</td>
-                  <td className="py-2 text-[12.5px] text-ink-soft">
-                    {r.marka} · {r.kasa}
+                  <td className="py-2 text-[12.5px] text-ink-soft">{r.bayi}</td>
+                  <td className="py-2 text-[12.5px] text-ink">
+                    {r.marka} {r.model}{" "}
+                    <span className="text-ink-muted">· {r.kasa}</span>
                   </td>
-                  <td className="py-2 text-[12.5px] text-ink-soft">{r.musteriTipi}</td>
-                  <td className="py-2 text-right text-[12.5px] tabular-nums">{r.modelYil}</td>
+                  <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">{r.plaka}</td>
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">
+                    {r.modelYil} · {r.aracYas}y
+                  </td>
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">
+                    {formatTRYCompact(r.satisBedeli)}
+                  </td>
                   <td className="py-2 text-right font-semibold text-[12.5px] text-ink tabular-nums">
-                    {formatTRY(r.krediTutari)}
+                    {formatTRYCompact(r.krediTutari)}
                   </td>
                   <td className="py-2 text-right text-[12.5px] tabular-nums">{r.vade} ay</td>
                   <td className="py-2 text-right text-[12.5px] tabular-nums">
                     {formatPercent(r.faiz, 2)}
                   </td>
-                  <td className="py-2 pr-1 text-right text-[12.5px] tabular-nums">
-                    {formatTRY(r.dosyaMasrafi)}
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">
+                    {formatTRYCompact(r.tesvik)}
+                  </td>
+                  <td className="py-2 pr-1 text-center text-[12.5px]">
+                    {r.sigorta ? "✓" : "—"} / {r.ekspertiz ? "✓" : "—"}
                   </td>
                 </tr>
               ))}

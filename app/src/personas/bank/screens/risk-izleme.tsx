@@ -43,6 +43,7 @@ const BUCKETS = [
 ];
 
 function Body({ rows }: { rows: RiskContract[] }) {
+  const [distributor, setDistributor] = useState(ALL);
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
   const [tip, setTip] = useState(ALL);
@@ -50,6 +51,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
 
   const opts = useMemo(
     () => ({
+      distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
       tip: uniq(rows.map((r) => r.musteriTipi)),
@@ -62,23 +64,26 @@ function Body({ rows }: { rows: RiskContract[] }) {
     () =>
       rows.filter(
         (r) =>
+          (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (tip === ALL || r.musteriTipi === tip) &&
           (durum === ALL || r.durum === durum)
       ),
-    [rows, bolge, bayi, tip, durum]
+    [rows, distributor, bolge, bayi, tip, durum]
   );
 
   const k = useMemo(() => {
     const bakiye = f.reduce((a, r) => a + r.kalanBakiye, 0) || 1;
     const nplBakiye = f.filter((r) => r.gecikmeGun >= 90).reduce((a, r) => a + r.kalanBakiye, 0);
     const kt = f.filter((r) => r.durum === "Kanuni Takip");
+    const ktBakiye = kt.reduce((a, r) => a + r.kalanBakiye, 0);
     return {
       adet: f.length,
       nplOran: nplBakiye / bakiye,
       ktAdet: kt.length,
-      ktTutar: kt.reduce((a, r) => a + r.kalanBakiye, 0),
+      ktTutar: ktBakiye,
+      ktOran: ktBakiye / bakiye,
       fpdOran: f.length ? f.filter((r) => r.fpd).length / f.length : 0,
       ortGecikme: f.length ? f.reduce((a, r) => a + r.gecikmeGun, 0) / f.length : 0,
       ortTahsilat: f.length ? f.reduce((a, r) => a + r.tahsilatOrani, 0) / f.length : 0,
@@ -123,6 +128,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
   const liste = useMemo(() => [...f].sort((a, b) => b.gecikmeGun - a.gecikmeGun), [f]);
 
   const reset = () => {
+    setDistributor(ALL);
     setBolge(ALL);
     setBayi(ALL);
     setTip(ALL);
@@ -131,13 +137,14 @@ function Body({ rows }: { rows: RiskContract[] }) {
   const exportCsv = () =>
     downloadCsv(
       "risk-izleme",
-      ["Sözleşme No", "Müşteri", "Müşteri Tipi", "Bölge", "Bayi", "Kredi Tutarı", "Kalan Bakiye", "Gecikme Gün", "Durum", "FPD", "Tahsilat Oranı"],
-      liste.map((r) => [r.sozlesmeNo, r.musteri, r.musteriTipi, r.bolge, r.bayi, r.krediTutari, r.kalanBakiye, r.gecikmeGun, r.durum, r.fpd ? "Evet" : "Hayır", (r.tahsilatOrani * 100).toFixed(1)])
+      ["Sözleşme No", "Müşteri", "Müşteri Tipi", "Distribütör", "Bölge", "İl", "Bayi", "Kredi Tutarı", "Kalan Bakiye", "Gecikme Gün", "Taksit Gecikme", "Durum", "FPD", "Tahsilat Oranı"],
+      liste.map((r) => [r.sozlesmeNo, r.musteri, r.musteriTipi, r.distributor, r.bolge, r.il, r.bayi, r.krediTutari, r.kalanBakiye, r.gecikmeGun, r.taksitGecikme, r.durum, r.fpd ? "Evet" : "Hayır", (r.tahsilatOrani * 100).toFixed(1)])
     );
 
   return (
     <>
       <Card className="flex flex-wrap items-end gap-3 p-4">
+        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Müşteri Tipi" onChange={setTip} options={opts.tip} value={tip} />
@@ -150,13 +157,13 @@ function Body({ rows }: { rows: RiskContract[] }) {
         </button>
       </Card>
 
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard icon={<ShieldAlert size={20} strokeWidth={1.9} />} label="İzlemedeki Sözleşme" sub="Filtreli" tone="bank" value={formatNumber(k.adet)} />
         <StatCard icon={<AlertTriangle size={20} strokeWidth={1.9} />} label="NPL Oranı" sub="Bakiye bazlı (90+ gün)" tone="warn" value={formatPercent(k.nplOran * 100, 1)} />
-        <StatCard icon={<Gavel size={20} strokeWidth={1.9} />} label="Kanuni Takip" sub={formatTRYCompact(k.ktTutar)} tone="cust" value={formatNumber(k.ktAdet)} />
+        <StatCard icon={<Gavel size={20} strokeWidth={1.9} />} label="KT Oranı" sub={`${formatNumber(k.ktAdet)} adet · ${formatTRYCompact(k.ktTutar)}`} tone="cust" value={formatPercent(k.ktOran * 100, 1)} />
+        <StatCard icon={<Percent size={20} strokeWidth={1.9} />} label="Tahsilat Oranı" sub="Ortalama" tone="teal" value={formatPercent(k.ortTahsilat * 100, 1)} />
         <StatCard icon={<AlertTriangle size={20} strokeWidth={1.9} />} label="FPD Oranı" sub="First payment default" tone="warn" value={formatPercent(k.fpdOran * 100, 1)} />
         <StatCard icon={<Clock size={20} strokeWidth={1.9} />} label="Ort. Gecikme" sub="Gün" tone="dealer" value={`${k.ortGecikme.toFixed(0)} gün`} />
-        <StatCard icon={<Percent size={20} strokeWidth={1.9} />} label="Ort. Tahsilat Oranı" sub="" tone="teal" value={formatPercent(k.ortTahsilat * 100, 1)} />
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
@@ -203,13 +210,15 @@ function Body({ rows }: { rows: RiskContract[] }) {
       </ChartCard>
 
       <Card className="mt-5 pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
-          <CardHeader title="İzleme Listesi" />
-          <span className="text-[12px] text-ink-muted">
-            {formatNumber(liste.length)} sözleşme
-            {liste.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
-          </span>
-        </div>
+        <CardHeader
+          action={
+            <span className="text-[12px] text-ink-muted">
+              {formatNumber(liste.length)} sözleşme
+              {liste.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
+            </span>
+          }
+          title="İzleme Listesi"
+        />
         <div className="mt-3 overflow-x-auto px-5">
           <table className="w-full min-w-[780px]">
             <thead>

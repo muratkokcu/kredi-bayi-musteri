@@ -14,22 +14,25 @@ export interface Application {
   ay: number; // 1..12
   bayi: string;
   bolge: string;
+  distributor: string;
   durum: BasvuruDurum;
+  il: string;
   musteriTipi: "Bireysel" | "Ticari";
   retNedeni: string;
   tutar: number;
   yil: number;
 }
 
-const BAYILER: [string, string][] = [
-  ["Doğuş Otomotiv", "Marmara"],
-  ["Borusan Otomotiv", "Marmara"],
-  ["Otokoç Otomotiv", "İç Anadolu"],
-  ["Groupe PSA Bayi", "Ege"],
-  ["Çetaş Otomotiv", "Marmara"],
-  ["Aydın Otomotiv", "Akdeniz"],
-  ["Maslak Motors", "Marmara"],
-  ["Ege Oto Plaza", "Ege"],
+// bayi -> (distribütör, bölge, il)
+const BAYILER: [string, string, string, string][] = [
+  ["Doğuş Otomotiv", "Doğuş Oto Dağıtım", "Marmara", "İstanbul"],
+  ["Borusan Otomotiv", "Borusan Otomotiv Dağıtım", "Marmara", "İstanbul"],
+  ["Otokoç Otomotiv", "Otokoç Dağıtım", "İç Anadolu", "Ankara"],
+  ["Groupe PSA Bayi", "Bağımsız Kanal", "Ege", "İzmir"],
+  ["Çetaş Otomotiv", "Bağımsız Kanal", "Marmara", "Bursa"],
+  ["Aydın Otomotiv", "Bağımsız Kanal", "Akdeniz", "Antalya"],
+  ["Maslak Motors", "Bağımsız Kanal", "Marmara", "İstanbul"],
+  ["Ege Oto Plaza", "Otokoç Dağıtım", "Ege", "İzmir"],
 ];
 const RET_NEDEN = [
   "Skor düşük",
@@ -67,13 +70,15 @@ function generate(): Application[] {
   const r = rng(73312);
   const out: Application[] = [];
   for (let i = 0; i < 900; i++) {
-    const [bayi, bolge] = BAYILER[Math.floor(r() * BAYILER.length)];
+    const [bayi, distributor, bolge, il] = BAYILER[Math.floor(r() * BAYILER.length)];
     const durum = weighted(r, DURUMLAR, DURUM_W);
     out.push({
       ay: 1 + Math.floor(r() * 12),
       bayi,
       bolge,
+      distributor,
       durum,
+      il,
       musteriTipi: r() < 0.7 ? "Bireysel" : "Ticari",
       retNedeni: durum === "Ret" ? weighted(r, RET_NEDEN, [4, 3, 2, 2, 1]) : "—",
       tutar: r1000(400_000 + r() * 2_800_000),

@@ -10,19 +10,26 @@ export const URETIM_AYLAR = [
 ] as const;
 
 export interface ProductionLoan {
+  aracYas: number;
   ay: number; // 1..12
   bayi: string;
   bolge: string;
   distributor: string;
   dosyaMasrafi: number;
   ekspertiz: boolean;
+  ekspertizFirma: string;
   faiz: number; // aylık %
   hedefTutar: number;
+  il: string;
   kasa: string;
+  kaskoDegeri: number;
   krediTutari: number;
   marka: string;
+  model: string;
   modelYil: number;
   musteriTipi: "Bireysel" | "Ticari";
+  plaka: string;
+  satisBedeli: number;
   segment: string;
   sigorta: boolean;
   tesvik: number;
@@ -30,23 +37,42 @@ export interface ProductionLoan {
   yil: number;
 }
 
-// bayi -> (distribütör, bölge)
-const BAYILER: [string, string, string][] = [
-  ["Doğuş Otomotiv", "Doğuş Oto Dağıtım", "Marmara"],
-  ["Borusan Otomotiv", "Borusan Otomotiv Dağıtım", "Marmara"],
-  ["Otokoç Otomotiv", "Otokoç Dağıtım", "İç Anadolu"],
-  ["Groupe PSA Bayi", "Bağımsız Kanal", "Ege"],
-  ["Çetaş Otomotiv", "Bağımsız Kanal", "Marmara"],
-  ["Aydın Otomotiv", "Bağımsız Kanal", "Akdeniz"],
-  ["Maslak Motors", "Bağımsız Kanal", "Marmara"],
-  ["Ege Oto Plaza", "Otokoç Dağıtım", "Ege"],
+// bayi -> (distribütör, bölge, il)
+const BAYILER: [string, string, string, string][] = [
+  ["Doğuş Otomotiv", "Doğuş Oto Dağıtım", "Marmara", "İstanbul"],
+  ["Borusan Otomotiv", "Borusan Otomotiv Dağıtım", "Marmara", "İstanbul"],
+  ["Otokoç Otomotiv", "Otokoç Dağıtım", "İç Anadolu", "Ankara"],
+  ["Groupe PSA Bayi", "Bağımsız Kanal", "Ege", "İzmir"],
+  ["Çetaş Otomotiv", "Bağımsız Kanal", "Marmara", "Bursa"],
+  ["Aydın Otomotiv", "Bağımsız Kanal", "Akdeniz", "Antalya"],
+  ["Maslak Motors", "Bağımsız Kanal", "Marmara", "İstanbul"],
+  ["Ege Oto Plaza", "Otokoç Dağıtım", "Ege", "İzmir"],
 ];
 
-const MARKALAR = [
-  "Renault","Fiat","Volkswagen","Toyota","Hyundai","Ford","Peugeot",
-  "Opel","Dacia","Kia","Honda","Nissan","Mercedes-Benz","BMW","Audi","Skoda",
+// marka -> ağırlık + gerçek modeller (taksonomiyle uyumlu)
+const MARKALAR: [string, number, string[]][] = [
+  ["Renault", 16, ["Clio", "Megane", "Taliant"]],
+  ["Fiat", 14, ["Egea", "Egea Cross"]],
+  ["Volkswagen", 11, ["Golf", "Passat", "Polo"]],
+  ["Toyota", 9, ["Corolla", "C-HR"]],
+  ["Hyundai", 8, ["i20", "Bayon"]],
+  ["Ford", 8, ["Focus", "Puma"]],
+  ["Peugeot", 6, ["2008", "301"]],
+  ["Opel", 5, ["Corsa", "Astra"]],
+  ["Dacia", 5, ["Duster", "Sandero"]],
+  ["Kia", 4, ["Ceed", "Sportage"]],
+  ["Honda", 3, ["Civic", "HR-V"]],
+  ["Nissan", 3, ["Qashqai", "Juke"]],
+  ["Mercedes-Benz", 2, ["A-Serisi", "C-Serisi"]],
+  ["BMW", 2, ["3 Serisi", "X1"]],
+  ["Audi", 1.5, ["A3", "Q3"]],
+  ["Skoda", 1.5, ["Octavia", "Superb"]],
 ];
-const MARKA_W = [16,14,11,9,8,8,6,5,5,4,3,3,2,2,1.5,1.5];
+const MARKA_W = MARKALAR.map((m) => m[1]);
+const IL_PLAKA: Record<string, string> = {
+  İstanbul: "34", Ankara: "06", İzmir: "35", Bursa: "16", Antalya: "07",
+};
+const EKSPERTIZ_FIRMA = ["TÜV", "Dekra", "Otoekspertiz"];
 
 // kasa -> [segment kategori, ağırlık, ort. kredi ₺]
 const KASALAR: [string, string, number, number][] = [
@@ -87,38 +113,49 @@ function generate(): ProductionLoan[] {
   const out: ProductionLoan[] = [];
   const COUNT = 640;
   for (let i = 0; i < COUNT; i++) {
-    const [bayi, distributor, bolge] = BAYILER[Math.floor(r() * BAYILER.length)];
+    const [bayi, distributor, bolge, il] = BAYILER[Math.floor(r() * BAYILER.length)];
     const [kasa, segment, , loan] = weighted(
       r,
       KASALAR,
       KASALAR.map((k) => k[2])
     );
-    const marka = weighted(r, MARKALAR, MARKA_W);
+    const markaRow = weighted(r, MARKALAR, MARKA_W);
+    const marka = markaRow[0];
+    const model = markaRow[2][Math.floor(r() * markaRow[2].length)];
     const yil = r() < 0.45 ? 2024 : 2025;
     const ay = 1 + Math.floor(r() * 12);
     const ticariEgilim = kasa === "Pick-up" || kasa === "Panelvan" ? 0.78 : 0.2;
     const musteriTipi: "Bireysel" | "Ticari" =
       r() < ticariEgilim ? "Ticari" : "Bireysel";
     const krediTutari = r1000(loan * (0.55 + r() * 0.7));
+    const satisBedeli = r1000(krediTutari / (0.6 + r() * 0.3));
     const vade = [12, 24, 36, 48][Math.floor(r() * 4)];
     const faiz = Math.round((2.6 + r() * 1.3) * 100) / 100;
     const dosyaMasrafi = r1000(4000 + r() * 24_000);
     const tesvik = r1000(krediTutari * (0.002 + r() * 0.007));
     const modelYil = 2008 + Math.floor(r() * 18); // 2008..2025
+    const ekspertiz = r() < 0.6;
     out.push({
+      aracYas: 2025 - modelYil,
       ay,
       bayi,
       bolge,
       distributor,
       dosyaMasrafi,
-      ekspertiz: r() < 0.6,
+      ekspertiz,
+      ekspertizFirma: ekspertiz ? EKSPERTIZ_FIRMA[Math.floor(r() * EKSPERTIZ_FIRMA.length)] : "—",
       faiz,
       hedefTutar: r1000(krediTutari * (0.88 + r() * 0.28)),
+      il,
       kasa,
+      kaskoDegeri: r1000(satisBedeli * (0.85 + r() * 0.2)),
       krediTutari,
       marka,
+      model,
       modelYil,
       musteriTipi,
+      plaka: `${IL_PLAKA[il] ?? "34"} *** ${10 + Math.floor(r() * 89)}`,
+      satisBedeli,
       segment,
       sigorta: r() < 0.72,
       tesvik,

@@ -8,9 +8,11 @@ export type RiskDurum = "Güncel" | "İzleme" | "NPL" | "Kanuni Takip";
 export interface RiskContract {
   bayi: string;
   bolge: string;
+  distributor: string;
   durum: RiskDurum;
   fpd: boolean; // first payment default
   gecikmeGun: number;
+  il: string;
   kalanBakiye: number;
   krediTutari: number;
   musteri: string;
@@ -20,15 +22,16 @@ export interface RiskContract {
   tahsilatOrani: number; // 0..1
 }
 
-const BAYILER: [string, string][] = [
-  ["Doğuş Otomotiv", "Marmara"],
-  ["Borusan Otomotiv", "Marmara"],
-  ["Otokoç Otomotiv", "İç Anadolu"],
-  ["Groupe PSA Bayi", "Ege"],
-  ["Çetaş Otomotiv", "Marmara"],
-  ["Aydın Otomotiv", "Akdeniz"],
-  ["Maslak Motors", "Marmara"],
-  ["Ege Oto Plaza", "Ege"],
+// bayi -> (distribütör, bölge, il)
+const BAYILER: [string, string, string, string][] = [
+  ["Doğuş Otomotiv", "Doğuş Oto Dağıtım", "Marmara", "İstanbul"],
+  ["Borusan Otomotiv", "Borusan Otomotiv Dağıtım", "Marmara", "İstanbul"],
+  ["Otokoç Otomotiv", "Otokoç Dağıtım", "İç Anadolu", "Ankara"],
+  ["Groupe PSA Bayi", "Bağımsız Kanal", "Ege", "İzmir"],
+  ["Çetaş Otomotiv", "Bağımsız Kanal", "Marmara", "Bursa"],
+  ["Aydın Otomotiv", "Bağımsız Kanal", "Akdeniz", "Antalya"],
+  ["Maslak Motors", "Bağımsız Kanal", "Marmara", "İstanbul"],
+  ["Ege Oto Plaza", "Otokoç Dağıtım", "Ege", "İzmir"],
 ];
 const HARF = "ABCDEFGHKMNSTYZ";
 
@@ -62,7 +65,7 @@ function generate(): RiskContract[] {
   const buckets = [10, 20, 45, 75, 100, 160];
   const weights = [34, 24, 18, 12, 7, 5];
   for (let i = 0; i < 190; i++) {
-    const [bayi, bolge] = BAYILER[Math.floor(r() * BAYILER.length)];
+    const [bayi, distributor, bolge, il] = BAYILER[Math.floor(r() * BAYILER.length)];
     // ağırlıklı gecikme kovası seç
     let x = r() * weights.reduce((a, b) => a + b, 0);
     let bi = 0;
@@ -78,9 +81,11 @@ function generate(): RiskContract[] {
     out.push({
       bayi,
       bolge,
+      distributor,
       durum: durumOf(gecikme),
       fpd: r() < 0.12,
       gecikmeGun: gecikme,
+      il,
       kalanBakiye: r1000(kredi * (0.2 + r() * 0.7)),
       krediTutari: kredi,
       musteri: `${HARF[Math.floor(r() * HARF.length)]}*** ${HARF[Math.floor(r() * HARF.length)]}***`,

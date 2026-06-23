@@ -278,13 +278,15 @@ function Body({ rows }: { rows: StockLoan[] }) {
 
       {/* DETAY — Stok Finansmanı (kayıt-bazlı) */}
       <Card className="mt-5 pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
-          <CardHeader title="Stok Finansmanı — Detay" />
-          <span className="text-[12px] text-ink-muted">
-            {formatNumber(f.length)} kayıt
-            {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
-          </span>
-        </div>
+        <CardHeader
+          action={
+            <span className="text-[12px] text-ink-muted">
+              {formatNumber(f.length)} kayıt
+              {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
+            </span>
+          }
+          title="Stok Finansmanı — Detay"
+        />
         <div className="mt-3 overflow-x-auto px-5">
           <table className="w-full min-w-[1040px]">
             <thead>

@@ -119,6 +119,7 @@ function FunnelBar({
 
 function Body({ rows }: { rows: Application[] }) {
   const [yil, setYil] = useState(ALL);
+  const [distributor, setDistributor] = useState(ALL);
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
   const [tip, setTip] = useState(ALL);
@@ -126,6 +127,7 @@ function Body({ rows }: { rows: Application[] }) {
   const opts = useMemo(
     () => ({
       yil: uniq(rows.map((r) => String(r.yil))),
+      distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
       tip: uniq(rows.map((r) => r.musteriTipi)),
@@ -138,12 +140,30 @@ function Body({ rows }: { rows: Application[] }) {
       rows.filter(
         (r) =>
           (yil === ALL || String(r.yil) === yil) &&
+          (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (tip === ALL || r.musteriTipi === tip)
       ),
-    [rows, yil, bolge, bayi, tip]
+    [rows, yil, distributor, bolge, bayi, tip]
   );
+
+  // şablon: tüm durumlar için adet + tutar + oran
+  const durumOzet = useMemo(() => {
+    const order: Application["durum"][] = [
+      "Kullandırım", "Onay", "Ret", "İade", "İptal",
+    ];
+    const n = f.length || 1;
+    return order.map((d) => {
+      const sel = f.filter((r) => r.durum === d);
+      return {
+        durum: d,
+        adet: sel.length,
+        tutar: sel.reduce((a, r) => a + r.tutar, 0),
+        oran: sel.length / n,
+      };
+    });
+  }, [f]);
 
   const k = useMemo(() => {
     const n = f.length || 1;
@@ -208,6 +228,7 @@ function Body({ rows }: { rows: Application[] }) {
 
   const reset = () => {
     setYil(ALL);
+    setDistributor(ALL);
     setBolge(ALL);
     setBayi(ALL);
     setTip(ALL);
@@ -216,10 +237,10 @@ function Body({ rows }: { rows: Application[] }) {
   const exportCsv = () =>
     downloadCsv(
       "basvuru-hunisi",
-      ["Yıl", "Ay", "Bölge", "Bayi", "Müşteri Tipi", "Tutar", "Durum", "Ret Nedeni"],
+      ["Yıl", "Ay", "Distribütör", "Bölge", "İl", "Bayi", "Müşteri Tipi", "Tutar", "Durum", "Ret Nedeni"],
       f.map((r) => [
-        r.yil, BASVURU_AYLAR[r.ay - 1], r.bolge, r.bayi, r.musteriTipi,
-        r.tutar, r.durum, r.retNedeni,
+        r.yil, BASVURU_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.bayi,
+        r.musteriTipi, r.tutar, r.durum, r.retNedeni,
       ])
     );
 
@@ -227,6 +248,7 @@ function Body({ rows }: { rows: Application[] }) {
     <>
       <Card className="flex flex-wrap items-end gap-3 p-4">
         <FilterSelect label="Dönem (Yıl)" onChange={setYil} options={opts.yil} value={yil} />
+        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Müşteri Tipi" onChange={setTip} options={opts.tip} value={tip} />
@@ -290,6 +312,35 @@ function Body({ rows }: { rows: Application[] }) {
           value={formatTRYCompact(k.ortTutar)}
         />
       </div>
+
+      {/* Durum Özeti — adet / tutar / oran (şablon) */}
+      <Card className="mt-5 pb-3">
+        <CardHeader title="Durum Özeti" />
+        <div className="mt-3 overflow-x-auto px-5">
+          <table className="w-full min-w-[460px]">
+            <thead>
+              <tr className="border-line border-b text-[11.5px] text-ink-muted">
+                <th className="py-2 text-left font-medium">Durum</th>
+                <th className="py-2 text-right font-medium">Adet</th>
+                <th className="py-2 text-right font-medium">Tutar</th>
+                <th className="py-2 pr-1 text-right font-medium">Oran</th>
+              </tr>
+            </thead>
+            <tbody>
+              {durumOzet.map((d) => (
+                <tr className="border-line border-b last:border-0" key={d.durum}>
+                  <td className="py-2.5 font-medium text-[13px] text-ink">{d.durum}</td>
+                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(d.adet)}</td>
+                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatTRYCompact(d.tutar)}</td>
+                  <td className="py-2.5 pr-1 text-right font-semibold text-[12.5px] text-bank-700 tabular-nums">
+                    {formatPercent(d.oran * 100, 1)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <Card>
@@ -411,13 +462,15 @@ function Body({ rows }: { rows: Application[] }) {
 
       {/* DETAY — Başvuru kayıtları */}
       <Card className="mt-5 pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
-          <CardHeader title="Başvuru Kayıtları — Detay" />
-          <span className="text-[12px] text-ink-muted">
-            {formatNumber(f.length)} kayıt
-            {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
-          </span>
-        </div>
+        <CardHeader
+          action={
+            <span className="text-[12px] text-ink-muted">
+              {formatNumber(f.length)} kayıt
+              {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
+            </span>
+          }
+          title="Başvuru Kayıtları — Detay"
+        />
         <div className="mt-3 overflow-x-auto px-5">
           <table className="w-full min-w-[760px]">
             <thead>

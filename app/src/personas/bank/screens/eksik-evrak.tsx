@@ -40,6 +40,7 @@ function countBy(rows: MissingDoc[], key: "hataTuru" | "evrakTuru" | "bayi") {
 
 function Body({ rows }: { rows: MissingDoc[] }) {
   const [tur, setTur] = useState(ALL);
+  const [distributor, setDistributor] = useState(ALL);
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
   const [hata, setHata] = useState(ALL);
@@ -47,6 +48,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const opts = useMemo(
     () => ({
       tur: uniq(rows.map((r) => r.tur)),
+      distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
       hata: uniq(rows.map((r) => r.hataTuru)),
@@ -59,11 +61,12 @@ function Body({ rows }: { rows: MissingDoc[] }) {
       rows.filter(
         (r) =>
           (tur === ALL || r.tur === tur) &&
+          (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (hata === ALL || r.hataTuru === hata)
       ),
-    [rows, tur, bolge, bayi, hata]
+    [rows, tur, distributor, bolge, bayi, hata]
   );
 
   const hataDag = useMemo(() => countBy(f, "hataTuru"), [f]);
@@ -83,6 +86,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
 
   const reset = () => {
     setTur(ALL);
+    setDistributor(ALL);
     setBolge(ALL);
     setBayi(ALL);
     setHata(ALL);
@@ -90,14 +94,15 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const exportCsv = () =>
     downloadCsv(
       "eksik-evrak",
-      ["Sözleşme No", "Tür", "Müşteri/Tedarikçi", "Bölge", "Bayi", "Evrak Türü", "Hata Türü"],
-      f.map((r) => [r.sozlesmeNo, r.tur, r.musteriTedarikci, r.bolge, r.bayi, r.evrakTuru, r.hataTuru])
+      ["Sözleşme No", "Tür", "Müşteri/Tedarikçi", "Distribütör", "Bölge", "İl", "Bayi", "Evrak Tarihi", "Evrak Türü", "Hata Türü"],
+      f.map((r) => [r.sozlesmeNo, r.tur, r.musteriTedarikci, r.distributor, r.bolge, r.il, r.bayi, r.evrakTarihi, r.evrakTuru, r.hataTuru])
     );
 
   return (
     <>
       <Card className="flex flex-wrap items-end gap-3 p-4">
         <FilterSelect label="Tür" onChange={setTur} options={opts.tur} value={tur} width={140} />
+        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Hata Türü" onChange={setHata} options={opts.hata} value={hata} width={170} />
@@ -156,21 +161,24 @@ function Body({ rows }: { rows: MissingDoc[] }) {
       </ChartCard>
 
       <Card className="mt-5 pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
-          <CardHeader title="Eksik Evrak Listesi" />
-          <span className="text-[12px] text-ink-muted">
-            {formatNumber(f.length)} kayıt
-            {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
-          </span>
-        </div>
+        <CardHeader
+          action={
+            <span className="text-[12px] text-ink-muted">
+              {formatNumber(f.length)} kayıt
+              {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
+            </span>
+          }
+          title="Eksik Evrak Listesi"
+        />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[760px]">
+          <table className="w-full min-w-[860px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Sözleşme</th>
                 <th className="py-2 text-left font-medium">Tür</th>
                 <th className="py-2 text-left font-medium">Müşteri / Tedarikçi</th>
                 <th className="py-2 text-left font-medium">Bayi</th>
+                <th className="py-2 text-left font-medium">Evrak Tarihi</th>
                 <th className="py-2 text-left font-medium">Evrak Türü</th>
                 <th className="py-2 pr-1 text-left font-medium">Hata Türü</th>
               </tr>
@@ -182,6 +190,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.tur}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.musteriTedarikci}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.bayi}</td>
+                  <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">{r.evrakTarihi}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.evrakTuru}</td>
                   <td className="py-2 pr-1">
                     <span className="inline-flex rounded-full bg-warn-tint px-2.5 py-0.5 font-semibold text-[11px] text-warn">

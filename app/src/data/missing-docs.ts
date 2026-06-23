@@ -8,23 +8,27 @@ export type EvrakTur = "Tüketici/Bayi" | "Stok/Filo";
 export interface MissingDoc {
   bayi: string;
   bolge: string;
+  distributor: string;
+  evrakTarihi: string; // gg.aa.yyyy
   evrakTuru: string;
   hataTuru: string;
+  il: string;
   musteriTedarikci: string;
   sozlesmeNo: string;
   tur: EvrakTur;
   yil: number;
 }
 
-const BAYILER: [string, string][] = [
-  ["Doğuş Otomotiv", "Marmara"],
-  ["Borusan Otomotiv", "Marmara"],
-  ["Otokoç Otomotiv", "İç Anadolu"],
-  ["Groupe PSA Bayi", "Ege"],
-  ["Çetaş Otomotiv", "Marmara"],
-  ["Aydın Otomotiv", "Akdeniz"],
-  ["Maslak Motors", "Marmara"],
-  ["Ege Oto Plaza", "Ege"],
+// bayi -> (distribütör, bölge, il)
+const BAYILER: [string, string, string, string][] = [
+  ["Doğuş Otomotiv", "Doğuş Oto Dağıtım", "Marmara", "İstanbul"],
+  ["Borusan Otomotiv", "Borusan Otomotiv Dağıtım", "Marmara", "İstanbul"],
+  ["Otokoç Otomotiv", "Otokoç Dağıtım", "İç Anadolu", "Ankara"],
+  ["Groupe PSA Bayi", "Bağımsız Kanal", "Ege", "İzmir"],
+  ["Çetaş Otomotiv", "Bağımsız Kanal", "Marmara", "Bursa"],
+  ["Aydın Otomotiv", "Bağımsız Kanal", "Akdeniz", "Antalya"],
+  ["Maslak Motors", "Bağımsız Kanal", "Marmara", "İstanbul"],
+  ["Ege Oto Plaza", "Otokoç Dağıtım", "Ege", "İzmir"],
 ];
 const TEDARIKCI = ["Doğuş Oto A.Ş.", "Borusan Lojistik", "Otokoç Tic.", "Ege Filo", "Anadolu Stok"];
 const EVRAK_TUK = ["Satıcı Genel Sözleşmesi", "KVKK Ek Protokolü", "Portal Kullanım Taahhütnamesi", "Kredi Sözleşmesi"];
@@ -57,20 +61,26 @@ function generate(): MissingDoc[] {
   const r = rng(131313);
   const out: MissingDoc[] = [];
   for (let i = 0; i < 130; i++) {
-    const [bayi, bolge] = BAYILER[Math.floor(r() * BAYILER.length)];
+    const [bayi, distributor, bolge, il] = BAYILER[Math.floor(r() * BAYILER.length)];
     const tur: EvrakTur = r() < 0.65 ? "Tüketici/Bayi" : "Stok/Filo";
+    const yil = r() < 0.45 ? 2024 : 2025;
+    const ay = 1 + Math.floor(r() * 12);
+    const gun = 1 + Math.floor(r() * 28);
     out.push({
       bayi,
       bolge,
+      distributor,
+      evrakTarihi: `${String(gun).padStart(2, "0")}.${String(ay).padStart(2, "0")}.${yil}`,
       evrakTuru: tur === "Tüketici/Bayi" ? EVRAK_TUK[Math.floor(r() * EVRAK_TUK.length)] : EVRAK_STOK[Math.floor(r() * EVRAK_STOK.length)],
       hataTuru: weighted(r, HATA, HATA_W),
+      il,
       musteriTedarikci:
         tur === "Tüketici/Bayi"
           ? `${HARF[Math.floor(r() * HARF.length)]}*** ${HARF[Math.floor(r() * HARF.length)]}***`
           : TEDARIKCI[Math.floor(r() * TEDARIKCI.length)],
       sozlesmeNo: `SZ-${300000 + i}`,
       tur,
-      yil: r() < 0.45 ? 2024 : 2025,
+      yil,
     });
   }
   return out;

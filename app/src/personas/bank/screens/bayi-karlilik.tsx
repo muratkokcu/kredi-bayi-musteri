@@ -30,7 +30,7 @@ import {
 import { formatNumber, formatPercent, formatTRY, formatTRYCompact } from "@/lib/format";
 import { useDealerProfitability } from "@/queries/dealer-profitability";
 import { ErrorState, LoadingState } from "@/ui/async-states";
-import { Card, CardHeader } from "@/ui/card";
+import { Card } from "@/ui/card";
 import {
   Select,
   SelectContent,
@@ -454,7 +454,9 @@ function ProfitBody({ rows }: { rows: DealerProfit[] }) {
       {/* KONTROLLER + HEATMAP TABLO */}
       <Card className="mt-5 pb-3">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5">
-          <CardHeader title={`Bayi × Dönem — ${meta.label}`} />
+          <h3 className="font-semibold text-[15px] text-ink leading-5">
+            {`Bayi × Dönem — ${meta.label}`}
+          </h3>
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center overflow-hidden rounded-[10px] border border-line-strong text-[12.5px]">
               <button
