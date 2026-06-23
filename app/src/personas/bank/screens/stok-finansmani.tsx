@@ -30,6 +30,7 @@ const SHELL_PROPS = {
 
 function Body({ rows }: { rows: StockLoan[] }) {
   const [yil, setYil] = useState(ALL);
+  const [distributor, setDistributor] = useState(ALL);
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
   const [tedarikci, setTedarikci] = useState(ALL);
@@ -38,6 +39,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
   const opts = useMemo(
     () => ({
       yil: uniq(rows.map((r) => String(r.yil))),
+      distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
       tedarikci: uniq(rows.map((r) => r.tedarikci)),
@@ -51,22 +53,27 @@ function Body({ rows }: { rows: StockLoan[] }) {
       rows.filter(
         (r) =>
           (yil === ALL || String(r.yil) === yil) &&
+          (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (tedarikci === ALL || r.tedarikci === tedarikci) &&
           (durum === ALL || r.durum === durum)
       ),
-    [rows, yil, bolge, bayi, tedarikci, durum]
+    [rows, yil, distributor, bolge, bayi, tedarikci, durum]
   );
 
   const k = useMemo(() => {
     const acik = f.filter((r) => r.durum === "Açık");
     const kapali = f.filter((r) => r.durum === "Kapalı");
+    const toplam = f.reduce((a, r) => a + r.krediTutari, 0);
     return {
-      toplam: f.reduce((a, r) => a + r.krediTutari, 0),
+      toplam,
       acikTutar: acik.reduce((a, r) => a + r.krediTutari, 0),
       acikAdet: acik.length,
+      kapaliTutar: kapali.reduce((a, r) => a + r.krediTutari, 0),
       kapaliAdet: kapali.length,
+      ortKredi: f.length ? toplam / f.length : 0,
+      ortVade: f.length ? f.reduce((a, r) => a + r.vadeGun, 0) / f.length : 0,
       ortKapama: kapali.length
         ? kapali.reduce((a, r) => a + r.kapamaGun, 0) / kapali.length
         : 0,
@@ -76,14 +83,27 @@ function Body({ rows }: { rows: StockLoan[] }) {
   }, [f]);
 
   const byTedarikci = useMemo(() => {
-    const m = new Map<string, { tutar: number; acik: number; kapali: number; tahsilat: number; kapamaT: number }>();
+    type Acc = {
+      tutar: number; acik: number; acikTutar: number; kapali: number;
+      kapaliTutar: number; tahsilat: number; kapamaT: number; vadeT: number;
+      faizT: number; n: number;
+    };
+    const m = new Map<string, Acc>();
     for (const r of f) {
-      const e = m.get(r.tedarikci) ?? { tutar: 0, acik: 0, kapali: 0, tahsilat: 0, kapamaT: 0 };
+      const e =
+        m.get(r.tedarikci) ??
+        { tutar: 0, acik: 0, acikTutar: 0, kapali: 0, kapaliTutar: 0, tahsilat: 0, kapamaT: 0, vadeT: 0, faizT: 0, n: 0 };
       e.tutar += r.krediTutari;
       e.tahsilat += r.tahsilat;
-      if (r.durum === "Açık") e.acik += 1;
-      else {
+      e.vadeT += r.vadeGun;
+      e.faizT += r.faiz;
+      e.n += 1;
+      if (r.durum === "Açık") {
+        e.acik += 1;
+        e.acikTutar += r.krediTutari;
+      } else {
         e.kapali += 1;
+        e.kapaliTutar += r.krediTutari;
         e.kapamaT += r.kapamaGun;
       }
       m.set(r.tedarikci, e);
@@ -93,8 +113,12 @@ function Body({ rows }: { rows: StockLoan[] }) {
         name,
         tutar: e.tutar,
         acik: e.acik,
+        acikTutar: e.acikTutar,
         kapali: e.kapali,
+        kapaliTutar: e.kapaliTutar,
         tahsilat: e.tahsilat,
+        ortVade: e.n ? e.vadeT / e.n : 0,
+        ortFaiz: e.n ? e.faizT / e.n : 0,
         ortKapama: e.kapali ? e.kapamaT / e.kapali : 0,
       }))
       .sort((a, b) => b.tutar - a.tutar);
@@ -118,6 +142,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
 
   const reset = () => {
     setYil(ALL);
+    setDistributor(ALL);
     setBolge(ALL);
     setBayi(ALL);
     setTedarikci(ALL);
@@ -126,14 +151,25 @@ function Body({ rows }: { rows: StockLoan[] }) {
   const exportCsv = () =>
     downloadCsv(
       "stok-finansmani",
-      ["Yıl", "Ay", "Bölge", "Bayi", "Tedarikçi", "Marka", "Model Yıl", "Kredi Tutarı", "Vade (Gün)", "Faiz (%)", "Durum", "Kapama Gün", "Tahsilat"],
-      f.map((r) => [r.yil, STOK_AYLAR[r.ay - 1], r.bolge, r.bayi, r.tedarikci, r.marka, r.modelYil, r.krediTutari, r.vadeGun, r.faiz, r.durum, r.kapamaGun || "", r.tahsilat || ""])
+      [
+        "Yıl", "Ay", "Distribütör", "Bölge", "İl", "Bayi", "Tedarikçi",
+        "Marka", "Model", "Model Yıl", "Araç Yaşı", "Plaka", "Satış Bedeli",
+        "Kasko Değeri", "Kredi Tutarı", "Vade (Gün)", "Faiz (%)", "Dosya Masrafı",
+        "Durum", "Kapama Gün", "Tahsilat",
+      ],
+      f.map((r) => [
+        r.yil, STOK_AYLAR[r.ay - 1], r.distributor, r.bolge, r.il, r.bayi,
+        r.tedarikci, r.marka, r.model, r.modelYil, r.aracYas, r.plaka,
+        r.satisBedeli, r.kaskoDegeri, r.krediTutari, r.vadeGun, r.faiz,
+        r.dosyaMasrafi, r.durum, r.kapamaGun || "", r.tahsilat || "",
+      ])
     );
 
   return (
     <>
       <Card className="flex flex-wrap items-end gap-3 p-4">
         <FilterSelect label="Dönem (Yıl)" onChange={setYil} options={opts.yil} value={yil} />
+        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
         <FilterSelect label="Tedarikçi" onChange={setTedarikci} options={opts.tedarikci} value={tedarikci} />
@@ -154,13 +190,15 @@ function Body({ rows }: { rows: StockLoan[] }) {
         </button>
       </Card>
 
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard icon={<Boxes size={20} strokeWidth={1.9} />} label="Toplam Stok Kredisi" sub={`${formatNumber(f.length)} kayıt`} tone="bank" value={formatTRYCompact(k.toplam)} />
         <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Açık Kredi Tutarı" sub={`${formatNumber(k.acikAdet)} açık`} tone="warn" value={formatTRYCompact(k.acikTutar)} />
-        <StatCard icon={<Boxes size={20} strokeWidth={1.9} />} label="Kapalı Kredi" sub="Adet" tone="dealer" value={formatNumber(k.kapaliAdet)} />
-        <StatCard icon={<CalendarClock size={20} strokeWidth={1.9} />} label="Ort. Kapama Gün" sub="Kapalı krediler" tone="teal" value={`${k.ortKapama.toFixed(0)} gün`} />
+        <StatCard icon={<Boxes size={20} strokeWidth={1.9} />} label="Kapalı Kredi Tutarı" sub={`${formatNumber(k.kapaliAdet)} kapalı`} tone="dealer" value={formatTRYCompact(k.kapaliTutar)} />
+        <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Ort. Kredi Tutarı" sub="Kayıt başına" tone="teal" value={formatTRYCompact(k.ortKredi)} />
+        <StatCard icon={<CalendarClock size={20} strokeWidth={1.9} />} label="Ort. Vade" sub="Gün" tone="bank" value={`${k.ortVade.toFixed(0)} gün`} />
+        <StatCard icon={<CalendarClock size={20} strokeWidth={1.9} />} label="Ort. Kapama Gün" sub="Kapalı krediler" tone="dealer" value={`${k.ortKapama.toFixed(0)} gün`} />
         <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Toplam Tahsilat" sub="Kapanan" tone="cust" value={formatTRYCompact(k.tahsilat)} />
-        <StatCard icon={<Percent size={20} strokeWidth={1.9} />} label="Ort. Faiz" sub="Aylık" tone="bank" value={formatPercent(k.ortFaiz, 2)} />
+        <StatCard icon={<Percent size={20} strokeWidth={1.9} />} label="Ort. Faiz" sub="Aylık" tone="warn" value={formatPercent(k.ortFaiz, 2)} />
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
@@ -203,13 +241,15 @@ function Body({ rows }: { rows: StockLoan[] }) {
       <Card className="mt-5 pb-3">
         <CardHeader title="Tedarikçi Bazında Özet" />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[720px]">
+          <table className="w-full min-w-[900px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Tedarikçi</th>
                 <th className="py-2 text-right font-medium">Hacim</th>
-                <th className="py-2 text-right font-medium">Açık</th>
-                <th className="py-2 text-right font-medium">Kapalı</th>
+                <th className="py-2 text-right font-medium">Açık (Adet / Tutar)</th>
+                <th className="py-2 text-right font-medium">Kapalı (Adet / Tutar)</th>
+                <th className="py-2 text-right font-medium">Ort. Vade</th>
+                <th className="py-2 text-right font-medium">Ort. Faiz</th>
                 <th className="py-2 text-right font-medium">Ort. Kapama</th>
                 <th className="py-2 pr-1 text-right font-medium">Tahsilat</th>
               </tr>
@@ -219,10 +259,67 @@ function Body({ rows }: { rows: StockLoan[] }) {
                 <tr className="border-line border-b last:border-0" key={t.name}>
                   <td className="py-2.5 font-medium text-[13px] text-ink">{t.name}</td>
                   <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatTRYCompact(t.tutar)}</td>
-                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(t.acik)}</td>
-                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(t.kapali)}</td>
+                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">
+                    {formatNumber(t.acik)} / {formatTRYCompact(t.acikTutar)}
+                  </td>
+                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">
+                    {formatNumber(t.kapali)} / {formatTRYCompact(t.kapaliTutar)}
+                  </td>
+                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{t.ortVade.toFixed(0)} gün</td>
+                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatPercent(t.ortFaiz, 2)}</td>
                   <td className="py-2.5 text-right text-[12.5px] tabular-nums">{t.ortKapama.toFixed(0)} gün</td>
                   <td className="py-2.5 pr-1 text-right font-semibold text-[12.5px] text-bank-700 tabular-nums">{formatTRYCompact(t.tahsilat)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* DETAY — Stok Finansmanı (kayıt-bazlı) */}
+      <Card className="mt-5 pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
+          <CardHeader title="Stok Finansmanı — Detay" />
+          <span className="text-[12px] text-ink-muted">
+            {formatNumber(f.length)} kayıt
+            {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
+          </span>
+        </div>
+        <div className="mt-3 overflow-x-auto px-5">
+          <table className="w-full min-w-[1040px]">
+            <thead>
+              <tr className="border-line border-b text-[11.5px] text-ink-muted">
+                <th className="py-2 text-left font-medium">Tedarikçi</th>
+                <th className="py-2 text-left font-medium">Bayi</th>
+                <th className="py-2 text-left font-medium">Araç</th>
+                <th className="py-2 text-left font-medium">Plaka</th>
+                <th className="py-2 text-right font-medium">Satış Bedeli</th>
+                <th className="py-2 text-right font-medium">Kredi Tutarı</th>
+                <th className="py-2 text-right font-medium">Vade</th>
+                <th className="py-2 text-right font-medium">Faiz</th>
+                <th className="py-2 text-left font-medium">Durum</th>
+                <th className="py-2 pr-1 text-right font-medium">Tahsilat</th>
+              </tr>
+            </thead>
+            <tbody>
+              {f.slice(0, 100).map((r, i) => (
+                <tr className="border-line border-b last:border-0" key={`${r.tedarikci}-${i}`}>
+                  <td className="py-2 text-[12.5px] text-ink-soft">{r.tedarikci}</td>
+                  <td className="py-2 text-[12.5px] text-ink-soft">{r.bayi}</td>
+                  <td className="py-2 text-[12.5px] text-ink">
+                    {r.marka} {r.model} <span className="text-ink-muted">· {r.modelYil}</span>
+                  </td>
+                  <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">{r.plaka}</td>
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">{formatTRYCompact(r.satisBedeli)}</td>
+                  <td className="py-2 text-right font-semibold text-[12.5px] text-ink tabular-nums">{formatTRYCompact(r.krediTutari)}</td>
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">{r.vadeGun} gün</td>
+                  <td className="py-2 text-right text-[12.5px] tabular-nums">{formatPercent(r.faiz, 2)}</td>
+                  <td className="py-2">
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 font-semibold text-[11px] ${r.durum === "Açık" ? "bg-warn-tint text-warn" : "bg-success-tint text-success"}`}>
+                      {r.durum}
+                    </span>
+                  </td>
+                  <td className="py-2 pr-1 text-right text-[12.5px] tabular-nums">{r.tahsilat ? formatTRYCompact(r.tahsilat) : "—"}</td>
                 </tr>
               ))}
             </tbody>
