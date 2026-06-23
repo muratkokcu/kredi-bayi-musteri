@@ -40,6 +40,7 @@ function countBy(rows: MissingDoc[], key: "hataTuru" | "evrakTuru" | "bayi") {
 
 function Body({ rows }: { rows: MissingDoc[] }) {
   const [tur, setTur] = useState(ALL);
+  const [sozlesmeTuru, setSozlesmeTuru] = useState(ALL);
   const [distributor, setDistributor] = useState(ALL);
   const [bolge, setBolge] = useState(ALL);
   const [bayi, setBayi] = useState(ALL);
@@ -48,6 +49,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const opts = useMemo(
     () => ({
       tur: uniq(rows.map((r) => r.tur)),
+      sozlesmeTuru: uniq(rows.map((r) => r.sozlesmeTuru)).filter((x) => x !== "—"),
       distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
@@ -61,12 +63,13 @@ function Body({ rows }: { rows: MissingDoc[] }) {
       rows.filter(
         (r) =>
           (tur === ALL || r.tur === tur) &&
+          (sozlesmeTuru === ALL || r.sozlesmeTuru === sozlesmeTuru) &&
           (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
           (bayi === ALL || r.bayi === bayi) &&
           (hata === ALL || r.hataTuru === hata)
       ),
-    [rows, tur, distributor, bolge, bayi, hata]
+    [rows, tur, sozlesmeTuru, distributor, bolge, bayi, hata]
   );
 
   const hataDag = useMemo(() => countBy(f, "hataTuru"), [f]);
@@ -86,6 +89,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
 
   const reset = () => {
     setTur(ALL);
+    setSozlesmeTuru(ALL);
     setDistributor(ALL);
     setBolge(ALL);
     setBayi(ALL);
@@ -94,14 +98,15 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const exportCsv = () =>
     downloadCsv(
       "eksik-evrak",
-      ["Sözleşme No", "Tür", "Müşteri/Tedarikçi", "Distribütör", "Bölge", "İl", "Bayi", "Evrak Tarihi", "Evrak Türü", "Hata Türü"],
-      f.map((r) => [r.sozlesmeNo, r.tur, r.musteriTedarikci, r.distributor, r.bolge, r.il, r.bayi, r.evrakTarihi, r.evrakTuru, r.hataTuru])
+      ["Sözleşme No", "Tür", "Sözleşme Türü", "Müşteri/Tedarikçi", "Distribütör", "Bölge", "İl", "Bayi", "Evrak Tarihi", "Evrak Türü", "Hata Türü"],
+      f.map((r) => [r.sozlesmeNo, r.tur, r.sozlesmeTuru, r.musteriTedarikci, r.distributor, r.bolge, r.il, r.bayi, r.evrakTarihi, r.evrakTuru, r.hataTuru])
     );
 
   return (
     <>
       <Card className="flex flex-wrap items-end gap-3 p-4">
         <FilterSelect label="Tür" onChange={setTur} options={opts.tur} value={tur} width={140} />
+        <FilterSelect label="Sözleşme Türü" onChange={setSozlesmeTuru} options={opts.sozlesmeTuru} value={sozlesmeTuru} width={150} />
         <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
         <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
         <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
@@ -171,11 +176,12 @@ function Body({ rows }: { rows: MissingDoc[] }) {
           title="Eksik Evrak Listesi"
         />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[860px]">
+          <table className="w-full min-w-[980px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Sözleşme</th>
                 <th className="py-2 text-left font-medium">Tür</th>
+                <th className="py-2 text-left font-medium">Sözleşme Türü</th>
                 <th className="py-2 text-left font-medium">Müşteri / Tedarikçi</th>
                 <th className="py-2 text-left font-medium">Bayi</th>
                 <th className="py-2 text-left font-medium">Evrak Tarihi</th>
@@ -188,6 +194,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
                 <tr className="border-line border-b last:border-0" key={r.sozlesmeNo}>
                   <td className="py-2 font-medium text-[12.5px] text-ink tabular-nums">{r.sozlesmeNo}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.tur}</td>
+                  <td className="py-2 text-[12.5px] text-ink-soft">{r.sozlesmeTuru}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.musteriTedarikci}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.bayi}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">{r.evrakTarihi}</td>

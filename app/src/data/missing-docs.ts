@@ -15,6 +15,7 @@ export interface MissingDoc {
   il: string;
   musteriTedarikci: string;
   sozlesmeNo: string;
+  sozlesmeTuru: string; // Stok/Filo için: Stok Finansmanı | Filo · Tüketici için —
   tur: EvrakTur;
   yil: number;
 }
@@ -79,6 +80,8 @@ function generate(): MissingDoc[] {
           ? `${HARF[Math.floor(r() * HARF.length)]}*** ${HARF[Math.floor(r() * HARF.length)]}***`
           : TEDARIKCI[Math.floor(r() * TEDARIKCI.length)],
       sozlesmeNo: `SZ-${300000 + i}`,
+      sozlesmeTuru:
+        tur === "Stok/Filo" ? (r() < 0.6 ? "Stok Finansmanı" : "Filo") : "—",
       tur,
       yil,
     });
