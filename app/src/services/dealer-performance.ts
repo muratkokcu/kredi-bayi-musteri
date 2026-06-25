@@ -1,15 +1,7 @@
-import {
-  DEALER_PERFORMANCE,
-  type DealerPerformance,
-} from "@/data/dealer-performance";
-import { simulate } from "./client";
+import type { DealerPerformance } from "@/data/dealer-performance";
+import { fetchPayload } from "./client";
 
-/**
- * Dealer performance & analytics overview. JSON payload'a alınmadı: veri JSX
- * ikon (ReactNode) içerdiğinden serialize edilemez; bu yüzden fake servis
- * katmanından (simulate) servis edilir. JSON'a taşımak için önce ikonların
- * veriden ayrıştırılması (string anahtar → bileşen) gerekir.
- */
+/** Dealer performance & analytics overview. Üretim ortamı gibi JSON payload'tan çekilir. */
 export function getDealerPerformance(): Promise<DealerPerformance> {
-  return simulate(DEALER_PERFORMANCE);
+  return fetchPayload<DealerPerformance>("dealer-performance");
 }

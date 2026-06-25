@@ -17,11 +17,10 @@ const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = resolve(APP_ROOT, "public/data");
 
 // [dosya adı (modül + çıktı), export edilen sembol]
-// Not: dealer-performance verisi JSX ikon içerdiğinden JSON'a alınmadı (bkz.
-// services/dealer-performance.ts); yalnız düz kayıt seti olan raporlar burada.
 const PAYLOADS = [
   ["production-loans", "PRODUCTION_LOANS"],
   ["applications", "APPLICATIONS"],
+  ["dealer-performance", "DEALER_PERFORMANCE"],
   ["stock-financing", "STOCK_LOANS"],
   ["risk-watch", "RISK_CONTRACTS"],
   ["missing-docs", "MISSING_DOCS"],

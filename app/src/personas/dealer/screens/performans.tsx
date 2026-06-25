@@ -3,8 +3,17 @@ import {
   ArrowUp,
   CalendarRange,
   ChevronDown,
+  CircleCheck,
+  Clock,
+  Coins,
   Download,
+  FileSignature,
+  FileText,
+  Percent,
+  ShoppingCart,
+  Wallet,
 } from "lucide-react";
+import type { ComponentType } from "react";
 import {
   Cell,
   Line,
@@ -18,6 +27,7 @@ import type {
   DealerPerformance,
   PerformanceAdvisorRow,
   PerformanceFunnelStage,
+  PerformanceIcon,
   PerformanceKpi,
   PerformanceSegmentRow,
   PerformanceSpeedStat,
@@ -65,12 +75,32 @@ const SHELL_PROPS = {
   title: "Performans & Analitik",
 } as const;
 
+/** Veri JSON-güvenli olsun diye ikonlar string anahtar; burada bileşene eşlenir. */
+const PERF_ICONS: Record<
+  PerformanceIcon,
+  ComponentType<{ size?: number; strokeWidth?: number }>
+> = {
+  FileText,
+  CircleCheck,
+  Percent,
+  Coins,
+  ShoppingCart,
+  Wallet,
+  Clock,
+  FileSignature,
+};
+
+function PerfIcon({ name }: { name: PerformanceIcon }) {
+  const Icon = PERF_ICONS[name];
+  return <Icon size={20} strokeWidth={1.9} />;
+}
+
 function KpiRow({ kpis }: { kpis: PerformanceKpi[] }) {
   return (
     <div className="grid grid-cols-6 gap-4">
       {kpis.map((k) => (
         <StatCard
-          icon={k.icon}
+          icon={<PerfIcon name={k.icon} />}
           key={k.label}
           label={k.label}
           sub={
@@ -429,7 +459,7 @@ function SpeedCard({ stat }: { stat: PerformanceSpeedStat }) {
         <div
           className={`flex size-10 shrink-0 items-center justify-center rounded-full ${stat.tint}`}
         >
-          {stat.icon}
+          <PerfIcon name={stat.icon} />
         </div>
       </div>
     </Card>
