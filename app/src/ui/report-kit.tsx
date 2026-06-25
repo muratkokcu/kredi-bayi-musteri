@@ -325,11 +325,11 @@ export function DonutChart({
           <Pie
             data={data}
             dataKey="value"
-            innerRadius={58}
+            innerRadius="60%"
             nameKey="name"
             onMouseEnter={(_, i) => setActive(i)}
             onMouseLeave={() => setActive(null)}
-            outerRadius={92}
+            outerRadius="92%"
             paddingAngle={2}
             stroke="none"
           >

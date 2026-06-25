@@ -273,10 +273,10 @@ function Body({ rows }: { rows: Application[] }) {
       {/* Birleşik: Başvuru Sonuç Özeti — huni + durum dağılımı + ret nedenleri */}
       <Card className="mt-5">
         <CardHeader title="Başvuru Sonuç Özeti" />
-        <div className="mt-1 grid grid-cols-1 divide-line lg:grid-cols-3 lg:divide-x">
+        <div className="mt-2 grid grid-cols-1 divide-line pb-3 lg:grid-cols-3 lg:divide-x">
           {/* Dönüşüm hunisi */}
-          <div className="px-5 py-4">
-            <div className="mb-3.5 font-semibold text-[11px] text-ink-muted uppercase tracking-wide">
+          <div className="px-5 py-3">
+            <div className="mb-2.5 font-semibold text-[11px] text-ink-muted uppercase tracking-wide">
               Dönüşüm Hunisi
             </div>
             <div className="flex flex-col gap-3">
@@ -297,7 +297,7 @@ function Body({ rows }: { rows: Application[] }) {
           </div>
 
           {/* Durum dağılımı — adet / tutar / oran (şablon) */}
-          <div className="overflow-x-auto px-5 py-4">
+          <div className="overflow-x-auto px-5 py-3">
             <div className="mb-2 font-semibold text-[11px] text-ink-muted uppercase tracking-wide">
               Durum Dağılımı
             </div>
@@ -326,11 +326,11 @@ function Body({ rows }: { rows: Application[] }) {
           </div>
 
           {/* Ret nedenleri */}
-          <div className="px-5 py-4">
+          <div className="flex flex-col px-5 py-3">
             <div className="mb-2 font-semibold text-[11px] text-ink-muted uppercase tracking-wide">
               Ret Nedenleri
             </div>
-            <div className="h-[180px]">
+            <div className="min-h-[150px] flex-1">
               <DonutChart
                 centerLabel="Ret"
                 colors={PALETTE.map((c) => `#${c}`)}
