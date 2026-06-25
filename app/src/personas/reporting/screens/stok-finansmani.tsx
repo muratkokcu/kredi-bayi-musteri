@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -14,11 +15,11 @@ import {
 } from "recharts";
 import { STOK_AYLAR, type StockLoan } from "@/data/stock-financing";
 import { downloadCsv } from "@/lib/csv";
-import { formatNumber, formatPercent, formatTRY, formatTRYCompact } from "@/lib/format";
+import { formatCompact, formatNumber, formatPercent, formatTRY, formatTRYCompact } from "@/lib/format";
 import { useStockLoans } from "@/queries/stock-financing";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterBar, KpiStrip, uniq } from "@/ui/report-kit";
+import { ALL, ChartCard, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -135,6 +136,9 @@ function Body({ rows }: { rows: StockLoan[] }) {
       .sort((a, b) => b.tutar - a.tutar);
   }, [f]);
 
+  const tSort = useSort(byTedarikci, "tutar", "desc");
+  const xSort = useSort(f, "krediTutari", "desc");
+
   const durumDag = useMemo(
     () => [
       { name: "Açık", value: k.acikTutar },
@@ -229,7 +233,9 @@ function Body({ rows }: { rows: StockLoan[] }) {
               <XAxis hide type="number" />
               <YAxis axisLine={false} dataKey="name" tick={{ fill: "var(--color-ink-soft)", fontSize: 11 }} tickLine={false} type="category" width={108} />
               <Tooltip formatter={(v) => formatTRY(Number(v) || 0)} />
-              <Bar dataKey="tutar" fill="var(--color-bank)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="tutar" fill="var(--color-bank)" radius={[0, 4, 4, 0]}>
+                <LabelList dataKey="tutar" formatter={(v) => formatCompact(Number(v) || 0)} position="right" style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -237,7 +243,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
         <ChartCard title="Açık / Kapalı Dağılımı (Tutar)">
           <ResponsiveContainer height="100%" width="100%">
             <PieChart>
-              <Pie data={durumDag} dataKey="value" innerRadius={56} nameKey="name" outerRadius={92} paddingAngle={2} stroke="none">
+              <Pie data={durumDag} dataKey="value" innerRadius={56} label={(e: { value?: number }) => formatCompact(e.value ?? 0)} labelLine={false} nameKey="name" outerRadius={92} paddingAngle={2} stroke="none">
                 <Cell fill="var(--color-warn)" />
                 <Cell fill="var(--color-bank)" />
               </Pie>
@@ -254,7 +260,9 @@ function Body({ rows }: { rows: StockLoan[] }) {
             <XAxis axisLine={false} dataKey="ay" tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickLine={false} />
             <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickFormatter={formatTRYCompact} tickLine={false} width={60} />
             <Tooltip formatter={(v) => formatTRY(Number(v) || 0)} />
-            <Bar dataKey="tutar" fill="var(--color-bank-700)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="tutar" fill="var(--color-bank-700)" radius={[4, 4, 0, 0]}>
+              <LabelList dataKey="tutar" formatter={(v) => formatCompact(Number(v) || 0)} position="top" style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }} />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -265,18 +273,18 @@ function Body({ rows }: { rows: StockLoan[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[900px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Tedarikçi</th>
-                <th className="py-2 text-right font-medium">Hacim</th>
-                <th className="py-2 text-right font-medium">Açık (Adet / Tutar)</th>
-                <th className="py-2 text-right font-medium">Kapalı (Adet / Tutar)</th>
-                <th className="py-2 text-right font-medium">Ort. Vade</th>
-                <th className="py-2 text-right font-medium">Ort. Faiz</th>
-                <th className="py-2 text-right font-medium">Ort. Kapama</th>
-                <th className="py-2 pr-1 text-right font-medium">Tahsilat</th>
+                <SortTh k="name" label="Tedarikçi" sort={tSort} />
+                <SortTh align="right" k="tutar" label="Hacim" sort={tSort} />
+                <SortTh align="right" k="acikTutar" label="Açık (Adet / Tutar)" sort={tSort} />
+                <SortTh align="right" k="kapaliTutar" label="Kapalı (Adet / Tutar)" sort={tSort} />
+                <SortTh align="right" k="ortVade" label="Ort. Vade" sort={tSort} />
+                <SortTh align="right" k="ortFaiz" label="Ort. Faiz" sort={tSort} />
+                <SortTh align="right" k="ortKapama" label="Ort. Kapama" sort={tSort} />
+                <SortTh align="right" k="tahsilat" label="Tahsilat" sort={tSort} />
               </tr>
             </thead>
             <tbody>
-              {byTedarikci.map((t) => (
+              {tSort.sorted.map((t) => (
                 <tr className="border-line border-b last:border-0" key={t.name}>
                   <td className="py-2.5 font-medium text-[13px] text-ink">{t.name}</td>
                   <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatTRYCompact(t.tutar)}</td>
@@ -312,20 +320,20 @@ function Body({ rows }: { rows: StockLoan[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[1040px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Tedarikçi</th>
-                <th className="py-2 text-left font-medium">Bayi</th>
-                <th className="py-2 text-left font-medium">Araç</th>
-                <th className="py-2 text-left font-medium">Plaka</th>
-                <th className="py-2 text-right font-medium">Satış Bedeli</th>
-                <th className="py-2 text-right font-medium">Kredi Tutarı</th>
-                <th className="py-2 text-right font-medium">Vade</th>
-                <th className="py-2 text-right font-medium">Faiz</th>
-                <th className="py-2 text-left font-medium">Durum</th>
-                <th className="py-2 pr-1 text-right font-medium">Tahsilat</th>
+                <SortTh k="tedarikci" label="Tedarikçi" sort={xSort} />
+                <SortTh k="bayi" label="Bayi" sort={xSort} />
+                <SortTh k="marka" label="Araç" sort={xSort} />
+                <SortTh k="plaka" label="Plaka" sort={xSort} />
+                <SortTh align="right" k="satisBedeli" label="Satış Bedeli" sort={xSort} />
+                <SortTh align="right" k="krediTutari" label="Kredi Tutarı" sort={xSort} />
+                <SortTh align="right" k="vadeGun" label="Vade" sort={xSort} />
+                <SortTh align="right" k="faiz" label="Faiz" sort={xSort} />
+                <SortTh k="durum" label="Durum" sort={xSort} />
+                <SortTh align="right" k="tahsilat" label="Tahsilat" sort={xSort} />
               </tr>
             </thead>
             <tbody>
-              {f.slice(0, 100).map((r, i) => (
+              {xSort.sorted.slice(0, 100).map((r, i) => (
                 <tr className="border-line border-b last:border-0" key={`${r.tedarikci}-${i}`}>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.tedarikci}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.bayi}</td>

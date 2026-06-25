@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -18,7 +19,7 @@ import { formatNumber, formatPercent, formatTRYCompact } from "@/lib/format";
 import { useRiskContracts } from "@/queries/risk-watch";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterBar, KpiStrip, uniq } from "@/ui/report-kit";
+import { ALL, ChartCard, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -140,6 +141,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
   }, [f]);
 
   const liste = useMemo(() => [...f].sort((a, b) => b.gecikmeGun - a.gecikmeGun), [f]);
+  const xSort = useSort(liste, "gecikmeGun", "desc");
 
   const reset = () => {
     setDistributor(ALL);
@@ -210,6 +212,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
                 {bucketDag.map((b, i) => (
                   <Cell fill={i >= 3 ? "var(--color-danger)" : i === 2 ? "var(--color-warn)" : "var(--color-bank)"} key={b.ay} />
                 ))}
+                <LabelList dataKey="adet" formatter={(v) => formatNumber(Number(v) || 0)} position="top" style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -218,7 +221,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
         <ChartCard title="Durum Dağılımı">
           <ResponsiveContainer height="100%" width="100%">
             <PieChart>
-              <Pie data={durumDag} dataKey="value" innerRadius={56} nameKey="name" outerRadius={92} paddingAngle={2} stroke="none">
+              <Pie data={durumDag} dataKey="value" innerRadius={56} label={(e: { value?: number }) => formatNumber(e.value ?? 0)} labelLine={false} nameKey="name" outerRadius={92} paddingAngle={2} stroke="none">
                 {durumDag.map((s) => (
                   <Cell fill={DURUM_FILL[s.name as RiskDurum]} key={s.name} />
                 ))}
@@ -236,7 +239,9 @@ function Body({ rows }: { rows: RiskContract[] }) {
             <XAxis axisLine={false} dataKey="name" tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickLine={false} />
             <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickFormatter={(v) => `%${v}`} tickLine={false} width={40} />
             <Tooltip formatter={(v) => formatPercent(Number(v) || 0, 1)} />
-            <Bar dataKey="oran" fill="var(--color-danger)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="oran" fill="var(--color-danger)" radius={[4, 4, 0, 0]}>
+              <LabelList dataKey="oran" formatter={(v) => "%" + (Number(v) || 0).toFixed(1)} position="top" style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }} />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -255,17 +260,17 @@ function Body({ rows }: { rows: RiskContract[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[780px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Sözleşme</th>
-                <th className="py-2 text-left font-medium">Müşteri</th>
-                <th className="py-2 text-left font-medium">Bayi</th>
-                <th className="py-2 text-right font-medium">Kredi</th>
-                <th className="py-2 text-right font-medium">Kalan Bakiye</th>
-                <th className="py-2 text-right font-medium">Gecikme</th>
-                <th className="py-2 pr-1 text-left font-medium">Durum</th>
+                <SortTh k="sozlesmeNo" label="Sözleşme" sort={xSort} />
+                <SortTh k="musteri" label="Müşteri" sort={xSort} />
+                <SortTh k="bayi" label="Bayi" sort={xSort} />
+                <SortTh align="right" k="krediTutari" label="Kredi" sort={xSort} />
+                <SortTh align="right" k="kalanBakiye" label="Kalan Bakiye" sort={xSort} />
+                <SortTh align="right" k="gecikmeGun" label="Gecikme" sort={xSort} />
+                <SortTh className="pr-1" k="durum" label="Durum" sort={xSort} />
               </tr>
             </thead>
             <tbody>
-              {liste.slice(0, 100).map((r) => (
+              {xSort.sorted.slice(0, 100).map((r) => (
                 <tr className="border-line border-b last:border-0" key={r.sozlesmeNo}>
                   <td className="py-2 font-medium text-[12.5px] text-ink tabular-nums">{r.sozlesmeNo}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.musteri}</td>

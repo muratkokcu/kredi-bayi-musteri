@@ -5,6 +5,7 @@ import {
   CartesianGrid,
   Cell,
   ComposedChart,
+  LabelList,
   Line,
   Pie,
   PieChart,
@@ -14,13 +15,13 @@ import {
   YAxis,
 } from "recharts";
 import { type Application, BASVURU_AYLAR } from "@/data/applications";
-import { formatNumber, formatPercent, formatTRYCompact } from "@/lib/format";
+import { formatCompact, formatNumber, formatPercent, formatTRYCompact } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { useApplications } from "@/queries/applications";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
-import { FilterBar, KpiStrip } from "@/ui/report-kit";
+import { FilterBar, KpiStrip, SortTh, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -206,6 +207,9 @@ function Body({ rows }: { rows: Application[] }) {
       .sort((a, b) => b.kull - a.kull);
   }, [f]);
   const maxOran = Math.max(...bayiTablo.map((b) => b.oran), 0.01);
+  const durumSort = useSort(durumOzet, "adet", "desc");
+  const bayiSort = useSort(bayiTablo, "kull", "desc");
+  const detSort = useSort(f, "tutar", "desc");
 
   const reset = () => {
     setYil(ALL);
@@ -276,14 +280,14 @@ function Body({ rows }: { rows: Application[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[460px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Durum</th>
-                <th className="py-2 text-right font-medium">Adet</th>
-                <th className="py-2 text-right font-medium">Tutar</th>
-                <th className="py-2 pr-1 text-right font-medium">Oran</th>
+                <SortTh k="durum" label="Durum" sort={durumSort} />
+                <SortTh align="right" k="adet" label="Adet" sort={durumSort} />
+                <SortTh align="right" k="tutar" label="Tutar" sort={durumSort} />
+                <SortTh align="right" k="oran" label="Oran" sort={durumSort} />
               </tr>
             </thead>
             <tbody>
-              {durumOzet.map((d) => (
+              {durumSort.sorted.map((d) => (
                 <tr className="border-line border-b last:border-0" key={d.durum}>
                   <td className="py-2.5 font-medium text-[13px] text-ink">{d.durum}</td>
                   <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(d.adet)}</td>
@@ -325,6 +329,8 @@ function Body({ rows }: { rows: Application[] }) {
                 data={retNeden}
                 dataKey="value"
                 innerRadius={52}
+                label={(e: { value?: number }) => formatCompact(e.value ?? 0)}
+                labelLine={false}
                 nameKey="name"
                 outerRadius={88}
                 paddingAngle={2}
@@ -356,7 +362,14 @@ function Body({ rows }: { rows: Application[] }) {
                 width={32}
               />
               <Tooltip />
-              <Bar dataKey="basvuru" fill="var(--color-bank-soft)" name="Başvuru" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="basvuru" fill="var(--color-bank-soft)" name="Başvuru" radius={[4, 4, 0, 0]}>
+                <LabelList
+                  dataKey="basvuru"
+                  formatter={(v) => formatCompact(Number(v) || 0)}
+                  position="top"
+                  style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }}
+                />
+              </Bar>
               <Line
                 dataKey="kullandirim"
                 dot={false}
@@ -374,16 +387,16 @@ function Body({ rows }: { rows: Application[] }) {
             <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[560px]">
               <thead>
                 <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                  <th className="py-2 text-left font-medium">Bayi</th>
-                  <th className="py-2 text-right font-medium">Başvuru</th>
-                  <th className="py-2 text-right font-medium">Ret</th>
-                  <th className="py-2 text-right font-medium">Kullandırım</th>
-                  <th className="py-2 pr-1 text-right font-medium">Oran</th>
+                  <SortTh k="name" label="Bayi" sort={bayiSort} />
+                  <SortTh align="right" k="basvuru" label="Başvuru" sort={bayiSort} />
+                  <SortTh align="right" k="ret" label="Ret" sort={bayiSort} />
+                  <SortTh align="right" k="kull" label="Kullandırım" sort={bayiSort} />
+                  <SortTh align="right" k="oran" label="Oran" sort={bayiSort} />
                   <th className="w-24 py-2 font-medium" />
                 </tr>
               </thead>
               <tbody>
-                {bayiTablo.map((b) => (
+                {bayiSort.sorted.map((b) => (
                   <tr
                     className={`cursor-pointer border-line border-b last:border-0 hover:bg-canvas/60 ${
                       bayi === b.name ? "bg-bank-tint/40" : ""
@@ -431,17 +444,17 @@ function Body({ rows }: { rows: Application[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[760px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Dönem</th>
-                <th className="py-2 text-left font-medium">Bölge</th>
-                <th className="py-2 text-left font-medium">Bayi</th>
-                <th className="py-2 text-left font-medium">Müşteri</th>
-                <th className="py-2 text-right font-medium">Tutar</th>
-                <th className="py-2 text-left font-medium">Durum</th>
-                <th className="py-2 pr-1 text-left font-medium">Ret Nedeni</th>
+                <SortTh k="yil" label="Dönem" sort={detSort} />
+                <SortTh k="bolge" label="Bölge" sort={detSort} />
+                <SortTh k="bayi" label="Bayi" sort={detSort} />
+                <SortTh k="musteriTipi" label="Müşteri" sort={detSort} />
+                <SortTh align="right" k="tutar" label="Tutar" sort={detSort} />
+                <SortTh k="durum" label="Durum" sort={detSort} />
+                <SortTh k="retNedeni" label="Ret Nedeni" sort={detSort} />
               </tr>
             </thead>
             <tbody>
-              {f.slice(0, 100).map((r, i) => (
+              {detSort.sorted.slice(0, 100).map((r, i) => (
                 <tr className="border-line border-b last:border-0" key={`${r.bayi}-${i}`}>
                   <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">
                     {r.yil} {BASVURU_AYLAR[r.ay - 1]}

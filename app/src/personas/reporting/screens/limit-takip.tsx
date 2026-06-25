@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   Legend,
   Pie,
   PieChart,
@@ -15,12 +16,12 @@ import {
 } from "recharts";
 import { type LimitRow } from "@/data/limits";
 import { downloadCsv } from "@/lib/csv";
-import { formatNumber, formatPercent, formatTRY, formatTRYCompact } from "@/lib/format";
+import { formatCompact, formatNumber, formatPercent, formatTRY, formatTRYCompact } from "@/lib/format";
 import { useLimits } from "@/queries/limits";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterBar, KpiStrip, uniq } from "@/ui/report-kit";
+import { ALL, ChartCard, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -123,6 +124,8 @@ function Body({ rows }: { rows: LimitRow[] }) {
       .sort((a, b) => b.toplam - a.toplam);
   }, [f]);
   const maxOran = Math.max(...byGrup.map((g) => g.oran), 1);
+  const grupSort = useSort(byGrup, "toplam", "desc");
+  const detSort = useSort(f, "toplamLimit", "desc");
 
   const garantorlukDag = useMemo(
     () => [
@@ -210,8 +213,12 @@ function Body({ rows }: { rows: LimitRow[] }) {
               <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickFormatter={formatTRYCompact} tickLine={false} width={60} />
               <Tooltip formatter={(v) => formatTRY(Number(v) || 0)} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="toplam" fill="var(--color-bank-soft)" name="Toplam" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="kullanilan" fill="var(--color-bank)" name="Kullanılan" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="toplam" fill="var(--color-bank-soft)" name="Toplam" radius={[4, 4, 0, 0]}>
+                <LabelList dataKey="toplam" formatter={(v) => formatCompact(Number(v) || 0)} position="top" style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }} />
+              </Bar>
+              <Bar dataKey="kullanilan" fill="var(--color-bank)" name="Kullanılan" radius={[4, 4, 0, 0]}>
+                <LabelList dataKey="kullanilan" formatter={(v) => formatCompact(Number(v) || 0)} position="top" style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -219,7 +226,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
         <ChartCard title="Garantörlü / Garantörsüz Limit (Tutar)">
           <ResponsiveContainer height="100%" width="100%">
             <PieChart>
-              <Pie data={garantorlukDag} dataKey="value" innerRadius={56} nameKey="name" outerRadius={92} paddingAngle={2} stroke="none">
+              <Pie data={garantorlukDag} dataKey="value" innerRadius={56} label={(e: { value?: number }) => formatCompact(e.value ?? 0)} labelLine={false} nameKey="name" outerRadius={92} paddingAngle={2} stroke="none">
                 <Cell fill="var(--color-bank)" />
                 <Cell fill="var(--color-warn)" />
               </Pie>
@@ -235,16 +242,16 @@ function Body({ rows }: { rows: LimitRow[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[760px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Grup</th>
-                <th className="py-2 text-right font-medium">Toplam Limit</th>
-                <th className="py-2 text-right font-medium">Kullanılan</th>
-                <th className="py-2 text-right font-medium">Kullanılabilir</th>
-                <th className="py-2 pr-1 text-right font-medium">Kullanım Oranı</th>
+                <SortTh k="name" label="Grup" sort={grupSort} />
+                <SortTh align="right" k="toplam" label="Toplam Limit" sort={grupSort} />
+                <SortTh align="right" k="kullanilan" label="Kullanılan" sort={grupSort} />
+                <SortTh align="right" k="kullanilabilir" label="Kullanılabilir" sort={grupSort} />
+                <SortTh align="right" k="oran" label="Kullanım Oranı" sort={grupSort} />
                 <th className="w-28 py-2 font-medium" />
               </tr>
             </thead>
             <tbody>
-              {byGrup.map((g) => (
+              {grupSort.sorted.map((g) => (
                 <tr className="border-line border-b last:border-0" key={g.name}>
                   <td className="py-2.5 font-medium text-[13px] text-ink">{g.name}</td>
                   <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatTRYCompact(g.toplam)}</td>
@@ -275,18 +282,18 @@ function Body({ rows }: { rows: LimitRow[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[980px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Grup</th>
-                <th className="py-2 text-left font-medium">Bayi</th>
-                <th className="py-2 text-left font-medium">Limit Türü</th>
-                <th className="py-2 text-right font-medium">Toplam</th>
-                <th className="py-2 text-right font-medium">Kullanılan</th>
-                <th className="py-2 text-right font-medium">Kullanılabilir</th>
-                <th className="py-2 text-left font-medium">Revize</th>
-                <th className="py-2 pr-1 text-left font-medium">Garantörlük</th>
+                <SortTh k="grupAdi" label="Grup" sort={detSort} />
+                <SortTh k="bayi" label="Bayi" sort={detSort} />
+                <SortTh k="limitTuru" label="Limit Türü" sort={detSort} />
+                <SortTh align="right" k="toplamLimit" label="Toplam" sort={detSort} />
+                <SortTh align="right" k="kullanilanLimit" label="Kullanılan" sort={detSort} />
+                <SortTh align="right" k="kullanilabilirLimit" label="Kullanılabilir" sort={detSort} />
+                <SortTh k="revizeTarihi" label="Revize" sort={detSort} />
+                <SortTh k="garantorluk" label="Garantörlük" sort={detSort} />
               </tr>
             </thead>
             <tbody>
-              {f.slice(0, 100).map((r, i) => (
+              {detSort.sorted.slice(0, 100).map((r, i) => (
                 <tr className="border-line border-b last:border-0" key={`${r.grupAdi}-${i}`}>
                   <td className="py-2 text-[12.5px] text-ink">{r.grupAdi}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.bayi}</td>

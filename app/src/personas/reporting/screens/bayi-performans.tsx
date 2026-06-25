@@ -5,6 +5,7 @@ import {
   CartesianGrid,
   ComposedChart,
   Legend,
+  LabelList,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -304,7 +305,14 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
                 width={36}
               />
               <Tooltip />
-              <Bar dataKey="toplam" fill="var(--color-bank-soft)" name="Toplam Satış" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="toplam" fill="var(--color-bank-soft)" name="Toplam Satış" radius={[4, 4, 0, 0]}>
+                <LabelList
+                  dataKey="toplam"
+                  position="top"
+                  formatter={(v) => formatNumber(Number(v) || 0)}
+                  style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }}
+                />
+              </Bar>
               <Line
                 dataKey="kredili"
                 dot={false}

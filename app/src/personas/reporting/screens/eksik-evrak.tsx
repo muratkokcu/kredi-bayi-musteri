@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -18,7 +19,7 @@ import { formatNumber } from "@/lib/format";
 import { useMissingDocs } from "@/queries/missing-docs";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterBar, KpiStrip, uniq } from "@/ui/report-kit";
+import { ALL, ChartCard, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -86,6 +87,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const hataDag = useMemo(() => countBy(f, "hataTuru"), [f]);
   const evrakDag = useMemo(() => countBy(f, "evrakTuru"), [f]);
   const bayiDag = useMemo(() => countBy(f, "bayi"), [f]);
+  const xSort = useSort(f, "sozlesmeNo", "asc");
 
   const k = useMemo(
     () => ({
@@ -158,7 +160,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
         <ChartCard title="Hata Türü Dağılımı">
           <ResponsiveContainer height="100%" width="100%">
             <PieChart>
-              <Pie data={hataDag} dataKey="value" innerRadius={52} nameKey="name" outerRadius={88} paddingAngle={2} stroke="none">
+              <Pie data={hataDag} dataKey="value" innerRadius={52} label={(e: { value?: number }) => formatNumber(e.value ?? 0)} labelLine={false} nameKey="name" outerRadius={88} paddingAngle={2} stroke="none">
                 {hataDag.map((s, i) => (
                   <Cell fill={`#${PALETTE[i % PALETTE.length]}`} key={s.name} />
                 ))}
@@ -174,7 +176,9 @@ function Body({ rows }: { rows: MissingDoc[] }) {
               <XAxis hide type="number" />
               <YAxis axisLine={false} dataKey="name" tick={{ fill: "var(--color-ink-soft)", fontSize: 11 }} tickLine={false} type="category" width={108} />
               <Tooltip formatter={(v) => `${formatNumber(Number(v) || 0)} kayıt`} />
-              <Bar dataKey="value" fill="var(--color-warn)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="value" fill="var(--color-warn)" radius={[0, 4, 4, 0]}>
+                <LabelList dataKey="value" position="right" formatter={(v) => formatNumber(Number(v) || 0)} style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -187,7 +191,9 @@ function Body({ rows }: { rows: MissingDoc[] }) {
             <XAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "var(--color-ink-muted)", fontSize: 10 }} tickLine={false} />
             <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickLine={false} width={32} />
             <Tooltip formatter={(v) => `${formatNumber(Number(v) || 0)} kayıt`} />
-            <Bar dataKey="value" fill="var(--color-bank)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="value" fill="var(--color-bank)" radius={[4, 4, 0, 0]}>
+              <LabelList dataKey="value" position="top" formatter={(v) => formatNumber(Number(v) || 0)} style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }} />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -206,18 +212,18 @@ function Body({ rows }: { rows: MissingDoc[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[980px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Sözleşme</th>
-                <th className="py-2 text-left font-medium">Tür</th>
-                <th className="py-2 text-left font-medium">Sözleşme Türü</th>
-                <th className="py-2 text-left font-medium">Müşteri / Tedarikçi</th>
-                <th className="py-2 text-left font-medium">Bayi</th>
-                <th className="py-2 text-left font-medium">Evrak Tarihi</th>
-                <th className="py-2 text-left font-medium">Evrak Türü</th>
-                <th className="py-2 pr-1 text-left font-medium">Hata Türü</th>
+                <SortTh k="sozlesmeNo" label="Sözleşme" sort={xSort} />
+                <SortTh k="tur" label="Tür" sort={xSort} />
+                <SortTh k="sozlesmeTuru" label="Sözleşme Türü" sort={xSort} />
+                <SortTh k="musteriTedarikci" label="Müşteri / Tedarikçi" sort={xSort} />
+                <SortTh k="bayi" label="Bayi" sort={xSort} />
+                <SortTh k="evrakTarihi" label="Evrak Tarihi" sort={xSort} />
+                <SortTh k="evrakTuru" label="Evrak Türü" sort={xSort} />
+                <SortTh className="pr-1" k="hataTuru" label="Hata Türü" sort={xSort} />
               </tr>
             </thead>
             <tbody>
-              {f.slice(0, 100).map((r) => (
+              {xSort.sorted.slice(0, 100).map((r) => (
                 <tr className="border-line border-b last:border-0" key={r.sozlesmeNo}>
                   <td className="py-2 font-medium text-[12.5px] text-ink tabular-nums">{r.sozlesmeNo}</td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.tur}</td>
