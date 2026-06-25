@@ -111,4 +111,4 @@ function generate(): RiskContract[] {
   return out;
 }
 
-export const RISK_CONTRACTS: RiskContract[] = generate();
+export const RISK_CONTRACTS: RiskContract[] = /*#__PURE__*/ generate();

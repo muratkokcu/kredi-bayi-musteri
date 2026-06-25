@@ -100,4 +100,4 @@ function generate(): MissingDoc[] {
   return out;
 }
 
-export const MISSING_DOCS: MissingDoc[] = generate();
+export const MISSING_DOCS: MissingDoc[] = /*#__PURE__*/ generate();

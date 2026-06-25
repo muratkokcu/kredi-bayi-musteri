@@ -88,4 +88,4 @@ function generate(): LimitRow[] {
   return out;
 }
 
-export const LIMITS: LimitRow[] = generate();
+export const LIMITS: LimitRow[] = /*#__PURE__*/ generate();

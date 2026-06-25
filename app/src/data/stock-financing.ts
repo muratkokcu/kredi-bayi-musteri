@@ -120,4 +120,4 @@ function generate(): StockLoan[] {
   return out;
 }
 
-export const STOCK_LOANS: StockLoan[] = generate();
+export const STOCK_LOANS: StockLoan[] = /*#__PURE__*/ generate();

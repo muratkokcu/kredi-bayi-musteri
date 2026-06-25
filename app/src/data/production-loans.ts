@@ -175,4 +175,4 @@ function generate(): ProductionLoan[] {
   return out;
 }
 
-export const PRODUCTION_LOANS: ProductionLoan[] = generate();
+export const PRODUCTION_LOANS: ProductionLoan[] = /*#__PURE__*/ generate();

@@ -101,4 +101,4 @@ function generate(): Application[] {
   return out;
 }
 
-export const APPLICATIONS: Application[] = generate();
+export const APPLICATIONS: Application[] = /*#__PURE__*/ generate();

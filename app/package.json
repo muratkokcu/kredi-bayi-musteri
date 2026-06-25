@@ -46,6 +46,7 @@
   "name": "app",
   "scripts": {
     "dev": "vite",
+    "payloads": "node scripts/build-payloads.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

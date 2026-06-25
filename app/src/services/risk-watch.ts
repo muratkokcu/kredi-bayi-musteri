@@ -1,7 +1,7 @@
-import { RISK_CONTRACTS, type RiskContract } from "@/data/risk-watch";
-import { simulate } from "./client";
+import type { RiskContract } from "@/data/risk-watch";
+import { fetchPayload } from "./client";
 
 /** Risk / watch-list contracts (Risk & İzleme). */
 export function listRiskContracts(): Promise<RiskContract[]> {
-  return simulate(RISK_CONTRACTS);
+  return fetchPayload<RiskContract[]>("risk-watch");
 }

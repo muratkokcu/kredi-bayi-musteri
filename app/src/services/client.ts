@@ -31,3 +31,21 @@ export async function simulate<T>(data: T): Promise<T> {
   }
   return data;
 }
+
+/**
+ * Üretim ortamını taklit eden veri çekme: statik JSON payload'ı (public/data/*.json,
+ * `scripts/build-payloads.mjs` ile üretilir) gerçek bir HTTP `fetch` ile okur.
+ * Aynı yapay gecikme + hata oranı uygulanır; böylece loading/error UX gerçek bir
+ * backend'e karşı olduğu gibi çalışır. Gerçek API geldiğinde sadece URL değişir.
+ */
+export async function fetchPayload<T>(name: string): Promise<T> {
+  await sleep(env.VITE_API_DELAY_MS);
+  if (env.VITE_API_ERROR_RATE > 0 && Math.random() < env.VITE_API_ERROR_RATE) {
+    throw new ApiError();
+  }
+  const res = await fetch(`${import.meta.env.BASE_URL}data/${name}.json`);
+  if (!res.ok) {
+    throw new ApiError(`Veri yüklenemedi (HTTP ${res.status}).`);
+  }
+  return (await res.json()) as T;
+}
