@@ -479,7 +479,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       <Card className="mt-5 pb-3">
         <CardHeader title="Bayi Bazında Karlılık Kırılımı" />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[760px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[760px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Bayi</th>
@@ -549,7 +549,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           title="Açılan Krediler — Detay"
         />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[1100px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[1100px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Dönem</th>

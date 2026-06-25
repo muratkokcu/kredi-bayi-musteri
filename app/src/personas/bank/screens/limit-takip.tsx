@@ -225,7 +225,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
       <Card className="mt-5 pb-3">
         <CardHeader title="Grup Bazında Limit Kullanımı" />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[760px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[760px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Grup</th>
@@ -265,7 +265,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
           title="Limit Takip — Detay"
         />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[980px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[980px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Grup</th>

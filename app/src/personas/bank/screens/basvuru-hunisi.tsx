@@ -355,7 +355,7 @@ function Body({ rows }: { rows: Application[] }) {
       <Card className="mt-5 pb-3">
         <CardHeader title="Durum Özeti" />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[460px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[460px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Durum</th>
@@ -453,7 +453,7 @@ function Body({ rows }: { rows: Application[] }) {
         <Card className="pb-3">
           <CardHeader title="Bayi Bazında Dönüşüm" />
           <div className="mt-3 overflow-x-auto px-5">
-            <table className="w-full min-w-[560px]">
+            <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[560px]">
               <thead>
                 <tr className="border-line border-b text-[11.5px] text-ink-muted">
                   <th className="py-2 text-left font-medium">Bayi</th>
@@ -510,7 +510,7 @@ function Body({ rows }: { rows: Application[] }) {
           title="Başvuru Kayıtları — Detay"
         />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[760px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[760px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Dönem</th>

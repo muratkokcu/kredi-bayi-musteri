@@ -222,7 +222,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
         </ChartCard>
       </div>
 
-      <ChartCard title="Bölge Bazında NPL Oranı">
+      <ChartCard className="mt-5" title="Bölge Bazında NPL Oranı">
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={bolgeNpl} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
             <CartesianGrid stroke="var(--color-line)" vertical={false} />
@@ -245,7 +245,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
           title="İzleme Listesi"
         />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[780px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[780px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Sözleşme</th>

@@ -248,7 +248,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
         </ChartCard>
       </div>
 
-      <ChartCard title="Aylık Açılan Stok Kredisi">
+      <ChartCard className="mt-5" title="Aylık Açılan Stok Kredisi">
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
             <CartesianGrid stroke="var(--color-line)" vertical={false} />
@@ -263,7 +263,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
       <Card className="mt-5 pb-3">
         <CardHeader title="Tedarikçi Bazında Özet" />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[900px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[900px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Tedarikçi</th>
@@ -310,7 +310,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
           title="Stok Finansmanı — Detay"
         />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[1040px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[1040px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Tedarikçi</th>

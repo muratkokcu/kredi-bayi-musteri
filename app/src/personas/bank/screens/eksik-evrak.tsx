@@ -173,7 +173,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
         </ChartCard>
       </div>
 
-      <ChartCard title="Evrak Türü Dağılımı">
+      <ChartCard className="mt-5" title="Evrak Türü Dağılımı">
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={evrakDag} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
             <CartesianGrid stroke="var(--color-line)" vertical={false} />
@@ -196,7 +196,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
           title="Eksik Evrak Listesi"
         />
         <div className="mt-3 overflow-x-auto px-5">
-          <table className="w-full min-w-[980px]">
+          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[980px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
                 <th className="py-2 text-left font-medium">Sözleşme</th>

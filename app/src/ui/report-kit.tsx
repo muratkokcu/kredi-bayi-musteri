@@ -54,12 +54,14 @@ export function FilterSelect({
 export function ChartCard({
   title,
   children,
+  className,
 }: {
   title: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader title={title} />
       <div className="mt-3 h-[240px] px-5 pb-5">{children}</div>
     </Card>
