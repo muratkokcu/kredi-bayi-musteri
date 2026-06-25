@@ -1,4 +1,4 @@
-import { Boxes, CalendarClock, Download, Percent, RotateCcw, Wallet } from "lucide-react";
+import { Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   Bar,
@@ -18,8 +18,7 @@ import { formatNumber, formatPercent, formatTRY, formatTRYCompact } from "@/lib/
 import { useStockLoans } from "@/queries/stock-financing";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterSelect, uniq } from "@/ui/report-kit";
-import { StatCard } from "@/ui/stat-card";
+import { ALL, ChartCard, FilterBar, KpiStrip, uniq } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -185,43 +184,43 @@ function Body({ rows }: { rows: StockLoan[] }) {
 
   return (
     <>
-      <Card className="flex flex-wrap items-end gap-3 p-4">
-        <FilterSelect label="Dönem (Yıl)" onChange={setYil} options={opts.yil} value={yil} />
-        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
-        <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
-        <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
-        <FilterSelect label="Tedarikçi" onChange={setTedarikci} options={opts.tedarikci} value={tedarikci} />
-        <FilterSelect label="Durum" onChange={setDurum} options={opts.durum} value={durum} width={120} />
-        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
-        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
-        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
-        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
-        <button
-          className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas"
-          onClick={reset}
-          type="button"
-        >
-          <RotateCcw size={15} /> Temizle
-        </button>
-        <button
-          className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
-          onClick={exportCsv}
-          type="button"
-        >
-          <Download size={15} /> CSV İndir
-        </button>
-      </Card>
+      <FilterBar
+        filters={[
+          { key: "yil", label: "Dönem (Yıl)", value: yil, options: opts.yil, onChange: setYil },
+          { key: "bolge", label: "Bölge", value: bolge, options: opts.bolge, onChange: setBolge },
+          { key: "bayi", label: "Bayi", value: bayi, options: opts.bayi, onChange: setBayi },
+          { key: "distributor", label: "Distribütör", value: distributor, options: opts.distributor, onChange: setDistributor },
+          { key: "tedarikci", label: "Tedarikçi", value: tedarikci, options: opts.tedarikci, onChange: setTedarikci },
+          { key: "durum", label: "Durum", value: durum, options: opts.durum, onChange: setDurum, width: 120 },
+          { key: "altSektor", label: "Alt Sektör", value: altSektor, options: opts.altSektor, onChange: setAltSektor },
+          { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
+          { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+          { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce },
+        ]}
+        onReset={reset}
+        right={
+          <button
+            className="flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+            onClick={exportCsv}
+            type="button"
+          >
+            <Download size={15} /> CSV İndir
+          </button>
+        }
+      />
 
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard icon={<Boxes size={20} strokeWidth={1.9} />} label="Toplam Stok Kredisi" sub={`${formatNumber(f.length)} kayıt`} tone="bank" value={formatTRYCompact(k.toplam)} />
-        <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Açık Kredi Tutarı" sub={`${formatNumber(k.acikAdet)} açık`} tone="warn" value={formatTRYCompact(k.acikTutar)} />
-        <StatCard icon={<Boxes size={20} strokeWidth={1.9} />} label="Kapalı Kredi Tutarı" sub={`${formatNumber(k.kapaliAdet)} kapalı`} tone="dealer" value={formatTRYCompact(k.kapaliTutar)} />
-        <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Ort. Kredi Tutarı" sub="Kayıt başına" tone="teal" value={formatTRYCompact(k.ortKredi)} />
-        <StatCard icon={<CalendarClock size={20} strokeWidth={1.9} />} label="Ort. Vade" sub="Gün" tone="bank" value={`${k.ortVade.toFixed(0)} gün`} />
-        <StatCard icon={<CalendarClock size={20} strokeWidth={1.9} />} label="Ort. Kapama Gün" sub="Kapalı krediler" tone="dealer" value={`${k.ortKapama.toFixed(0)} gün`} />
-        <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Toplam Tahsilat" sub="Kapanan" tone="cust" value={formatTRYCompact(k.tahsilat)} />
-        <StatCard icon={<Percent size={20} strokeWidth={1.9} />} label="Ort. Faiz" sub="Aylık" tone="warn" value={formatPercent(k.ortFaiz, 2)} />
-      </div>
+      <KpiStrip
+        items={[
+          { label: "Toplam Stok Kredisi", value: formatTRYCompact(k.toplam), sub: `${formatNumber(f.length)} kayıt` },
+          { label: "Açık Kredi Tutarı", value: formatTRYCompact(k.acikTutar), sub: `${formatNumber(k.acikAdet)} açık` },
+          { label: "Kapalı Kredi Tutarı", value: formatTRYCompact(k.kapaliTutar), sub: `${formatNumber(k.kapaliAdet)} kapalı` },
+          { label: "Ort. Kredi Tutarı", value: formatTRYCompact(k.ortKredi), sub: "Kayıt başına" },
+          { label: "Ort. Vade", value: `${k.ortVade.toFixed(0)} gün`, sub: "Gün" },
+          { label: "Ort. Kapama Gün", value: `${k.ortKapama.toFixed(0)} gün`, sub: "Kapalı krediler" },
+          { label: "Toplam Tahsilat", value: formatTRYCompact(k.tahsilat), sub: "Kapanan" },
+          { label: "Ort. Faiz", value: formatPercent(k.ortFaiz, 2), sub: "Aylık" },
+        ]}
+      />
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Tedarikçi Bazında Hacim">

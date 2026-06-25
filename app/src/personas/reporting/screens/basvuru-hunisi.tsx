@@ -1,12 +1,4 @@
-import {
-  CheckCircle2,
-  Download,
-  FileInput,
-  Percent,
-  RotateCcw,
-  Wallet,
-  XCircle,
-} from "lucide-react";
+import { Download } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import {
   Bar,
@@ -25,17 +17,10 @@ import { type Application, BASVURU_AYLAR } from "@/data/applications";
 import { formatNumber, formatPercent, formatTRYCompact } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { useApplications } from "@/queries/applications";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
-import { StatCard } from "@/ui/stat-card";
+import { FilterBar, KpiStrip } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -47,37 +32,6 @@ const SHELL_PROPS = {
 const PALETTE = ["E2603B", "F2A93B", "9CA3AF", "57C99A", "127A9B"];
 const ALL = "Tümü";
 const uniq = (xs: string[]) => [...new Set(xs)].sort((a, b) => a.localeCompare(b, "tr"));
-
-function FilterSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="font-medium text-[11px] text-ink-muted">{label}</span>
-      <Select onValueChange={onChange} value={value}>
-        <SelectTrigger className="h-9 w-[150px] border-line-strong text-[13px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{ALL}</SelectItem>
-          {options.map((o) => (
-            <SelectItem key={o} value={o}>
-              {o}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -279,77 +233,41 @@ function Body({ rows }: { rows: Application[] }) {
 
   return (
     <>
-      <Card className="flex flex-wrap items-end gap-3 p-4">
-        <FilterSelect label="Dönem (Yıl)" onChange={setYil} options={opts.yil} value={yil} />
-        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
-        <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
-        <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
-        <FilterSelect label="Müşteri Tipi" onChange={setTip} options={opts.tip} value={tip} />
-        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
-        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
-        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
-        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
-        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
-        <button
-          className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas"
-          onClick={reset}
-          type="button"
-        >
-          <RotateCcw size={15} /> Temizle
-        </button>
-        <button
-          className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
-          onClick={exportCsv}
-          type="button"
-        >
-          <Download size={15} /> CSV İndir
-        </button>
-      </Card>
+      <FilterBar
+        filters={[
+          { key: "yil", label: "Dönem (Yıl)", value: yil, options: opts.yil, onChange: setYil },
+          { key: "bolge", label: "Bölge", value: bolge, options: opts.bolge, onChange: setBolge },
+          { key: "bayi", label: "Bayi", value: bayi, options: opts.bayi, onChange: setBayi },
+          { key: "distributor", label: "Distribütör", value: distributor, options: opts.distributor, onChange: setDistributor },
+          { key: "tip", label: "Müşteri Tipi", value: tip, options: opts.tip, onChange: setTip },
+          { key: "altSektor", label: "Alt Sektör", value: altSektor, options: opts.altSektor, onChange: setAltSektor },
+          { key: "danisman", label: "Danışman", value: danisman, options: opts.danisman, onChange: setDanisman },
+          { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
+          { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+          { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce },
+        ]}
+        onReset={reset}
+        right={
+          <button
+            className="flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+            onClick={exportCsv}
+            type="button"
+          >
+            <Download size={15} /> CSV İndir
+          </button>
+        }
+      />
 
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard
-          icon={<FileInput size={20} strokeWidth={1.9} />}
-          label="Başvuru Adedi"
-          sub="Seçili dönem"
-          tone="bank"
-          value={formatNumber(k.n)}
-        />
-        <StatCard
-          icon={<XCircle size={20} strokeWidth={1.9} />}
-          label="Ret Oranı"
-          sub={`${formatNumber(k.ret)} ret`}
-          tone="warn"
-          value={formatPercent(k.retOran * 100, 1)}
-        />
-        <StatCard
-          icon={<CheckCircle2 size={20} strokeWidth={1.9} />}
-          label="Onay Oranı"
-          sub={`${formatNumber(k.onaylanan)} onay`}
-          tone="dealer"
-          value={formatPercent(k.onayOran * 100, 1)}
-        />
-        <StatCard
-          icon={<Percent size={20} strokeWidth={1.9} />}
-          label="Kullandırım Oranı"
-          sub={`${formatNumber(k.kullandirim)} kullandırım`}
-          tone="teal"
-          value={formatPercent(k.kullOran * 100, 1)}
-        />
-        <StatCard
-          icon={<Wallet size={20} strokeWidth={1.9} />}
-          label="Kullandırılan Tutar"
-          sub="Kullandırım"
-          tone="cust"
-          value={formatTRYCompact(k.kullTutar)}
-        />
-        <StatCard
-          icon={<Wallet size={20} strokeWidth={1.9} />}
-          label="Ort. Başvuru Tutarı"
-          sub="Tüm başvurular"
-          tone="bank"
-          value={formatTRYCompact(k.ortTutar)}
-        />
-      </div>
+      <KpiStrip
+        items={[
+          { label: "Başvuru Adedi", value: formatNumber(k.n), sub: "Seçili dönem" },
+          { label: "Ret Oranı", value: formatPercent(k.retOran * 100, 1), sub: `${formatNumber(k.ret)} ret` },
+          { label: "Onay Oranı", value: formatPercent(k.onayOran * 100, 1), sub: `${formatNumber(k.onaylanan)} onay` },
+          { label: "Kullandırım Oranı", value: formatPercent(k.kullOran * 100, 1), sub: `${formatNumber(k.kullandirim)} kullandırım` },
+          { label: "Kullandırılan Tutar", value: formatTRYCompact(k.kullTutar), sub: "Kullandırım" },
+          { label: "Ort. Başvuru Tutarı", value: formatTRYCompact(k.ortTutar), sub: "Tüm başvurular" },
+        ]}
+      />
 
       {/* Durum Özeti — adet / tutar / oran (şablon) */}
       <Card className="mt-5 pb-3">

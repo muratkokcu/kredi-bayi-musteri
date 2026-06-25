@@ -1,4 +1,4 @@
-import { Download, Gauge, RotateCcw, ShieldCheck, Wallet } from "lucide-react";
+import { Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   Bar,
@@ -20,8 +20,7 @@ import { useLimits } from "@/queries/limits";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterSelect, uniq } from "@/ui/report-kit";
-import { StatCard } from "@/ui/stat-card";
+import { ALL, ChartCard, FilterBar, KpiStrip, uniq } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -165,34 +164,42 @@ function Body({ rows }: { rows: LimitRow[] }) {
 
   return (
     <>
-      <Card className="flex flex-wrap items-end gap-3 p-4">
-        <FilterSelect label="Dönem (Yıl)" onChange={setYil} options={opts.yil} value={yil} />
-        <FilterSelect label="Grup" onChange={setGrup} options={opts.grup} value={grup} width={170} />
-        <FilterSelect label="Limit Türü" onChange={setLimitTuru} options={opts.limitTuru} value={limitTuru} width={170} />
-        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
-        <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
-        <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
-        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
-        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
-        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
-        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
-        <FilterSelect label="Garantörlük" onChange={setGarantorluk} options={opts.garantorluk} value={garantorluk} width={120} />
-        <button className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas" onClick={reset} type="button">
-          <RotateCcw size={15} /> Temizle
-        </button>
-        <button className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600" onClick={exportCsv} type="button">
-          <Download size={15} /> CSV İndir
-        </button>
-      </Card>
+      <FilterBar
+        filters={[
+          { key: "yil", label: "Dönem (Yıl)", value: yil, options: opts.yil, onChange: setYil },
+          { key: "grup", label: "Grup", value: grup, options: opts.grup, onChange: setGrup, width: 170 },
+          { key: "bolge", label: "Bölge", value: bolge, options: opts.bolge, onChange: setBolge },
+          { key: "limitTuru", label: "Limit Türü", value: limitTuru, options: opts.limitTuru, onChange: setLimitTuru, width: 170 },
+          { key: "distributor", label: "Distribütör", value: distributor, options: opts.distributor, onChange: setDistributor },
+          { key: "bayi", label: "Bayi", value: bayi, options: opts.bayi, onChange: setBayi },
+          { key: "altSektor", label: "Alt Sektör", value: altSektor, options: opts.altSektor, onChange: setAltSektor },
+          { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
+          { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+          { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce },
+          { key: "garantorluk", label: "Garantörlük", value: garantorluk, options: opts.garantorluk, onChange: setGarantorluk, width: 120 },
+        ]}
+        onReset={reset}
+        right={
+          <button
+            className="flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+            onClick={exportCsv}
+            type="button"
+          >
+            <Download size={15} /> CSV İndir
+          </button>
+        }
+      />
 
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Toplam Limit" sub={`${formatNumber(k.adet)} limit`} tone="bank" value={formatTRYCompact(k.toplam)} />
-        <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Kullanılan Limit" sub="" tone="warn" value={formatTRYCompact(k.kullanilan)} />
-        <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Kullanılabilir Limit" sub="" tone="dealer" value={formatTRYCompact(k.kullanilabilir)} />
-        <StatCard icon={<Gauge size={20} strokeWidth={1.9} />} label="Kullanım Oranı" sub="Kullanılan / toplam" tone="teal" value={formatPercent(k.kullanimOran * 100, 1)} />
-        <StatCard icon={<ShieldCheck size={20} strokeWidth={1.9} />} label="Garantörlü Limit" sub="Toplam tutar" tone="cust" value={formatTRYCompact(k.garantorluTutar)} />
-        <StatCard icon={<Wallet size={20} strokeWidth={1.9} />} label="Limit Adedi" sub="Filtreli" tone="bank" value={formatNumber(k.adet)} />
-      </div>
+      <KpiStrip
+        items={[
+          { label: "Toplam Limit", value: formatTRYCompact(k.toplam), sub: `${formatNumber(k.adet)} limit` },
+          { label: "Kullanılan Limit", value: formatTRYCompact(k.kullanilan) },
+          { label: "Kullanılabilir Limit", value: formatTRYCompact(k.kullanilabilir) },
+          { label: "Kullanım Oranı", value: formatPercent(k.kullanimOran * 100, 1), sub: "Kullanılan / toplam" },
+          { label: "Garantörlü Limit", value: formatTRYCompact(k.garantorluTutar), sub: "Toplam tutar" },
+          { label: "Limit Adedi", value: formatNumber(k.adet), sub: "Filtreli" },
+        ]}
+      />
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Limit Türü — Toplam vs Kullanılan">

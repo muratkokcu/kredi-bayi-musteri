@@ -1,12 +1,4 @@
-import {
-  Car,
-  ChevronRight,
-  Download,
-  Gauge,
-  RotateCcw,
-  ShieldCheck,
-  Store,
-} from "lucide-react";
+import { ChevronRight, Download } from "lucide-react";
 import { Fragment, type ReactNode, useMemo, useState } from "react";
 import {
   Bar,
@@ -24,17 +16,10 @@ import { type DealerSalesRow, SATIS_AYLAR } from "@/data/dealer-sales";
 import { formatNumber, formatPercent } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { useDealerSales } from "@/queries/dealer-sales";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
-import { StatCard } from "@/ui/stat-card";
+import { FilterBar, KpiStrip } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -46,37 +31,6 @@ const SHELL_PROPS = {
 const ALL = "Tümü";
 const uniq = (xs: string[]) => [...new Set(xs)].sort((a, b) => a.localeCompare(b, "tr"));
 const pct = (a: number, b: number) => (b ? a / b : 0);
-
-function FilterSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="font-medium text-[11px] text-ink-muted">{label}</span>
-      <Select onValueChange={onChange} value={value}>
-        <SelectTrigger className="h-9 w-[150px] border-line-strong text-[13px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{ALL}</SelectItem>
-          {options.map((o) => (
-            <SelectItem key={o} value={o}>
-              {o}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -262,62 +216,38 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
 
   return (
     <>
-      <Card className="flex flex-wrap items-end gap-3 p-4">
-        <FilterSelect label="Dönem (Yıl)" onChange={setYil} options={opts.yil} value={yil} />
-        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
-        <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
-        <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
-        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
-        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
-        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
-        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
-        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
-        <button
-          className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas"
-          onClick={reset}
-          type="button"
-        >
-          <RotateCcw size={15} /> Temizle
-        </button>
-        <button
-          className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
-          onClick={exportCsv}
-          type="button"
-        >
-          <Download size={15} /> CSV İndir
-        </button>
-      </Card>
+      <FilterBar
+        filters={[
+          { key: "yil", label: "Dönem (Yıl)", value: yil, options: opts.yil, onChange: setYil },
+          { key: "bolge", label: "Bölge", value: bolge, options: opts.bolge, onChange: setBolge },
+          { key: "bayi", label: "Bayi", value: bayi, options: opts.bayi, onChange: setBayi },
+          { key: "distributor", label: "Distribütör", value: distributor, options: opts.distributor, onChange: setDistributor },
+          { key: "altSektor", label: "Alt Sektör", value: altSektor, options: opts.altSektor, onChange: setAltSektor },
+          { key: "danisman", label: "Danışman", value: danisman, options: opts.danisman, onChange: setDanisman },
+          { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
+          { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+          { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce },
+        ]}
+        onReset={reset}
+        right={
+          <button
+            className="flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+            onClick={exportCsv}
+            type="button"
+          >
+            <Download size={15} /> CSV İndir
+          </button>
+        }
+      />
 
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          icon={<Store size={20} strokeWidth={1.9} />}
-          label="Toplam Satış"
-          sub="Adet"
-          tone="bank"
-          value={formatNumber(k.toplam)}
-        />
-        <StatCard
-          icon={<Car size={20} strokeWidth={1.9} />}
-          label="Kredili Satış"
-          sub="QF ile finanse"
-          tone="dealer"
-          value={formatNumber(k.kredili)}
-        />
-        <StatCard
-          icon={<Gauge size={20} strokeWidth={1.9} />}
-          label="QF Penetrasyonu"
-          sub="Kredili / toplam"
-          tone="teal"
-          value={formatPercent(k.qfPen * 100, 1)}
-        />
-        <StatCard
-          icon={<ShieldCheck size={20} strokeWidth={1.9} />}
-          label="Sigorta Penetrasyonu"
-          sub="Sigortalı / kredili"
-          tone="cust"
-          value={formatPercent(k.sigPen * 100, 1)}
-        />
-      </div>
+      <KpiStrip
+        items={[
+          { label: "Toplam Satış", value: formatNumber(k.toplam), sub: "Adet" },
+          { label: "Kredili Satış", value: formatNumber(k.kredili), sub: "QF ile finanse" },
+          { label: "QF Penetrasyonu", value: formatPercent(k.qfPen * 100, 1), sub: "Kredili / toplam" },
+          { label: "Sigorta Penetrasyonu", value: formatPercent(k.sigPen * 100, 1), sub: "Sigortalı / kredili" },
+        ]}
+      />
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Aylık Penetrasyon (QF & Sigorta)">

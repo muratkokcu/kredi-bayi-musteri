@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, Download, Gavel, Percent, RotateCcw, ShieldAlert } from "lucide-react";
+import { Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   Bar,
@@ -18,8 +18,7 @@ import { formatNumber, formatPercent, formatTRYCompact } from "@/lib/format";
 import { useRiskContracts } from "@/queries/risk-watch";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterSelect, uniq } from "@/ui/report-kit";
-import { StatCard } from "@/ui/stat-card";
+import { ALL, ChartCard, FilterBar, KpiStrip, uniq } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -163,33 +162,41 @@ function Body({ rows }: { rows: RiskContract[] }) {
 
   return (
     <>
-      <Card className="flex flex-wrap items-end gap-3 p-4">
-        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
-        <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
-        <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
-        <FilterSelect label="Müşteri Tipi" onChange={setTip} options={opts.tip} value={tip} />
-        <FilterSelect label="Durum" onChange={setDurum} options={opts.durum} value={durum} />
-        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
-        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
-        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
-        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
-        <FilterSelect label="İlçe" onChange={setIlce} options={opts.ilce} value={ilce} />
-        <button className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas" onClick={reset} type="button">
-          <RotateCcw size={15} /> Temizle
-        </button>
-        <button className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600" onClick={exportCsv} type="button">
-          <Download size={15} /> CSV İndir
-        </button>
-      </Card>
+      <FilterBar
+        filters={[
+          { key: "bolge", label: "Bölge", value: bolge, options: opts.bolge, onChange: setBolge },
+          { key: "bayi", label: "Bayi", value: bayi, options: opts.bayi, onChange: setBayi },
+          { key: "durum", label: "Durum", value: durum, options: opts.durum, onChange: setDurum },
+          { key: "distributor", label: "Distribütör", value: distributor, options: opts.distributor, onChange: setDistributor },
+          { key: "tip", label: "Müşteri Tipi", value: tip, options: opts.tip, onChange: setTip },
+          { key: "altSektor", label: "Alt Sektör", value: altSektor, options: opts.altSektor, onChange: setAltSektor },
+          { key: "danisman", label: "Danışman", value: danisman, options: opts.danisman, onChange: setDanisman },
+          { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
+          { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+          { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce },
+        ]}
+        onReset={reset}
+        right={
+          <button
+            className="flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+            onClick={exportCsv}
+            type="button"
+          >
+            <Download size={15} /> CSV İndir
+          </button>
+        }
+      />
 
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard icon={<ShieldAlert size={20} strokeWidth={1.9} />} label="İzlemedeki Sözleşme" sub="Filtreli" tone="bank" value={formatNumber(k.adet)} />
-        <StatCard icon={<AlertTriangle size={20} strokeWidth={1.9} />} label="NPL Oranı" sub="Bakiye bazlı (90+ gün)" tone="warn" value={formatPercent(k.nplOran * 100, 1)} />
-        <StatCard icon={<Gavel size={20} strokeWidth={1.9} />} label="KT Oranı" sub={`${formatNumber(k.ktAdet)} adet · ${formatTRYCompact(k.ktTutar)}`} tone="cust" value={formatPercent(k.ktOran * 100, 1)} />
-        <StatCard icon={<Percent size={20} strokeWidth={1.9} />} label="Tahsilat Oranı" sub="Ortalama" tone="teal" value={formatPercent(k.ortTahsilat * 100, 1)} />
-        <StatCard icon={<AlertTriangle size={20} strokeWidth={1.9} />} label="FPD Oranı" sub="First payment default" tone="warn" value={formatPercent(k.fpdOran * 100, 1)} />
-        <StatCard icon={<Clock size={20} strokeWidth={1.9} />} label="Ort. Gecikme" sub="Gün" tone="dealer" value={`${k.ortGecikme.toFixed(0)} gün`} />
-      </div>
+      <KpiStrip
+        items={[
+          { label: "İzlemedeki Sözleşme", value: formatNumber(k.adet), sub: "Filtreli" },
+          { label: "NPL Oranı", value: formatPercent(k.nplOran * 100, 1), sub: "Bakiye bazlı (90+ gün)" },
+          { label: "KT Oranı", value: formatPercent(k.ktOran * 100, 1), sub: `${formatNumber(k.ktAdet)} adet · ${formatTRYCompact(k.ktTutar)}` },
+          { label: "Tahsilat Oranı", value: formatPercent(k.ortTahsilat * 100, 1), sub: "Ortalama" },
+          { label: "FPD Oranı", value: formatPercent(k.fpdOran * 100, 1), sub: "First payment default" },
+          { label: "Ort. Gecikme", value: `${k.ortGecikme.toFixed(0)} gün`, sub: "Gün" },
+        ]}
+      />
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Gecikme Gün Kovaları">

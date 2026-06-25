@@ -1,4 +1,4 @@
-import { Download, FileWarning, FileX, Layers, RotateCcw, Store } from "lucide-react";
+import { Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   Bar,
@@ -18,8 +18,7 @@ import { formatNumber } from "@/lib/format";
 import { useMissingDocs } from "@/queries/missing-docs";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterSelect, uniq } from "@/ui/report-kit";
-import { StatCard } from "@/ui/stat-card";
+import { ALL, ChartCard, FilterBar, KpiStrip, uniq } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -120,32 +119,40 @@ function Body({ rows }: { rows: MissingDoc[] }) {
 
   return (
     <>
-      <Card className="flex flex-wrap items-end gap-3 p-4">
-        <FilterSelect label="Tür" onChange={setTur} options={opts.tur} value={tur} width={140} />
-        <FilterSelect label="Sözleşme Türü" onChange={setSozlesmeTuru} options={opts.sozlesmeTuru} value={sozlesmeTuru} width={150} />
-        <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
-        <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
-        <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
-        <FilterSelect label="Hata Türü" onChange={setHata} options={opts.hata} value={hata} width={170} />
-        <FilterSelect label="Alt Sektör" onChange={setAltSektor} options={opts.altSektor} value={altSektor} />
-        <FilterSelect label="Danışman" onChange={setDanisman} options={opts.danisman} value={danisman} />
-        <FilterSelect label="Sektör Müdürü" onChange={setSektorMuduru} options={opts.sektorMuduru} value={sektorMuduru} />
-        <FilterSelect label="Bölge Yöneticisi" onChange={setBolgeYoneticisi} options={opts.bolgeYoneticisi} value={bolgeYoneticisi} />
-        <button className="flex h-9 items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3 font-medium text-[13px] text-ink-soft hover:bg-canvas" onClick={reset} type="button">
-          <RotateCcw size={15} /> Temizle
-        </button>
-        <button className="ml-auto flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600" onClick={exportCsv} type="button">
-          <Download size={15} /> CSV İndir
-        </button>
-      </Card>
+      <FilterBar
+        filters={[
+          { key: "tur", label: "Tür", value: tur, options: opts.tur, onChange: setTur, width: 140 },
+          { key: "bolge", label: "Bölge", value: bolge, options: opts.bolge, onChange: setBolge },
+          { key: "bayi", label: "Bayi", value: bayi, options: opts.bayi, onChange: setBayi },
+          { key: "sozlesmeTuru", label: "Sözleşme Türü", value: sozlesmeTuru, options: opts.sozlesmeTuru, onChange: setSozlesmeTuru, width: 150 },
+          { key: "hata", label: "Hata Türü", value: hata, options: opts.hata, onChange: setHata, width: 170 },
+          { key: "distributor", label: "Distribütör", value: distributor, options: opts.distributor, onChange: setDistributor },
+          { key: "altSektor", label: "Alt Sektör", value: altSektor, options: opts.altSektor, onChange: setAltSektor },
+          { key: "danisman", label: "Danışman", value: danisman, options: opts.danisman, onChange: setDanisman },
+          { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
+          { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+        ]}
+        onReset={reset}
+        right={
+          <button
+            className="flex h-9 items-center gap-1.5 rounded-[10px] bg-bank px-3.5 font-semibold text-[13px] text-white hover:bg-bank-600"
+            onClick={exportCsv}
+            type="button"
+          >
+            <Download size={15} /> CSV İndir
+          </button>
+        }
+      />
 
-      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
-        <StatCard icon={<FileWarning size={20} strokeWidth={1.9} />} label="Toplam Eksik Evrak" sub="Filtreli" tone="warn" value={formatNumber(k.toplam)} />
-        <StatCard icon={<FileX size={20} strokeWidth={1.9} />} label="Tüketici / Bayi" sub="Kayıt" tone="bank" value={formatNumber(k.tuketici)} />
-        <StatCard icon={<Layers size={20} strokeWidth={1.9} />} label="Stok / Filo" sub="Kayıt" tone="dealer" value={formatNumber(k.stok)} />
-        <StatCard icon={<FileWarning size={20} strokeWidth={1.9} />} label="En Sık Hata" sub="Tür" tone="cust" value={k.enSikHata} />
-        <StatCard icon={<Store size={20} strokeWidth={1.9} />} label="Etkilenen Bayi" sub="Adet" tone="teal" value={formatNumber(k.etkilenenBayi)} />
-      </div>
+      <KpiStrip
+        items={[
+          { label: "Toplam Eksik Evrak", value: formatNumber(k.toplam), sub: "Filtreli" },
+          { label: "Tüketici / Bayi", value: formatNumber(k.tuketici), sub: "Kayıt" },
+          { label: "Stok / Filo", value: formatNumber(k.stok), sub: "Kayıt" },
+          { label: "En Sık Hata", value: k.enSikHata, sub: "Tür" },
+          { label: "Etkilenen Bayi", value: formatNumber(k.etkilenenBayi), sub: "Adet" },
+        ]}
+      />
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Hata Türü Dağılımı">
