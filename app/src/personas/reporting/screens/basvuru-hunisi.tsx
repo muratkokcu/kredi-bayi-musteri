@@ -270,64 +270,79 @@ function Body({ rows }: { rows: Application[] }) {
         ]}
       />
 
-      {/* Durum Özeti — adet / tutar / oran (şablon) */}
-      <Card className="mt-5 pb-3">
-        <CardHeader title="Durum Özeti" />
-        <div className="mt-3 overflow-x-auto px-5">
-          <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[460px]">
-            <thead>
-              <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <SortTh k="durum" label="Durum" sort={durumSort} />
-                <SortTh align="right" k="adet" label="Adet" sort={durumSort} />
-                <SortTh align="right" k="tutar" label="Tutar" sort={durumSort} />
-                <SortTh align="right" k="oran" label="Oran" sort={durumSort} />
-              </tr>
-            </thead>
-            <tbody>
-              {durumSort.sorted.map((d) => (
-                <tr className="border-line border-b last:border-0" key={d.durum}>
-                  <td className="py-2.5 font-medium text-[13px] text-ink">{d.durum}</td>
-                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatNumber(d.adet)}</td>
-                  <td className="py-2.5 text-right text-[12.5px] tabular-nums">{formatTRYCompact(d.tutar)}</td>
-                  <td className="py-2.5 pr-1 text-right font-semibold text-[12.5px] text-bank-700 tabular-nums">
-                    {formatPercent(d.oran * 100, 1)}
-                  </td>
+      {/* Birleşik: Başvuru Sonuç Özeti — huni + durum dağılımı + ret nedenleri */}
+      <Card className="mt-5">
+        <CardHeader title="Başvuru Sonuç Özeti" />
+        <div className="mt-1 grid grid-cols-1 divide-line lg:grid-cols-3 lg:divide-x">
+          {/* Dönüşüm hunisi */}
+          <div className="px-5 py-4">
+            <div className="mb-3.5 font-semibold text-[11px] text-ink-muted uppercase tracking-wide">
+              Dönüşüm Hunisi
+            </div>
+            <div className="flex flex-col gap-3">
+              <FunnelBar color="var(--color-bank)" label="Başvuru" pct={100} value={k.n} />
+              <FunnelBar
+                color="var(--color-bank-600)"
+                label="Onaylanan"
+                pct={k.n ? (k.onaylanan / k.n) * 100 : 0}
+                value={k.onaylanan}
+              />
+              <FunnelBar
+                color="var(--color-bank-700)"
+                label="Kullandırılan"
+                pct={k.n ? (k.kullandirim / k.n) * 100 : 0}
+                value={k.kullandirim}
+              />
+            </div>
+          </div>
+
+          {/* Durum dağılımı — adet / tutar / oran (şablon) */}
+          <div className="overflow-x-auto px-5 py-4">
+            <div className="mb-2 font-semibold text-[11px] text-ink-muted uppercase tracking-wide">
+              Durum Dağılımı
+            </div>
+            <table className="[&_td]:px-1.5 [&_th]:px-1.5 w-full min-w-[280px]">
+              <thead>
+                <tr className="border-line border-b text-[11px] text-ink-muted">
+                  <SortTh k="durum" label="Durum" sort={durumSort} />
+                  <SortTh align="right" k="adet" label="Adet" sort={durumSort} />
+                  <SortTh align="right" k="tutar" label="Tutar" sort={durumSort} />
+                  <SortTh align="right" k="oran" label="Oran" sort={durumSort} />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {durumSort.sorted.map((d) => (
+                  <tr className="border-line border-b last:border-0" key={d.durum}>
+                    <td className="py-2 font-medium text-[12.5px] text-ink">{d.durum}</td>
+                    <td className="py-2 text-right text-[12px] tabular-nums">{formatNumber(d.adet)}</td>
+                    <td className="py-2 text-right text-[12px] text-ink-soft tabular-nums">{formatTRYCompact(d.tutar)}</td>
+                    <td className="py-2 pr-1 text-right font-semibold text-[12px] text-bank-700 tabular-nums">
+                      {formatPercent(d.oran * 100, 1)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Ret nedenleri */}
+          <div className="px-5 py-4">
+            <div className="mb-2 font-semibold text-[11px] text-ink-muted uppercase tracking-wide">
+              Ret Nedenleri
+            </div>
+            <div className="h-[180px]">
+              <DonutChart
+                centerLabel="Ret"
+                colors={PALETTE.map((c) => `#${c}`)}
+                data={retNeden}
+                formatValue={formatNumber}
+              />
+            </div>
+          </div>
         </div>
       </Card>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <Card>
-          <CardHeader title="Dönüşüm Hunisi" />
-          <div className="mt-4 flex flex-col gap-3 px-5 pb-5">
-            <FunnelBar color="var(--color-bank)" label="Başvuru" pct={100} value={k.n} />
-            <FunnelBar
-              color="var(--color-bank-600)"
-              label="Onaylanan"
-              pct={k.n ? (k.onaylanan / k.n) * 100 : 0}
-              value={k.onaylanan}
-            />
-            <FunnelBar
-              color="var(--color-bank-700)"
-              label="Kullandırılan"
-              pct={k.n ? (k.kullandirim / k.n) * 100 : 0}
-              value={k.kullandirim}
-            />
-          </div>
-        </Card>
-
-        <ChartCard title="Ret Nedenleri">
-          <DonutChart
-            centerLabel="Ret"
-            colors={PALETTE.map((c) => `#${c}`)}
-            data={retNeden}
-            formatValue={formatNumber}
-          />
-        </ChartCard>
-
         <ChartCard title="Aylık Başvuru vs Kullandırım">
           <ResponsiveContainer height="100%" width="100%">
             <ComposedChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
