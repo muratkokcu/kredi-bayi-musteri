@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, ChevronsUpDown, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Cell, Label, Pie, PieChart, ResponsiveContainer } from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import {
   Select,
   SelectContent,
@@ -318,62 +318,40 @@ export function DonutChart({
   const total = data.reduce((a, d) => a + d.value, 0);
   const shown = active !== null ? data[active] : null;
 
-  const renderCenter = (props: unknown) => {
-    const vb = (props as { viewBox?: { cx?: number; cy?: number } }).viewBox;
-    const cx = vb?.cx ?? 0;
-    const cy = vb?.cy ?? 0;
-    return (
-      <g>
-        <text
-          dy={-3}
-          fill="var(--color-ink)"
-          fontSize={20}
-          fontWeight={700}
-          textAnchor="middle"
-          x={cx}
-          y={cy}
-        >
-          {formatValue(shown ? shown.value : total)}
-        </text>
-        <text
-          dy={15}
-          fill="var(--color-ink-muted)"
-          fontSize={11}
-          textAnchor="middle"
-          x={cx}
-          y={cy}
-        >
-          {shown ? shown.name : centerLabel}
-        </text>
-      </g>
-    );
-  };
-
   return (
-    <ResponsiveContainer height="100%" width="100%">
-      <PieChart>
-        <Pie
-          data={data}
-          dataKey="value"
-          innerRadius={58}
-          nameKey="name"
-          onMouseEnter={(_, i) => setActive(i)}
-          onMouseLeave={() => setActive(null)}
-          outerRadius={92}
-          paddingAngle={2}
-          stroke="none"
-        >
-          {data.map((d, i) => (
-            <Cell
-              fill={colors[i % colors.length]}
-              key={d.name}
-              opacity={active === null || active === i ? 1 : 0.4}
-            />
-          ))}
-          <Label content={renderCenter} position="center" />
-        </Pie>
-      </PieChart>
-    </ResponsiveContainer>
+    <div className="relative h-full w-full">
+      <ResponsiveContainer height="100%" width="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            innerRadius={58}
+            nameKey="name"
+            onMouseEnter={(_, i) => setActive(i)}
+            onMouseLeave={() => setActive(null)}
+            outerRadius={92}
+            paddingAngle={2}
+            stroke="none"
+          >
+            {data.map((d, i) => (
+              <Cell
+                fill={colors[i % colors.length]}
+                key={d.name}
+                opacity={active === null || active === i ? 1 : 0.4}
+              />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-bold text-[20px] text-ink leading-6 tabular-nums">
+          {formatValue(shown ? shown.value : total)}
+        </span>
+        <span className="max-w-[120px] truncate text-[11px] text-ink-muted">
+          {shown ? shown.name : centerLabel}
+        </span>
+      </div>
+    </div>
   );
 }
 
