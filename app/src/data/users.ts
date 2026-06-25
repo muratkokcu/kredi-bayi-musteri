@@ -3,7 +3,7 @@
  * A real backend would replace src/services/auth + token handling; this file,
  * the context, guards and login UI stay the same.
  */
-export type Role = "banka" | "bayi" | "musteri";
+export type Role = "banka" | "raporlama" | "bayi" | "musteri";
 
 export interface User {
   email: string;
@@ -22,12 +22,14 @@ interface DemoAccount extends User {
 /** Each role's landing route after login. `as const` keeps paths typed for the router. */
 export const ROLE_HOME = {
   banka: "/banka/dashboard",
+  raporlama: "/raporlama/uretim-karlilik",
   bayi: "/bayi/ana-sayfa",
   musteri: "/musteri/ana-sayfa",
 } as const;
 
 export const ROLE_LABEL: Record<Role, string> = {
   banka: "Banka",
+  raporlama: "Raporlama",
   bayi: "Bayi",
   musteri: "Müşteri",
 };
@@ -41,6 +43,16 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
     org: "Banka",
     email: "banka@demo.com",
     initials: "AK",
+    password: "demo1234",
+  },
+  {
+    id: "u-raporlama",
+    role: "raporlama",
+    name: "Selin Demir",
+    title: "Raporlama Uzmanı",
+    org: "Banka",
+    email: "raporlama@demo.com",
+    initials: "SD",
     password: "demo1234",
   },
   {

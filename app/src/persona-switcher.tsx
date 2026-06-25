@@ -5,6 +5,7 @@ import { type Role, ROLE_HOME, ROLE_LABEL } from "@/data/users";
 
 const ROLES: { dot: string; role: Role }[] = [
   { role: "banka", dot: "bg-bank" },
+  { role: "raporlama", dot: "bg-bank-700" },
   { role: "bayi", dot: "bg-dealer" },
   { role: "musteri", dot: "bg-cust" },
 ];

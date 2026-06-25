@@ -1,22 +1,22 @@
 import { Link } from "@tanstack/react-router";
 import {
+  Activity,
   AlertTriangle,
+  Banknote,
   Bell,
-  CheckCircle2,
+  Boxes,
   ChevronDown,
   ChevronRight,
+  FileBarChart,
+  FileWarning,
+  Filter,
+  Gauge,
   HelpCircle,
-  Landmark,
-  LayoutDashboard,
-  LineChart,
   Menu,
-  PlusCircle,
-  ScrollText,
-  ShieldCheck,
+  PieChart,
+  ShieldAlert,
   TrendingUp,
-  Upload,
-  Users,
-  Users2,
+  Wallet,
 } from "lucide-react";
 import { type ComponentType, type ReactNode, useState } from "react";
 import {
@@ -26,55 +26,56 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-interface BankNotification {
+interface ReportingNotification {
   icon: ComponentType<{ className?: string; size?: number }>;
   id: string;
   time: string;
   title: string;
 }
 
-const BANK_NOTIFICATIONS: BankNotification[] = [
+const REPORTING_NOTIFICATIONS: ReportingNotification[] = [
   {
-    id: "renewal-spike",
-    icon: TrendingUp,
-    title: "Yenileme skoru 90+ olan 24 müşteri tespit edildi.",
-    time: "5 dk önce",
+    id: "npl",
+    icon: AlertTriangle,
+    title: "Marmara bölgesinde NPL oranı %2,1 arttı.",
+    time: "15 dk önce",
   },
   {
-    id: "import-done",
-    icon: CheckCircle2,
-    title: "Portföy import tamamlandı (1.248 kayıt).",
+    id: "uretim",
+    icon: TrendingUp,
+    title: "Eylül üretimi hedefin %4 üzerinde kapandı.",
     time: "1 saat önce",
   },
   {
-    id: "dealer-pending",
-    icon: AlertTriangle,
-    title: "3 bayi başvurusu onay bekliyor.",
-    time: "Bugün 09:14",
+    id: "evrak",
+    icon: FileWarning,
+    title: "Doğuş Otomotiv'de 12 eksik evrak bekliyor.",
+    time: "Bugün 09:10",
   },
 ];
 
-export const BANK_NAV = [
-  { icon: LayoutDashboard, label: "Dashboard", to: "/banka/dashboard" },
-  { icon: Users, label: "Müşteri Portföyü", to: "/banka/musteri-portfoyu" },
-  { icon: LineChart, label: "Yenileme Skoru", to: "/banka/yenileme-skoru" },
-  { icon: Users2, label: "Bayi Yönetimi", to: "/banka/bayi-yonetimi" },
-  { icon: Upload, label: "Portföy Import", to: "/banka/portfoy-import" },
-  { icon: Bell, label: "Bildirim Ayarları", to: "/banka/bildirim-ayarlari" },
-  { icon: ScrollText, label: "Denetim Kaydı", to: "/banka/denetim-kaydi" },
-  { icon: ShieldCheck, label: "Rıza Yönetimi", to: "/banka/riza-yonetimi" },
+export const REPORTING_NAV = [
+  { icon: FileBarChart, label: "Raporlar", to: "/raporlama/raporlar" },
+  { icon: Banknote, label: "Üretim & Karlılık", to: "/raporlama/uretim-karlilik" },
+  { icon: Filter, label: "Başvuru Hunisi", to: "/raporlama/basvuru-hunisi" },
+  { icon: Gauge, label: "Satış & Penetrasyon", to: "/raporlama/satis-penetrasyon" },
+  { icon: Boxes, label: "Stok Finansmanı", to: "/raporlama/stok-finansmani" },
+  { icon: ShieldAlert, label: "Risk & İzleme", to: "/raporlama/risk-izleme" },
+  { icon: Wallet, label: "Limit Takip", to: "/raporlama/limit-takip" },
+  { icon: FileWarning, label: "Eksik Evrak", to: "/raporlama/eksik-evrak" },
+  { icon: Activity, label: "Bayi Karlılık", to: "/raporlama/bayi-karlilik" },
 ];
 
 function Logo() {
   return (
     <div className="flex items-center gap-2 px-5 pt-5">
-      <Landmark className="text-bank" size={26} strokeWidth={2.1} />
+      <PieChart className="text-bank" size={26} strokeWidth={2.1} />
       <div className="leading-none">
         <div className="font-bold text-[17px] text-ink tracking-tight">
-          Banka
+          Raporlama
         </div>
         <div className="mt-1 font-semibold text-[9px] text-ink-muted tracking-[0.12em]">
-          YENİLEME PLATFORMU
+          İŞ ZEKÂSI MERKEZİ
         </div>
       </div>
     </div>
@@ -97,7 +98,7 @@ function Sidebar({
     >
       <Logo />
       <nav className="mt-5 flex flex-col gap-0.5 px-3">
-        {BANK_NAV.map(({ icon: Icon, label, to }) => (
+        {REPORTING_NAV.map(({ icon: Icon, label, to }) => (
           <Link
             activeProps={{ className: "bg-bank-tint text-bank-700" }}
             className="relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 font-medium text-[13.5px] transition-colors"
@@ -127,7 +128,7 @@ function Sidebar({
           className="flex w-full items-center gap-3 py-2 font-medium text-[13px] text-ink-soft hover:text-ink"
           type="button"
         >
-          <PlusCircle size={17} strokeWidth={1.9} /> Yeni Bildirim
+          <FileBarChart size={17} strokeWidth={1.9} /> Rapor Tasarla
         </button>
         <button
           className="flex w-full items-center gap-3 py-2 font-medium text-[13px] text-ink-soft hover:text-ink"
@@ -138,11 +139,11 @@ function Sidebar({
 
         <div className="mt-3 flex items-center gap-3 rounded-[12px] border border-line bg-canvas px-3 py-2.5">
           <div className="flex size-9 items-center justify-center rounded-full bg-bank-tint font-bold text-[12px] text-bank-700">
-            AK
+            SD
           </div>
           <div className="leading-tight">
-            <div className="font-semibold text-[13px] text-ink">Ahmet Kaya</div>
-            <div className="text-[11.5px] text-ink-muted">Yönetici</div>
+            <div className="font-semibold text-[13px] text-ink">Selin Demir</div>
+            <div className="text-[11.5px] text-ink-muted">Raporlama Uzmanı</div>
           </div>
         </div>
       </div>
@@ -150,7 +151,6 @@ function Sidebar({
   );
 }
 
-/** Standard right-side utility cluster shared by every bank screen. */
 function TopbarUtilities() {
   return (
     <div className="flex items-center gap-3">
@@ -170,11 +170,11 @@ function TopbarUtilities() {
               Bildirimler
             </span>
             <span className="font-semibold text-[11px] text-bank">
-              {BANK_NOTIFICATIONS.length} yeni
+              {REPORTING_NOTIFICATIONS.length} yeni
             </span>
           </div>
           <ul className="flex flex-col py-1">
-            {BANK_NOTIFICATIONS.map(({ id, icon: Icon, title, time }) => (
+            {REPORTING_NOTIFICATIONS.map(({ id, icon: Icon, title, time }) => (
               <li
                 className="flex items-start gap-3 px-4 py-2.5 hover:bg-canvas"
                 key={id}
@@ -206,13 +206,13 @@ function TopbarUtilities() {
         type="button"
       >
         <span className="flex size-8 items-center justify-center rounded-full bg-bank-tint font-bold text-[12px] text-bank-700">
-          AK
+          SD
         </span>
         <span className="hidden text-left leading-tight sm:block">
           <span className="block font-semibold text-[13px] text-ink">
-            Ahmet Kaya
+            Selin Demir
           </span>
-          <span className="block text-[11px] text-ink-muted">Yönetici</span>
+          <span className="block text-[11px] text-ink-muted">Raporlama</span>
         </span>
         <ChevronDown
           className="hidden text-ink-muted sm:block"
@@ -224,7 +224,7 @@ function TopbarUtilities() {
   );
 }
 
-export function BankShell({
+export function ReportingShell({
   breadcrumb,
   title,
   highlight,
@@ -262,8 +262,6 @@ export function BankShell({
       )}
 
       <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
-        {/* Standard global top bar — utilities always live here, consistent
-            across every screen, independent of page content. */}
         <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-line border-b bg-surface px-4 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <button
@@ -275,9 +273,9 @@ export function BankShell({
               <Menu size={18} strokeWidth={2} />
             </button>
             <span className="flex items-center gap-1.5 lg:hidden">
-              <Landmark className="text-bank" size={20} strokeWidth={2.1} />
+              <PieChart className="text-bank" size={20} strokeWidth={2.1} />
               <span className="font-bold text-[15px] text-ink tracking-tight">
-                Banka
+                Raporlama
               </span>
             </span>
             {breadcrumb && breadcrumb.length > 0 && (
@@ -300,7 +298,6 @@ export function BankShell({
           <TopbarUtilities />
         </header>
 
-        {/* Page content with its own page header (title / subtitle / actions) */}
         <div className="px-4 pt-6 pb-10 lg:px-8">
           <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">

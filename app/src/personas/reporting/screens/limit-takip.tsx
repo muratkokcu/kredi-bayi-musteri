@@ -22,7 +22,7 @@ import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
 import { ALL, ChartCard, FilterSelect, uniq } from "@/ui/report-kit";
 import { StatCard } from "@/ui/stat-card";
-import { BankShell } from "../bank-shell";
+import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
   breadcrumb: ["Raporlar", "Limit Takip"],
@@ -307,21 +307,21 @@ export function BankLimitTakip() {
   const { data, isPending, isError, refetch } = useLimits();
   if (isPending) {
     return (
-      <BankShell {...SHELL_PROPS}>
+      <ReportingShell {...SHELL_PROPS}>
         <LoadingState />
-      </BankShell>
+      </ReportingShell>
     );
   }
   if (isError || !data) {
     return (
-      <BankShell {...SHELL_PROPS}>
+      <ReportingShell {...SHELL_PROPS}>
         <ErrorState onRetry={() => refetch()} />
-      </BankShell>
+      </ReportingShell>
     );
   }
   return (
-    <BankShell {...SHELL_PROPS}>
+    <ReportingShell {...SHELL_PROPS}>
       <Body rows={data} />
-    </BankShell>
+    </ReportingShell>
   );
 }

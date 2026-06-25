@@ -16,6 +16,7 @@ type FormValues = z.infer<typeof schema>;
 
 const ROLE_DOT: Record<Role, string> = {
   banka: "bg-bank",
+  raporlama: "bg-bank-700",
   bayi: "bg-dealer",
   musteri: "bg-cust",
 };

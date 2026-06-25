@@ -19,7 +19,7 @@ import { Card, CardHeader } from "@/ui/card";
 import { FunnelChart } from "@/ui/funnel-chart";
 import { ScoreRing } from "@/ui/score-ring";
 import { StatCard } from "@/ui/stat-card";
-import { BankShell } from "../bank-shell";
+import { ReportingShell } from "../reporting-shell";
 
 // Lazy-loaded so the Türkiye GeoJSON + d3-geo land in a separate chunk,
 // fetched only when Raporlar is opened (keeps them out of the main bundle).
@@ -438,7 +438,7 @@ export function BankRaporlar() {
   const { data, isPending, isError, refetch } = useReports();
 
   return (
-    <BankShell
+    <ReportingShell
       actions={
         <>
           <button
@@ -549,6 +549,6 @@ export function BankRaporlar() {
           <p className="mt-6 text-[12px] text-ink-muted">{REPORT_NOTE}</p>
         </>
       )}
-    </BankShell>
+    </ReportingShell>
   );
 }

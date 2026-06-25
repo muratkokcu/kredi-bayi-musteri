@@ -14,6 +14,7 @@ import { CUSTOMER_TABS } from "./personas/customer/mobile-shell";
 import { CustomerPlaceholder } from "./personas/customer/screens/placeholder";
 import { DEALER_NAV } from "./personas/dealer/dealer-shell";
 import { DealerPlaceholder } from "./personas/dealer/screens/placeholder";
+import { REPORTING_NAV } from "./personas/reporting/reporting-shell";
 import { LoadingState } from "./ui/async-states";
 import { NotFoundPage, RouteError } from "./ui/page-states";
 
@@ -56,47 +57,47 @@ const BankBildirimAyarlari = lazy(() =>
   }))
 );
 const BankRaporlar = lazy(() =>
-  import("./personas/bank/screens/raporlar").then((m) => ({
+  import("./personas/reporting/screens/raporlar").then((m) => ({
     default: m.BankRaporlar,
   }))
 );
 const BankBayiKarlilik = lazy(() =>
-  import("./personas/bank/screens/bayi-karlilik").then((m) => ({
+  import("./personas/reporting/screens/bayi-karlilik").then((m) => ({
     default: m.BankBayiKarlilik,
   }))
 );
 const BankUretimKarlilik = lazy(() =>
-  import("./personas/bank/screens/uretim-karlilik").then((m) => ({
+  import("./personas/reporting/screens/uretim-karlilik").then((m) => ({
     default: m.BankUretimKarlilik,
   }))
 );
 const BankBasvuruHunisi = lazy(() =>
-  import("./personas/bank/screens/basvuru-hunisi").then((m) => ({
+  import("./personas/reporting/screens/basvuru-hunisi").then((m) => ({
     default: m.BankBasvuruHunisi,
   }))
 );
 const BankBayiPerformans = lazy(() =>
-  import("./personas/bank/screens/bayi-performans").then((m) => ({
+  import("./personas/reporting/screens/bayi-performans").then((m) => ({
     default: m.BankBayiPerformans,
   }))
 );
 const BankStokFinansmani = lazy(() =>
-  import("./personas/bank/screens/stok-finansmani").then((m) => ({
+  import("./personas/reporting/screens/stok-finansmani").then((m) => ({
     default: m.BankStokFinansmani,
   }))
 );
 const BankRiskIzleme = lazy(() =>
-  import("./personas/bank/screens/risk-izleme").then((m) => ({
+  import("./personas/reporting/screens/risk-izleme").then((m) => ({
     default: m.BankRiskIzleme,
   }))
 );
 const BankEksikEvrak = lazy(() =>
-  import("./personas/bank/screens/eksik-evrak").then((m) => ({
+  import("./personas/reporting/screens/eksik-evrak").then((m) => ({
     default: m.BankEksikEvrak,
   }))
 );
 const BankLimitTakip = lazy(() =>
-  import("./personas/bank/screens/limit-takip").then((m) => ({
+  import("./personas/reporting/screens/limit-takip").then((m) => ({
     default: m.BankLimitTakip,
   }))
 );
@@ -253,6 +254,9 @@ function personaOf(path: string): Role {
   if (path.startsWith("/banka")) {
     return "banka";
   }
+  if (path.startsWith("/raporlama")) {
+    return "raporlama";
+  }
   if (path.startsWith("/bayi")) {
     return "bayi";
   }
@@ -284,17 +288,21 @@ const BANK_SCREENS: Record<string, FC> = {
   "/banka/bayi-yonetimi": BankBayiYonetimi,
   "/banka/portfoy-import": BankPortfoyImport,
   "/banka/bildirim-ayarlari": BankBildirimAyarlari,
-  "/banka/raporlar": BankRaporlar,
-  "/banka/bayi-karlilik": BankBayiKarlilik,
-  "/banka/uretim-karlilik": BankUretimKarlilik,
-  "/banka/basvuru-hunisi": BankBasvuruHunisi,
-  "/banka/satis-penetrasyon": BankBayiPerformans,
-  "/banka/stok-finansmani": BankStokFinansmani,
-  "/banka/risk-izleme": BankRiskIzleme,
-  "/banka/limit-takip": BankLimitTakip,
-  "/banka/eksik-evrak": BankEksikEvrak,
   "/banka/denetim-kaydi": BankDenetimKaydi,
   "/banka/riza-yonetimi": BankRizaYonetimi,
+};
+
+/** Reporting persona screens (taşınan rapor ekranları) keyed by route path. */
+const REPORTING_SCREENS: Record<string, FC> = {
+  "/raporlama/raporlar": BankRaporlar,
+  "/raporlama/uretim-karlilik": BankUretimKarlilik,
+  "/raporlama/basvuru-hunisi": BankBasvuruHunisi,
+  "/raporlama/satis-penetrasyon": BankBayiPerformans,
+  "/raporlama/stok-finansmani": BankStokFinansmani,
+  "/raporlama/risk-izleme": BankRiskIzleme,
+  "/raporlama/limit-takip": BankLimitTakip,
+  "/raporlama/eksik-evrak": BankEksikEvrak,
+  "/raporlama/bayi-karlilik": BankBayiKarlilik,
 };
 
 /** Implemented dealer screens keyed by route path. */
@@ -354,6 +362,16 @@ const bankRoutes = BANK_NAV.map((nav) =>
   })
 );
 
+const reportingRoutes = REPORTING_NAV.map((nav) =>
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: nav.to,
+    beforeLoad: guard("raporlama"),
+    component:
+      REPORTING_SCREENS[nav.to] ?? (() => <BankPlaceholder title={nav.label} />),
+  })
+);
+
 const dealerRoutes = DEALER_NAV.map((nav) =>
   createRoute({
     getParentRoute: () => rootRoute,
@@ -400,6 +418,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   ...bankRoutes,
+  ...reportingRoutes,
   ...dealerRoutes,
   ...customerTabRoutes,
   ...subPages,

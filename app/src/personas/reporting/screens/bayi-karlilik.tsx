@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import {
   Building2,
   Download,
@@ -38,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BankShell } from "../bank-shell";
+import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
   breadcrumb: ["Raporlar", "Bayi Karlılık"],
@@ -540,20 +539,16 @@ function ProfitBody({ rows }: { rows: DealerProfit[] }) {
                     }
                   >
                     <td className="sticky left-0 z-10 bg-surface px-2 py-1.5">
-                      <Link
-                        className="flex items-center gap-2"
-                        onClick={(e) => e.stopPropagation()}
-                        to="/banka/bayi-detay"
-                      >
+                      <span className="flex items-center gap-2">
                         <span
                           className={`flex size-7 shrink-0 items-center justify-center rounded-lg font-bold text-[10.5px] ${d.logoTone}`}
                         >
                           {d.initials}
                         </span>
-                        <span className="truncate font-medium text-[13px] text-ink hover:text-bank-700">
+                        <span className="truncate font-medium text-[13px] text-ink">
                           {d.name}
                         </span>
-                      </Link>
+                      </span>
                     </td>
                     {row.map((v, i) => (
                       <td className="px-0.5 py-1" key={PROFIT_MONTHS[i]}>
@@ -603,23 +598,23 @@ export function BankBayiKarlilik() {
 
   if (isPending) {
     return (
-      <BankShell {...SHELL_PROPS}>
+      <ReportingShell {...SHELL_PROPS}>
         <LoadingState />
-      </BankShell>
+      </ReportingShell>
     );
   }
 
   if (isError || !data) {
     return (
-      <BankShell {...SHELL_PROPS}>
+      <ReportingShell {...SHELL_PROPS}>
         <ErrorState onRetry={() => refetch()} />
-      </BankShell>
+      </ReportingShell>
     );
   }
 
   return (
-    <BankShell {...SHELL_PROPS}>
+    <ReportingShell {...SHELL_PROPS}>
       <ProfitBody rows={data} />
-    </BankShell>
+    </ReportingShell>
   );
 }
