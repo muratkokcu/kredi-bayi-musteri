@@ -3,12 +3,9 @@ import { type ReactNode, useMemo, useState } from "react";
 import {
   Bar,
   CartesianGrid,
-  Cell,
   ComposedChart,
   LabelList,
   Line,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -21,7 +18,7 @@ import { useApplications } from "@/queries/applications";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
-import { FilterBar, KpiStrip, SortTh, useSort } from "@/ui/report-kit";
+import { DonutChart, FilterBar, KpiStrip, SortTh, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -323,26 +320,12 @@ function Body({ rows }: { rows: Application[] }) {
         </Card>
 
         <ChartCard title="Ret Nedenleri">
-          <ResponsiveContainer height="100%" width="100%">
-            <PieChart>
-              <Pie
-                data={retNeden}
-                dataKey="value"
-                innerRadius={52}
-                label={(e: { value?: number }) => formatCompact(e.value ?? 0)}
-                labelLine={false}
-                nameKey="name"
-                outerRadius={88}
-                paddingAngle={2}
-                stroke="none"
-              >
-                {retNeden.map((s, i) => (
-                  <Cell fill={`#${PALETTE[i % PALETTE.length]}`} key={s.name} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => `${formatNumber(Number(v) || 0)} ret`} />
-            </PieChart>
-          </ResponsiveContainer>
+          <DonutChart
+            centerLabel="Ret"
+            colors={PALETTE.map((c) => `#${c}`)}
+            data={retNeden}
+            formatValue={formatNumber}
+          />
         </ChartCard>
 
         <ChartCard title="Aylık Başvuru vs Kullandırım">

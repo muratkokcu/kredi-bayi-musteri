@@ -4,12 +4,9 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ComposedChart,
   LabelList,
   Line,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -31,7 +28,7 @@ import { useProductionLoans } from "@/queries/production-loans";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
-import { FilterBar, KpiStrip, SortTh, useSort } from "@/ui/report-kit";
+import { DonutChart, FilterBar, KpiStrip, SortTh, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -352,26 +349,11 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
         </ChartCard>
 
         <ChartCard title="Segment (Kasa) Dağılımı">
-          <ResponsiveContainer height="100%" width="100%">
-            <PieChart>
-              <Pie
-                data={kasaDag}
-                dataKey="value"
-                innerRadius={56}
-                label={(e: { value?: number }) => formatCompact(e.value ?? 0)}
-                labelLine={false}
-                nameKey="name"
-                outerRadius={92}
-                paddingAngle={2}
-                stroke="none"
-              >
-                {kasaDag.map((s, i) => (
-                  <Cell fill={`#${PALETTE[i % PALETTE.length]}`} key={s.name} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => formatTRY(Number(v) || 0)} />
-            </PieChart>
-          </ResponsiveContainer>
+          <DonutChart
+            colors={PALETTE.map((c) => `#${c}`)}
+            data={kasaDag}
+            formatValue={formatCompact}
+          />
         </ChartCard>
 
         <ChartCard title="Bölge Kırılımı — Hacim">

@@ -6,8 +6,6 @@ import {
   CartesianGrid,
   Cell,
   LabelList,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -19,7 +17,7 @@ import { formatNumber, formatPercent, formatTRYCompact } from "@/lib/format";
 import { useRiskContracts } from "@/queries/risk-watch";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
+import { ALL, ChartCard, DonutChart, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -219,16 +217,11 @@ function Body({ rows }: { rows: RiskContract[] }) {
         </ChartCard>
 
         <ChartCard title="Durum Dağılımı">
-          <ResponsiveContainer height="100%" width="100%">
-            <PieChart>
-              <Pie data={durumDag} dataKey="value" innerRadius={56} label={(e: { value?: number }) => formatNumber(e.value ?? 0)} labelLine={false} nameKey="name" outerRadius={92} paddingAngle={2} stroke="none">
-                {durumDag.map((s) => (
-                  <Cell fill={DURUM_FILL[s.name as RiskDurum]} key={s.name} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => `${formatNumber(Number(v) || 0)} sözleşme`} />
-            </PieChart>
-          </ResponsiveContainer>
+          <DonutChart
+            colors={durumDag.map((d) => DURUM_FILL[d.name as RiskDurum])}
+            data={durumDag}
+            formatValue={formatNumber}
+          />
         </ChartCard>
       </div>
 

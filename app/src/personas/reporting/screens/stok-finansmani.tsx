@@ -4,10 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   LabelList,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -19,7 +16,7 @@ import { formatCompact, formatNumber, formatPercent, formatTRY, formatTRYCompact
 import { useStockLoans } from "@/queries/stock-financing";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
+import { ALL, ChartCard, DonutChart, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -241,15 +238,11 @@ function Body({ rows }: { rows: StockLoan[] }) {
         </ChartCard>
 
         <ChartCard title="Açık / Kapalı Dağılımı (Tutar)">
-          <ResponsiveContainer height="100%" width="100%">
-            <PieChart>
-              <Pie data={durumDag} dataKey="value" innerRadius={56} label={(e: { value?: number }) => formatCompact(e.value ?? 0)} labelLine={false} nameKey="name" outerRadius={92} paddingAngle={2} stroke="none">
-                <Cell fill="var(--color-warn)" />
-                <Cell fill="var(--color-bank)" />
-              </Pie>
-              <Tooltip formatter={(v) => formatTRY(Number(v) || 0)} />
-            </PieChart>
-          </ResponsiveContainer>
+          <DonutChart
+            colors={["var(--color-warn)", "var(--color-bank)"]}
+            data={durumDag}
+            formatValue={formatCompact}
+          />
         </ChartCard>
       </div>
 

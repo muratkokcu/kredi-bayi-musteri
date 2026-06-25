@@ -4,10 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   LabelList,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -19,7 +16,7 @@ import { formatNumber } from "@/lib/format";
 import { useMissingDocs } from "@/queries/missing-docs";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { Card, CardHeader } from "@/ui/card";
-import { ALL, ChartCard, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
+import { ALL, ChartCard, DonutChart, FilterBar, KpiStrip, SortTh, uniq, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -158,16 +155,11 @@ function Body({ rows }: { rows: MissingDoc[] }) {
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Hata Türü Dağılımı">
-          <ResponsiveContainer height="100%" width="100%">
-            <PieChart>
-              <Pie data={hataDag} dataKey="value" innerRadius={52} label={(e: { value?: number }) => formatNumber(e.value ?? 0)} labelLine={false} nameKey="name" outerRadius={88} paddingAngle={2} stroke="none">
-                {hataDag.map((s, i) => (
-                  <Cell fill={`#${PALETTE[i % PALETTE.length]}`} key={s.name} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => `${formatNumber(Number(v) || 0)} kayıt`} />
-            </PieChart>
-          </ResponsiveContainer>
+          <DonutChart
+            colors={PALETTE.map((c) => `#${c}`)}
+            data={hataDag}
+            formatValue={formatNumber}
+          />
         </ChartCard>
 
         <ChartCard title="Bayi Bazında Eksik Adedi">
