@@ -555,6 +555,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
                 <th className="py-2 text-left font-medium">Dönem</th>
                 <th className="py-2 text-left font-medium">Bayi</th>
                 <th className="py-2 text-left font-medium">Araç</th>
+                <th className="py-2 text-left font-medium">Segment</th>
                 <th className="py-2 text-left font-medium">Plaka</th>
                 <th className="py-2 text-right font-medium">Yıl / Yaş</th>
                 <th className="py-2 text-right font-medium">Satış Bedeli</th>
@@ -573,8 +574,11 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
                   </td>
                   <td className="py-2 text-[12.5px] text-ink-soft">{r.bayi}</td>
                   <td className="py-2 text-[12.5px] text-ink">
-                    {r.marka} {r.model}{" "}
-                    <span className="text-ink-muted">· {r.kasa}</span>
+                    {r.marka} {r.model}
+                  </td>
+                  <td className="py-2 text-[12.5px] text-ink-soft">
+                    {r.kasa}{" "}
+                    <span className="text-ink-muted">· {r.segment}</span>
                   </td>
                   <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">{r.plaka}</td>
                   <td className="py-2 text-right text-[12.5px] tabular-nums">

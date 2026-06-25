@@ -56,24 +56,24 @@ const BAYILER: [string, string, string, string][] = [
   ["Ege Oto Plaza", "Otokoç Dağıtım", "Ege", "İzmir"],
 ];
 
-// marka -> ağırlık + gerçek modeller (taksonomiyle uyumlu)
-const MARKALAR: [string, number, string[]][] = [
-  ["Renault", 16, ["Clio", "Megane", "Taliant"]],
-  ["Fiat", 14, ["Egea", "Egea Cross"]],
-  ["Volkswagen", 11, ["Golf", "Passat", "Polo"]],
-  ["Toyota", 9, ["Corolla", "C-HR"]],
-  ["Hyundai", 8, ["i20", "Bayon"]],
-  ["Ford", 8, ["Focus", "Puma"]],
-  ["Peugeot", 6, ["2008", "301"]],
-  ["Opel", 5, ["Corsa", "Astra"]],
-  ["Dacia", 5, ["Duster", "Sandero"]],
-  ["Kia", 4, ["Ceed", "Sportage"]],
-  ["Honda", 3, ["Civic", "HR-V"]],
-  ["Nissan", 3, ["Qashqai", "Juke"]],
-  ["Mercedes-Benz", 2, ["A-Serisi", "C-Serisi"]],
-  ["BMW", 2, ["3 Serisi", "X1"]],
-  ["Audi", 1.5, ["A3", "Q3"]],
-  ["Skoda", 1.5, ["Octavia", "Superb"]],
+// marka -> ağırlık + [model, kasa] (kasa modelle tutarlı; gerçek modeller)
+const MARKALAR: [string, number, [string, string][]][] = [
+  ["Renault", 16, [["Clio", "Hatchback"], ["Megane", "Sedan"], ["Taliant", "Sedan"], ["Kangoo", "Panelvan"]]],
+  ["Fiat", 14, [["Egea", "Sedan"], ["Egea Cross", "SUV"], ["Fiorino", "Panelvan"], ["Fullback", "Pick-up"]]],
+  ["Volkswagen", 11, [["Golf", "Hatchback"], ["Passat", "Sedan"], ["Polo", "Hatchback"], ["Transporter", "Panelvan"]]],
+  ["Toyota", 9, [["Corolla", "Sedan"], ["C-HR", "SUV"], ["Hilux", "Pick-up"]]],
+  ["Hyundai", 8, [["i20", "Hatchback"], ["Bayon", "SUV"]]],
+  ["Ford", 8, [["Focus", "Hatchback"], ["Puma", "SUV"], ["Transit", "Panelvan"]]],
+  ["Peugeot", 6, [["2008", "SUV"], ["301", "Sedan"], ["Partner", "Panelvan"]]],
+  ["Opel", 5, [["Corsa", "Hatchback"], ["Astra", "Station Wagon"]]],
+  ["Dacia", 5, [["Duster", "SUV"], ["Sandero", "Hatchback"]]],
+  ["Kia", 4, [["Ceed", "Hatchback"], ["Sportage", "SUV"]]],
+  ["Honda", 3, [["Civic", "Sedan"], ["HR-V", "SUV"]]],
+  ["Nissan", 3, [["Qashqai", "SUV"], ["Juke", "SUV"]]],
+  ["Mercedes-Benz", 2, [["A-Serisi", "Hatchback"], ["C-Serisi", "Sedan"]]],
+  ["BMW", 2, [["3 Serisi", "Sedan"], ["X1", "SUV"]]],
+  ["Audi", 1.5, [["A3", "Hatchback"], ["Q3", "SUV"]]],
+  ["Skoda", 1.5, [["Octavia", "Sedan"], ["Superb", "Sedan"]]],
 ];
 const MARKA_W = MARKALAR.map((m) => m[1]);
 const IL_PLAKA: Record<string, string> = {
@@ -81,15 +81,15 @@ const IL_PLAKA: Record<string, string> = {
 };
 const EKSPERTIZ_FIRMA = ["TÜV", "Dekra", "Otoekspertiz"];
 
-// kasa -> [segment kategori, ağırlık, ort. kredi ₺]
-const KASALAR: [string, string, number, number][] = [
-  ["SUV", "Arazi/SUV", 0.3, 1_800_000],
-  ["Sedan", "Otomobil", 0.24, 1_200_000],
-  ["Hatchback", "Otomobil", 0.18, 900_000],
-  ["Station Wagon", "Otomobil", 0.08, 1_400_000],
-  ["Pick-up", "Arazi/SUV", 0.1, 1_600_000],
-  ["Panelvan", "Ticari", 0.1, 1_150_000],
-];
+// kasa -> segment kategori + ort. kredi ₺
+const KASA_INFO: Record<string, { segment: string; loan: number }> = {
+  SUV: { segment: "Arazi/SUV", loan: 1_800_000 },
+  Sedan: { segment: "Otomobil", loan: 1_200_000 },
+  Hatchback: { segment: "Otomobil", loan: 900_000 },
+  "Station Wagon": { segment: "Otomobil", loan: 1_400_000 },
+  "Pick-up": { segment: "Arazi/SUV", loan: 1_600_000 },
+  Panelvan: { segment: "Ticari", loan: 1_150_000 },
+};
 
 function rng(seed: number): () => number {
   let s = seed >>> 0;
@@ -121,14 +121,10 @@ function generate(): ProductionLoan[] {
   const COUNT = 640;
   for (let i = 0; i < COUNT; i++) {
     const [bayi, distributor, bolge, il] = BAYILER[Math.floor(r() * BAYILER.length)];
-    const [kasa, segment, , loan] = weighted(
-      r,
-      KASALAR,
-      KASALAR.map((k) => k[2])
-    );
     const markaRow = weighted(r, MARKALAR, MARKA_W);
     const marka = markaRow[0];
-    const model = markaRow[2][Math.floor(r() * markaRow[2].length)];
+    const [model, kasa] = markaRow[2][Math.floor(r() * markaRow[2].length)];
+    const { segment, loan } = KASA_INFO[kasa];
     const yil = r() < 0.45 ? 2024 : 2025;
     const ay = 1 + Math.floor(r() * 12);
     const ticariEgilim = kasa === "Pick-up" || kasa === "Panelvan" ? 0.78 : 0.2;
