@@ -1,5 +1,5 @@
-import { RotateCcw, SlidersHorizontal, X } from "lucide-react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { Card, CardHeader } from "./card";
 
 /** Ortak rapor ekranı parçaları (filtre bandı select'i + grafik kartı). */
@@ -241,5 +242,91 @@ export function KpiStrip({ items }: { items: KpiItem[] }) {
         </div>
       ))}
     </Card>
+  );
+}
+
+// ------------------------------------------------------------------ Sıralama
+export type SortDir = "asc" | "desc";
+export interface SortState {
+  key: string;
+  dir: SortDir;
+  toggle: (k: string) => void;
+}
+
+/** Tablo satırlarını tıklanabilir başlıklarla sıralar (TR locale, sayı-duyarlı). */
+export function useSort<T>(
+  rows: T[],
+  initialKey: string,
+  initialDir: SortDir = "desc"
+): { sorted: T[]; key: string; dir: SortDir; toggle: (k: string) => void } {
+  const [key, setKey] = useState(initialKey);
+  const [dir, setDir] = useState<SortDir>(initialDir);
+
+  const sorted = useMemo(() => {
+    const arr = [...rows];
+    arr.sort((a, b) => {
+      const av = (a as Record<string, unknown>)[key];
+      const bv = (b as Record<string, unknown>)[key];
+      let c: number;
+      if (typeof av === "number" && typeof bv === "number") {
+        c = av - bv;
+      } else {
+        c = String(av ?? "").localeCompare(String(bv ?? ""), "tr", {
+          numeric: true,
+        });
+      }
+      return dir === "asc" ? c : -c;
+    });
+    return arr;
+  }, [rows, key, dir]);
+
+  const toggle = (k: string) => {
+    if (k === key) {
+      setDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setKey(k);
+      setDir("desc");
+    }
+  };
+
+  return { sorted, key, dir, toggle };
+}
+
+/** Sıralanabilir tablo başlığı (tıklayınca yön değişir, ok gösterir). */
+export function SortTh({
+  sort,
+  k,
+  label,
+  align = "left",
+  className,
+}: {
+  sort: SortState;
+  k: string;
+  label: string;
+  align?: "left" | "right" | "center";
+  className?: string;
+}) {
+  const active = sort.key === k;
+  const Icon = active ? (sort.dir === "asc" ? ArrowUp : ArrowDown) : ChevronsUpDown;
+  return (
+    <th
+      className={cn(
+        "py-2 font-medium",
+        align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left",
+        className
+      )}
+    >
+      <button
+        className={cn(
+          "inline-flex items-center gap-1 hover:text-ink-soft",
+          active && "text-bank-700"
+        )}
+        onClick={() => sort.toggle(k)}
+        type="button"
+      >
+        {label}
+        <Icon className={active ? "" : "opacity-40"} size={12} strokeWidth={2.2} />
+      </button>
+    </th>
   );
 }

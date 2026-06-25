@@ -53,6 +53,21 @@ export function formatTRYCompact(value: number): string {
   return formatTRY(value);
 }
 
+/** Para birimsiz kompakt: 86_000_000 → "86 Mn", 1_250 → "1 B" (grafik etiketi). */
+export function formatCompact(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000_000) {
+    return `${formatNumber(value / 1_000_000_000, 1)} Mr`;
+  }
+  if (abs >= 1_000_000) {
+    return `${formatNumber(value / 1_000_000, abs >= 10_000_000 ? 0 : 1)} Mn`;
+  }
+  if (abs >= 1000) {
+    return `${formatNumber(value / 1000, 0)} B`;
+  }
+  return formatNumber(value);
+}
+
 const dateFormatter = new Intl.DateTimeFormat(LOCALE, {
   day: "2-digit",
   month: "2-digit",

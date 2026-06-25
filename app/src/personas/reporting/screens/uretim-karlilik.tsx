@@ -6,6 +6,7 @@ import {
   CartesianGrid,
   Cell,
   ComposedChart,
+  LabelList,
   Line,
   Pie,
   PieChart,
@@ -19,6 +20,7 @@ import {
   URETIM_AYLAR,
 } from "@/data/production-loans";
 import {
+  formatCompact,
   formatNumber,
   formatPercent,
   formatTRY,
@@ -29,7 +31,7 @@ import { useProductionLoans } from "@/queries/production-loans";
 import { ErrorState, LoadingState } from "@/ui/async-states";
 import { MiniBar } from "@/ui/badge";
 import { Card, CardHeader } from "@/ui/card";
-import { FilterBar, KpiStrip } from "@/ui/report-kit";
+import { FilterBar, KpiStrip, SortTh, useSort } from "@/ui/report-kit";
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
@@ -203,6 +205,8 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       .sort((a, b) => b.hacim - a.hacim);
   }, [f]);
   const maxNet = Math.max(...bayiKar.map((b) => b.net), 1);
+  const karSort = useSort(bayiKar, "hacim", "desc");
+  const detSort = useSort(f, "krediTutari", "desc");
 
   const reset = () => {
     setYil(ALL);
@@ -299,7 +303,14 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
                 width={60}
               />
               <Tooltip formatter={(v) => formatTRY(Number(v) || 0)} />
-              <Bar dataKey="gerc" fill="var(--color-bank)" name="Gerçekleşen" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="gerc" fill="var(--color-bank)" name="Gerçekleşen" radius={[4, 4, 0, 0]}>
+                <LabelList
+                  dataKey="gerc"
+                  formatter={(v) => formatCompact(Number(v) || 0)}
+                  position="top"
+                  style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }}
+                />
+              </Bar>
               <Line
                 dataKey="hedef"
                 dot={false}
@@ -328,7 +339,14 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
                 width={92}
               />
               <Tooltip formatter={(v) => formatTRY(Number(v) || 0)} />
-              <Bar dataKey="value" fill="var(--color-bank)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="value" fill="var(--color-bank)" radius={[0, 4, 4, 0]}>
+                <LabelList
+                  dataKey="value"
+                  formatter={(v) => formatCompact(Number(v) || 0)}
+                  position="right"
+                  style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -340,6 +358,8 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
                 data={kasaDag}
                 dataKey="value"
                 innerRadius={56}
+                label={(e: { value?: number }) => formatCompact(e.value ?? 0)}
+                labelLine={false}
                 nameKey="name"
                 outerRadius={92}
                 paddingAngle={2}
@@ -372,7 +392,14 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
                 width={60}
               />
               <Tooltip formatter={(v) => formatTRY(Number(v) || 0)} />
-              <Bar dataKey="value" fill="var(--color-bank-700)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="value" fill="var(--color-bank-700)" radius={[4, 4, 0, 0]}>
+                <LabelList
+                  dataKey="value"
+                  formatter={(v) => formatCompact(Number(v) || 0)}
+                  position="top"
+                  style={{ fill: "var(--color-ink-soft)", fontSize: 10, fontWeight: 600 }}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -385,18 +412,18 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[760px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Bayi</th>
-                <th className="py-2 text-right font-medium">Hacim</th>
-                <th className="py-2 text-right font-medium">Adet</th>
-                <th className="py-2 text-right font-medium">Ort. Faiz</th>
-                <th className="py-2 text-right font-medium">Dosya Masrafı</th>
-                <th className="py-2 text-right font-medium">Teşvik</th>
-                <th className="py-2 pr-1 text-right font-medium">Net Katkı</th>
+                <SortTh k="name" label="Bayi" sort={karSort} />
+                <SortTh align="right" k="hacim" label="Hacim" sort={karSort} />
+                <SortTh align="right" k="adet" label="Adet" sort={karSort} />
+                <SortTh align="right" k="ortFaiz" label="Ort. Faiz" sort={karSort} />
+                <SortTh align="right" k="dosya" label="Dosya Masrafı" sort={karSort} />
+                <SortTh align="right" k="tesvik" label="Teşvik" sort={karSort} />
+                <SortTh align="right" k="net" label="Net Katkı" sort={karSort} />
                 <th className="w-28 py-2 font-medium" />
               </tr>
             </thead>
             <tbody>
-              {bayiKar.map((b) => (
+              {karSort.sorted.map((b) => (
                 <tr
                   className={`cursor-pointer border-line border-b last:border-0 hover:bg-canvas/60 ${
                     bayi === b.name ? "bg-bank-tint/40" : ""
@@ -455,22 +482,22 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[1100px]">
             <thead>
               <tr className="border-line border-b text-[11.5px] text-ink-muted">
-                <th className="py-2 text-left font-medium">Dönem</th>
-                <th className="py-2 text-left font-medium">Bayi</th>
-                <th className="py-2 text-left font-medium">Araç</th>
-                <th className="py-2 text-left font-medium">Segment</th>
-                <th className="py-2 text-left font-medium">Plaka</th>
-                <th className="py-2 text-right font-medium">Yıl / Yaş</th>
-                <th className="py-2 text-right font-medium">Satış Bedeli</th>
-                <th className="py-2 text-right font-medium">Kredi Tutarı</th>
-                <th className="py-2 text-right font-medium">Vade</th>
-                <th className="py-2 text-right font-medium">Faiz</th>
-                <th className="py-2 text-right font-medium">Teşvik</th>
+                <SortTh k="yil" label="Dönem" sort={detSort} />
+                <SortTh k="bayi" label="Bayi" sort={detSort} />
+                <SortTh k="marka" label="Araç" sort={detSort} />
+                <SortTh k="kasa" label="Segment" sort={detSort} />
+                <SortTh k="plaka" label="Plaka" sort={detSort} />
+                <SortTh align="right" k="modelYil" label="Yıl / Yaş" sort={detSort} />
+                <SortTh align="right" k="satisBedeli" label="Satış Bedeli" sort={detSort} />
+                <SortTh align="right" k="krediTutari" label="Kredi Tutarı" sort={detSort} />
+                <SortTh align="right" k="vade" label="Vade" sort={detSort} />
+                <SortTh align="right" k="faiz" label="Faiz" sort={detSort} />
+                <SortTh align="right" k="tesvik" label="Teşvik" sort={detSort} />
                 <th className="py-2 pr-1 text-center font-medium">Sig. / Eksp.</th>
               </tr>
             </thead>
             <tbody>
-              {f.slice(0, 100).map((r, i) => (
+              {detSort.sorted.slice(0, 100).map((r, i) => (
                 <tr className="border-line border-b last:border-0" key={`${r.bayi}-${i}`}>
                   <td className="py-2 text-[12.5px] text-ink-soft tabular-nums">
                     {r.yil} {URETIM_AYLAR[r.ay - 1]}
