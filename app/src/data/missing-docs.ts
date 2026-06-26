@@ -1,12 +1,12 @@
 /**
  * "Eksik Evrak" ekranı için kayıt-bazlı seed.
  * Kurum rapor şablonundaki "Eksik Evrak Takip" — dört ayrı evrak alanını kapsar:
- * Tüketici · Bayi · Stok · Filo (bunlar ayrı kategorilerdir, birleşik değil).
+ * Tüketici · Bayi · Spot · Filo (bunlar ayrı kategorilerdir, birleşik değil).
  * Deterministik (mulberry32). Servis: src/services/missing-docs.
  */
 import { orgFields } from "./org";
 
-export type EvrakTur = "Tüketici" | "Bayi" | "Stok" | "Filo";
+export type EvrakTur = "Tüketici" | "Bayi" | "Spot" | "Filo";
 
 export interface MissingDoc {
   altSektor: string;
@@ -23,7 +23,7 @@ export interface MissingDoc {
   musteriTedarikci: string;
   sektorMuduru: string;
   sozlesmeNo: string;
-  sozlesmeTuru: string; // türe göre dolu (asla boş): ör. Stok → "Stok Finansmanı"
+  sozlesmeTuru: string; // türe göre dolu (asla boş): ör. Spot → "Spot Kredi"
   tur: EvrakTur;
   yil: number;
 }
@@ -53,9 +53,9 @@ const TUR_CONFIG: Record<
     evrak: ["Satıcı Genel Sözleşmesi", "KVKK Ek Protokolü", "Portal Kullanım Taahhütnamesi"],
     sozlesme: ["Bayi Çerçeve Sözleşmesi", "Satıcı Sözleşmesi"],
   },
-  Stok: {
-    evrak: ["Stok Finansmanı Sözleşmesi", "Şahsi Kefalet Evrakı", "Rehin Sözleşmesi"],
-    sozlesme: ["Stok Finansmanı"],
+  Spot: {
+    evrak: ["Spot Kredi Sözleşmesi", "Şahsi Kefalet Evrakı", "Rehin Sözleşmesi"],
+    sozlesme: ["Spot Kredi"],
   },
   Filo: {
     evrak: ["Filo Çerçeve Sözleşmesi", "Kiralama Sözleşmesi", "Kredi Sözleşmesi"],
@@ -65,7 +65,7 @@ const TUR_CONFIG: Record<
 const TUR_AGIRLIK: [EvrakTur, number][] = [
   ["Tüketici", 8],
   ["Bayi", 5],
-  ["Stok", 5],
+  ["Spot", 5],
   ["Filo", 3],
 ];
 const TEDARIKCILER = ["Doğuş Oto A.Ş.", "Borusan Lojistik", "Otokoç Tic.", "Anadolu Stok", "Ege Oto Dağıtım"];
@@ -103,7 +103,7 @@ function partyFor(tur: EvrakTur, r: () => number, bayi: string): string {
   if (tur === "Bayi") {
     return bayi;
   }
-  if (tur === "Stok") {
+  if (tur === "Spot") {
     return pick(r, TEDARIKCILER);
   }
   return pick(r, FILO_MUSTERILERI);

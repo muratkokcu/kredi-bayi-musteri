@@ -20,9 +20,9 @@ import { ALL, ChartCard, DonutChart, FilterBar, KpiStrip, SortTh, uniq, useSort 
 import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
-  breadcrumb: ["Raporlar", "Stok Finansmanı"],
-  subtitle: "Tedarikçi/bayi stok kredileri — açık/kapalı, kapama süresi, tahsilat.",
-  title: "Stok Finansmanı",
+  breadcrumb: ["Raporlar", "Spot Krediler"],
+  subtitle: "Tedarikçi/bayi spot kredileri — açık/kapalı, kapama süresi, tahsilat.",
+  title: "Spot Krediler",
 } as const;
 
 function Body({ rows }: { rows: StockLoan[] }) {
@@ -217,7 +217,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
 
       <KpiStrip
         items={[
-          { label: "Toplam Stok Kredisi", value: formatTRYCompact(k.toplam), sub: `${formatNumber(f.length)} kayıt` },
+          { label: "Toplam Spot Kredi", value: formatTRYCompact(k.toplam), sub: `${formatNumber(f.length)} kayıt` },
           { label: "Açık Kredi Tutarı", value: formatTRYCompact(k.acikTutar), sub: `${formatNumber(k.acikAdet)} açık` },
           { label: "Kapalı Kredi Tutarı", value: formatTRYCompact(k.kapaliTutar), sub: `${formatNumber(k.kapaliAdet)} kapalı` },
           { label: "Ort. Kredi Tutarı", value: formatTRYCompact(k.ortKredi), sub: "Kayıt başına" },
@@ -251,7 +251,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
         </ChartCard>
       </div>
 
-      <ChartCard className="mt-5" title="Aylık Açılan Stok Kredisi">
+      <ChartCard className="mt-5" title="Aylık Açılan Spot Kredi">
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
             <CartesianGrid stroke="var(--color-line)" vertical={false} />
@@ -312,7 +312,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
               {f.length > 100 ? " · ilk 100 gösteriliyor, tümü CSV'de" : ""}
             </span>
           }
-          title="Stok Finansmanı — Detay"
+          title="Spot Krediler — Detay"
         />
         <div className="mt-3 overflow-x-auto px-5">
           <table className="[&_td]:px-2.5 [&_th]:px-2.5 w-full min-w-[1040px]">

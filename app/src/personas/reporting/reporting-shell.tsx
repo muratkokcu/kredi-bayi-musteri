@@ -59,7 +59,7 @@ export const REPORTING_NAV = [
   { icon: Banknote, label: "Üretim & Karlılık", to: "/raporlama/uretim-karlilik" },
   { icon: Filter, label: "Başvuru Hunisi", to: "/raporlama/basvuru-hunisi" },
   { icon: Gauge, label: "Satış & Penetrasyon", to: "/raporlama/satis-penetrasyon" },
-  { icon: Boxes, label: "Stok Finansmanı", to: "/raporlama/stok-finansmani" },
+  { icon: Boxes, label: "Spot Krediler", to: "/raporlama/stok-finansmani" },
   { icon: ShieldAlert, label: "Risk & İzleme", to: "/raporlama/risk-izleme" },
   { icon: Wallet, label: "Limit Takip", to: "/raporlama/limit-takip" },
   { icon: FileWarning, label: "Eksik Evrak", to: "/raporlama/eksik-evrak" },

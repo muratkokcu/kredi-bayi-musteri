@@ -1,6 +1,6 @@
 /**
- * "Stok Finansmanı" ekranı için kayıt-bazlı seed.
- * Kurum rapor şablonundaki "Stok Finansmanı Raporu (Özet + Detay)" karşılığı.
+ * "Spot Krediler" ekranı için kayıt-bazlı seed (eski adı: Stok Finansmanı).
+ * Kurum rapor şablonundaki "Spot Krediler Raporu (Özet + Detay)" karşılığı.
  * Deterministik (mulberry32). Servis: src/services/stock-financing.
  */
 import { orgFields } from "./org";
