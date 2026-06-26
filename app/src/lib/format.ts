@@ -42,15 +42,12 @@ export function formatPercent(value: number, decimals?: number): string {
   }).format(value)}`;
 }
 
-/** Compact lira for chart axes / KPIs, e.g. 1_250_000 → "₺1,25 Mn". */
+/**
+ * Compact lira for chart axes / KPIs. Milyar/milyon/bin kademeli ve kısa:
+ * 6_461_710_000 → "₺6,5 Mr", 28_450_000 → "₺28 Mn", 1_250 → "₺1 B".
+ */
 export function formatTRYCompact(value: number): string {
-  if (Math.abs(value) >= 1_000_000) {
-    return `₺${formatNumber(value / 1_000_000, 2)} Mn`;
-  }
-  if (Math.abs(value) >= 1000) {
-    return `₺${formatNumber(value / 1000, 0)} B`;
-  }
-  return formatTRY(value);
+  return `₺${formatCompact(value)}`;
 }
 
 /** Para birimsiz kompakt: 86_000_000 → "86 Mn", 1_250 → "1 B" (grafik etiketi). */

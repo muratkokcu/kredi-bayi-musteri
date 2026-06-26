@@ -37,7 +37,7 @@ const GRUPLAR = [
   "Başak Otomotiv Grubu", "Marmara Taşımacılık", "Akdeniz Turizm", "Toros İnşaat",
 ];
 const LIMIT_TURU = [
-  "Stok Finansmanı Limiti", "Filo Kredi Limiti", "Nakit Kredi Limiti", "Rotatif Limit",
+  "Spot Kredi Limiti", "Filo Kredi Limiti", "Nakit Kredi Limiti", "Rotatif Limit",
 ];
 
 function rng(seed: number): () => number {

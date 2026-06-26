@@ -129,8 +129,8 @@ function Body({ rows }: { rows: LimitRow[] }) {
 
   const garantorlukDag = useMemo(
     () => [
-      { name: "Garantörlü", value: f.filter((r) => r.garantorluk === "Var").reduce((a, r) => a + r.toplamLimit, 0) },
-      { name: "Garantörsüz", value: f.filter((r) => r.garantorluk === "Yok").reduce((a, r) => a + r.toplamLimit, 0) },
+      { name: "Şahsi Kefaletli", value: f.filter((r) => r.garantorluk === "Var").reduce((a, r) => a + r.toplamLimit, 0) },
+      { name: "Kefaletsiz", value: f.filter((r) => r.garantorluk === "Yok").reduce((a, r) => a + r.toplamLimit, 0) },
     ],
     [f]
   );
@@ -201,7 +201,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
           { label: "Kullanılan Limit", value: formatTRYCompact(k.kullanilan) },
           { label: "Kullanılabilir Limit", value: formatTRYCompact(k.kullanilabilir) },
           { label: "Kullanım Oranı", value: formatPercent(k.kullanimOran * 100, 1), sub: "Kullanılan / toplam" },
-          { label: "Garantörlü Limit", value: formatTRYCompact(k.garantorluTutar), sub: "Toplam tutar" },
+          { label: "Şahsi Kefaletli Limit", value: formatTRYCompact(k.garantorluTutar), sub: "Toplam tutar" },
           { label: "Limit Adedi", value: formatNumber(k.adet), sub: "Filtreli" },
         ]}
       />
@@ -225,7 +225,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Garantörlü / Garantörsüz Limit (Tutar)">
+        <ChartCard title="Şahsi Kefaletli / Kefaletsiz Limit (Tutar)">
           <DonutChart
             colors={["var(--color-bank)", "var(--color-warn)"]}
             data={garantorlukDag}
