@@ -154,6 +154,22 @@ export function ExecutiveDashboard() {
     oran: g.oran,
   }));
 
+  // Denetim izi: anlık görüntü hangi filtre bağlamında üretildi (PDF'te kayıt altına alınır).
+  const aktifFiltreler = (
+    [
+      ["Bölge", bolge],
+      ["İl", il],
+      ["Distribütör", distributor],
+      ["Marka", marka],
+      ["Bayi", bayi],
+      ["Sektör", sektor],
+      ["Bireysel/Ticari", tip],
+    ] as [string, string][]
+  )
+    .filter(([, v]) => v !== ALL)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(" · ");
+
   return (
     <div className="min-h-screen overflow-auto bg-white print:min-h-0">
       {/* biome-ignore lint/style/noUnusedTemplateLiteral: print stylesheet */}
@@ -576,11 +592,20 @@ export function ExecutiveDashboard() {
             </Section>
           </div>
 
-          {/* Footer */}
-          <div className="text-[8px] text-slate-400">
-            Not: Tüm oranlar seçili filtrelere göre hesaplanmıştır. yp: yüzde puan | NPL: Takipteki Krediler Oranı
-            (≥90 gün) | KT: Kanuni Takip Oranı | FPD 30+: İlk Taksit Gecikme Oranı · Veri kaynağı: production-loans,
-            applications, risk-watch, limits.
+          {/* Footer — denetim izi + tanımlar + sorumluluk reddi */}
+          <div className="text-[8px] text-slate-400 leading-[1.6]">
+            <div>
+              <span className="font-semibold text-slate-500">Anlık görüntü:</span> Dönem 01.01.2025 – 20.05.2025 ·
+              Veri kaynağı: production-loans, applications, risk-watch, limits (deterministik) ·{" "}
+              <span className="font-semibold text-slate-500">Aktif filtreler:</span>{" "}
+              {aktifFiltreler || "Tümü (filtre uygulanmadı)"}
+            </div>
+            <div>
+              yp: yüzde puan | NPL: Takipteki Krediler Oranı (≥90 gün) | KT: Kanuni Takip Oranı | FPD 30+: İlk Taksit
+              Gecikme Oranı. Tüm oranlar seçili filtrelere göre hesaplanır;{" "}
+              <span className="font-semibold text-slate-500">karlılık ve gelir kalemleri model-bazlı tahminîdir</span>{" "}
+              (kesin muhasebe/GL değeri değildir).
+            </div>
           </div>
           </div>
         </div>
