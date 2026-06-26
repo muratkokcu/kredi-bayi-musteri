@@ -5,10 +5,18 @@
  */
 import type { ReactNode } from "react";
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   Cell,
+  Funnel,
+  FunnelChart,
   LabelList,
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart,
+  ReferenceLine,
   ResponsiveContainer,
   Treemap,
   XAxis,
@@ -66,7 +74,7 @@ export interface ExecData {
   dagilim: { title: string; rows: { name: string; pct: number }[] }[];
   funnel: { label: string; value: number; pct: number }[];
   waterfall: WaterfallStep[];
-  trend: { ay: string; onay: number; kullandirim: number; tahsilat: number }[];
+  trend: { ay: string; onay: number; kullandirim: number; aktif: number; tahsilat: number }[];
   kayiplar: { bayi: string; onay: number; kullandirim: number }[];
   karlilik: { label: string; value: number; net?: boolean }[];
   scatter: { name: string; faiz: number; net: number; hacim: number; tier: string }[];
@@ -248,6 +256,7 @@ export function computeExec(
       ay: ["Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"][m - 7],
       onay: Math.round(o),
       kullandirim: Math.round(ku),
+      aktif: Math.round(ku * (1 - nplRate / 100)),
       tahsilat: Math.round(ku * 0.9),
     };
   });
@@ -277,16 +286,22 @@ export function computeExec(
     { label: "NET KARLILIK", value: net, net: true },
   ];
 
-  // --- scatter (bayi: faiz vs net karlılık)
-  const scatter = topBayi.map((b) => {
+  // --- scatter (bayi: faiz vs net karlılık) — tier göreli sıralamayla (renk çeşitliliği)
+  const scatterRaw = topBayi.map((b) => {
     const ls = loans.filter((l) => l.bayi === b.name);
     const f = avg(ls, (l) => l.faiz);
     const n =
       (sum(ls, (l) => (l.krediTutari * (l.faiz / 100) * l.vade) / 12 * 0.45) -
         sum(ls, (l) => l.tesvik)) /
       1_000_000;
-    const ratio = pct(n * 1_000_000, b.hacim);
-    return { name: b.name, faiz: f, net: n, hacim: b.hacim, tier: ratio >= 6 ? "high" : ratio >= 4 ? "mid" : "low" };
+    return { name: b.name, faiz: f, net: n, hacim: b.hacim, ratio: pct(n * 1_000_000, b.hacim) };
+  });
+  const ranked = [...scatterRaw].sort((a, b) => b.ratio - a.ratio).map((r) => r.name);
+  const third = Math.ceil(ranked.length / 3);
+  const scatter = scatterRaw.map((s) => {
+    const rank = ranked.indexOf(s.name);
+    const tier = rank < third ? "high" : rank < third * 2 ? "mid" : "low";
+    return { name: s.name, faiz: s.faiz, net: s.net, hacim: s.hacim, tier };
   });
 
   // --- etkinlik göstergeleri
@@ -407,54 +422,64 @@ export function Section({
   );
 }
 
-/** Mini sparkline (KPI kartı altı). */
+/** Mini sparkline (KPI kartı altı) — Recharts AreaChart. */
 export function Sparkline({ data, color }: { data: number[]; color: string }) {
-  const w = 120;
-  const h = 22;
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const span = max - min || 1;
-  const pts = data
-    .map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / span) * h}`)
-    .join(" ");
+  const rows = data.map((v, i) => ({ i, v }));
   return (
-    <svg className="w-full" height={h} preserveAspectRatio="none" viewBox={`0 0 ${w} ${h}`}>
-      <polyline fill="none" points={pts} stroke={color} strokeWidth={1.5} />
-    </svg>
+    <ResponsiveContainer height={22} width="100%">
+      <AreaChart data={rows} margin={{ top: 1, right: 0, bottom: 0, left: 0 }}>
+        <Area
+          dataKey="v"
+          dot={false}
+          fill={color}
+          fillOpacity={0.14}
+          isAnimationActive={false}
+          stroke={color}
+          strokeWidth={1.4}
+          type="monotone"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }
 
-/** Yarım daire gösterge (penetrasyon). */
+/** Yarım daire gösterge (penetrasyon) — Recharts RadialBarChart. */
 export function Gauge({ value, label, sub, color }: { value: number; label: string; sub: string; color: string }) {
-  const r = 34;
-  const cx = 44;
-  const cy = 42;
-  const circ = Math.PI * r;
-  const off = circ * (1 - Math.min(value, 100) / 100);
+  const data = [{ value: Math.min(value, 100) }];
   return (
     <div className="flex flex-col items-center">
-      <svg height="48" viewBox="0 0 88 48" width="88">
-        <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke="#e2e8f0" strokeWidth={8} />
-        <path
-          d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-          fill="none"
-          stroke={color}
-          strokeDasharray={circ}
-          strokeDashoffset={off}
-          strokeLinecap="round"
-          strokeWidth={8}
-        />
-        <text className="font-bold" fill="#0f172a" fontSize="15" textAnchor="middle" x={cx} y={cy - 4}>
+      <div className="relative h-[46px] w-[92px]">
+        <ResponsiveContainer height={46} width="100%">
+          <RadialBarChart
+            barSize={8}
+            data={data}
+            endAngle={0}
+            innerRadius="72%"
+            outerRadius="100%"
+            startAngle={180}
+          >
+            <PolarAngleAxis angleAxisId={0} domain={[0, 100]} tick={false} type="number" />
+            <RadialBar
+              angleAxisId={0}
+              background={{ fill: "#e2e8f0" }}
+              cornerRadius={4}
+              dataKey="value"
+              fill={color}
+              isAnimationActive={false}
+            />
+          </RadialBarChart>
+        </ResponsiveContainer>
+        <span className="absolute inset-x-0 bottom-0 text-center font-bold text-[13px] text-slate-800">
           {fmtPct(value, 1)}
-        </text>
-      </svg>
+        </span>
+      </div>
       <span className="mt-0.5 text-center font-semibold text-[9.5px] text-slate-500 uppercase leading-tight">{label}</span>
       <span className="text-[9px] text-emerald-600">{sub}</span>
     </div>
   );
 }
 
-/** Recharts waterfall — şeffaf taban barı + üstüne renkli delta (yüzen efekt). */
+/** Dikey waterfall (yüzen efekt — Bar değeri [low, high] tuple). */
 export function WaterfallChart({
   steps,
   height = 110,
@@ -468,27 +493,29 @@ export function WaterfallChart({
 }) {
   let cum = 0;
   const rows = steps.map((s) => {
+    let lo: number;
+    let hi: number;
+    let fill: string;
     if (s.type === "total") {
+      lo = 0;
+      hi = s.value;
       cum = s.value;
-      return { name: s.label, base: 0, bar: Math.abs(s.value), disp: s.value, fill: "#1e3a8a" };
+      fill = "#1e3a8a";
+    } else {
+      const start = cum;
+      cum += s.value;
+      lo = Math.min(start, cum);
+      hi = Math.max(start, cum);
+      fill = s.value >= 0 ? "#22c55e" : "#ef4444";
     }
-    const start = cum;
-    cum += s.value;
-    return {
-      name: s.label,
-      base: Math.min(start, cum),
-      bar: Math.abs(s.value),
-      disp: s.value,
-      fill: s.value >= 0 ? "#22c55e" : "#ef4444",
-    };
+    return { name: s.label, range: [lo, hi] as [number, number], disp: s.value, fill };
   });
   return (
     <ResponsiveContainer height={height} width="100%">
       <BarChart data={rows} margin={{ top: 14, right: 4, left: 4, bottom: 0 }}>
         <XAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "#64748b", fontSize: 7.5 }} tickLine={false} />
         <YAxis hide />
-        <Bar dataKey="base" fill="transparent" isAnimationActive={false} stackId="w" />
-        <Bar dataKey="bar" isAnimationActive={false} radius={[2, 2, 0, 0]} stackId="w">
+        <Bar dataKey="range" isAnimationActive={false} radius={[2, 2, 0, 0]}>
           {rows.map((r) => (
             <Cell fill={r.fill} key={r.name} />
           ))}
@@ -501,6 +528,120 @@ export function WaterfallChart({
         </Bar>
       </BarChart>
     </ResponsiveContainer>
+  );
+}
+
+/** Genel yatay bar grafiği (Recharts). */
+export function HBars({
+  data,
+  height,
+  labelWidth = 78,
+  format,
+  barColor = "#1d4ed8",
+}: {
+  data: { name: string; value: number; fill?: string }[];
+  height: number;
+  labelWidth?: number;
+  format: (v: number) => string;
+  barColor?: string;
+}) {
+  return (
+    <ResponsiveContainer height={height} width="100%">
+      <BarChart data={data} layout="vertical" margin={{ top: 2, right: 34, left: 2, bottom: 2 }}>
+        <XAxis hide type="number" />
+        <YAxis axisLine={false} dataKey="name" tick={{ fill: "#475569", fontSize: 8.5 }} tickLine={false} type="category" width={labelWidth} />
+        <Bar dataKey="value" fill={barColor} isAnimationActive={false} radius={[0, 3, 3, 0]}>
+          {data.map((r) => (
+            <Cell fill={r.fill ?? barColor} key={r.name} />
+          ))}
+          <LabelList
+            dataKey="value"
+            formatter={(v) => format(Number(v))}
+            position="right"
+            style={{ fill: "#334155", fontSize: 8, fontWeight: 700 }}
+          />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Net karlılık kırılımı — sıfırdan iki yöne yatay bar (Recharts). */
+export function KarlilikBars({
+  rows,
+  height = 150,
+}: {
+  rows: { label: string; value: number; net?: boolean }[];
+  height?: number;
+}) {
+  const data = rows.map((r) => ({
+    label: r.label,
+    value: r.value / 1_000_000,
+    fill: r.net ? "#1e3a8a" : r.value >= 0 ? "#22c55e" : "#ef4444",
+  }));
+  return (
+    <ResponsiveContainer height={height} width="100%">
+      <BarChart data={data} layout="vertical" margin={{ top: 2, right: 30, left: 2, bottom: 2 }}>
+        <XAxis hide type="number" />
+        <YAxis axisLine={false} dataKey="label" tick={{ fill: "#475569", fontSize: 8 }} tickLine={false} type="category" width={86} />
+        <ReferenceLine stroke="#cbd5e1" x={0} />
+        <Bar dataKey="value" isAnimationActive={false} radius={2}>
+          {data.map((r) => (
+            <Cell fill={r.fill} key={r.label} />
+          ))}
+          <LabelList
+            dataKey="value"
+            formatter={(v) => trNum(Number(v), 1)}
+            position="right"
+            style={{ fill: "#334155", fontSize: 8, fontWeight: 700 }}
+          />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Dikey trapez funnel (Recharts FunnelChart) + HTML ad/oran sütunları. */
+export function FunnelViz({
+  data,
+  height = 150,
+}: {
+  data: { name: string; value: number; pct: string; fill: string }[];
+  height?: number;
+}) {
+  return (
+    <div className="flex items-stretch" style={{ height }}>
+      <div className="flex w-[66px] flex-col justify-around py-1 pr-1 text-right">
+        {data.map((s) => (
+          <span className="font-semibold text-[8.5px] text-slate-500" key={s.name}>
+            {s.name}
+          </span>
+        ))}
+      </div>
+      <div className="min-w-0 flex-1">
+        <ResponsiveContainer height={height} width="100%">
+          <FunnelChart>
+            <Funnel data={data} dataKey="value" isAnimationActive={false} lastShapeType="rectangle">
+              <LabelList
+                dataKey="value"
+                fill="#fff"
+                formatter={(v) => Number(v).toLocaleString("tr-TR")}
+                position="center"
+                stroke="none"
+                style={{ fontSize: 9, fontWeight: 700 }}
+              />
+            </Funnel>
+          </FunnelChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="flex w-9 flex-col justify-around py-1 pl-1">
+        {data.map((s) => (
+          <span className="font-bold text-[8.5px] text-slate-600" key={s.name}>
+            {s.pct}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -550,18 +691,25 @@ export function TreemapMini({
   );
 }
 
-/** Skor barı (0-100, tier renkli). */
-export function ScoreRow({ name, score }: { name: string; score: number }) {
-  const color = score >= 70 ? "#16a34a" : score >= 55 ? "#84cc16" : score >= 40 ? "#f59e0b" : "#ef4444";
+/** Skor barları (0-100, tier renkli) — Recharts yatay BarChart. */
+export function ScoreBars({ data, height }: { data: { name: string; score: number }[]; height: number }) {
+  const rows = data.map((d) => ({
+    name: d.name,
+    score: d.score,
+    fill: d.score >= 70 ? "#16a34a" : d.score >= 55 ? "#84cc16" : d.score >= 40 ? "#f59e0b" : "#ef4444",
+  }));
   return (
-    <div className="flex items-center gap-2">
-      <span className="w-12 shrink-0 truncate text-[9.5px] text-slate-600">{name}</span>
-      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full" style={{ width: `${score}%`, background: color }} />
-      </div>
-      <span className="w-5 shrink-0 text-right font-bold text-[10px] tabular-nums" style={{ color }}>
-        {score}
-      </span>
-    </div>
+    <ResponsiveContainer height={height} width="100%">
+      <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 20, left: 2, bottom: 0 }}>
+        <XAxis domain={[0, 100]} hide type="number" />
+        <YAxis axisLine={false} dataKey="name" tick={{ fill: "#64748b", fontSize: 8 }} tickLine={false} type="category" width={58} />
+        <Bar dataKey="score" isAnimationActive={false} radius={[0, 3, 3, 0]}>
+          {rows.map((r) => (
+            <Cell fill={r.fill} key={r.name} />
+          ))}
+          <LabelList dataKey="score" position="right" style={{ fill: "#334155", fontSize: 8, fontWeight: 700 }} />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }

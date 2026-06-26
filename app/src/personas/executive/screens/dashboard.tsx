@@ -1,16 +1,21 @@
 /**
  * Executive Dealer Performance Dashboard — Genel Müdür için tek sayfa, shell'siz,
- * yatay A4 PDF'e sığacak şekilde tasarlanmış üst-yönetim özeti. Tüm metrikler
- * mevcut veri setlerinden (production-loans, applications, risk-watch, limits)
- * türetilir.
+ * yatay A4 PDF'e sığacak üst-yönetim özeti. Tüm metrikler mevcut veri setlerinden
+ * (production-loans, applications, risk-watch, limits) türetilir; tüm grafikler
+ * Recharts ile çizilir.
  */
 import { AlertTriangle, Calendar, ChevronDown, Info, Printer, ShieldAlert } from "lucide-react";
 import { useMemo } from "react";
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
+  Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Scatter,
   ScatterChart,
@@ -28,33 +33,23 @@ import {
   computeExec,
   fmtMn,
   fmtPct,
+  FunnelViz,
   Gauge,
-  ScoreRow,
+  HBars,
+  KarlilikBars,
+  ScoreBars,
   Section,
   Sparkline,
   TreemapMini,
   WaterfallChart,
-  type WaterfallStep,
 } from "../exec-kit";
 
 const NPL_SHADES = ["#dcfce7", "#fde68a", "#fb923c", "#ef4444", "#b91c1c"];
 const SCATTER_FILL: Record<string, string> = { high: "#16a34a", mid: "#f59e0b", low: "#ef4444" };
+const FUNNEL_COLORS = ["#0c4a6e", "#0369a1", "#0891b2", "#0d9488", "#10b981"];
+const FILTERS = ["Bölge", "İl", "Distribütör", "Marka", "Bayi", "Sektör", "Bireysel / Ticari"];
 
-/** Net karlılık kırılımındaki uzun etiketler waterfall ekseninde kısaltılır. */
-const KAR_SHORT: Record<string, string> = {
-  "Faiz Geliri": "Faiz",
-  "Dosya Masrafı": "Dosya",
-  "Komisyon Geliri": "Komisyon",
-  "Teşvik / İskonto": "Teşvik",
-  "Sigorta Maliyeti": "Sigorta",
-  "Ekspertiz Maliyeti": "Eksper.",
-  "Diğer Maliyetler": "Diğer",
-  "NET KARLILIK": "NET",
-};
-
-const FILTERS = [
-  "Bölge", "İl", "Distribütör", "Marka", "Bayi", "Sektör", "Bireysel / Ticari",
-];
+const short = (s: string) => s.split(" ")[0];
 
 export function ExecutiveDashboard() {
   const loans = useProductionLoans();
@@ -76,10 +71,25 @@ export function ExecutiveDashboard() {
     );
   }
 
-  const karlilikSteps: WaterfallStep[] = d.karlilik.map((k) => ({
-    label: KAR_SHORT[k.label] ?? k.label,
-    value: k.value,
-    type: k.net ? "total" : k.value >= 0 ? "up" : "down",
+  const funnelData = d.funnel.map((s, i) => ({
+    name: s.label,
+    value: s.value,
+    pct: fmtPct(s.pct, 1),
+    fill: FUNNEL_COLORS[i],
+  }));
+  const topBayiData = d.topBayi.map((b) => ({ name: short(b.name), value: b.hacim / 1_000_000 }));
+  const fx = d.scatter.map((s) => s.faiz);
+  const faizDomain: [number, number] = [Math.min(...fx) - 0.1, Math.max(...fx) + 0.1];
+  const riskData = d.riskKpi.map((r) => ({
+    name: r.label,
+    value: (r.gercek / r.hedef) * 100,
+    actual: fmtPct(r.gercek, r.unit === "%" ? 1 : 0),
+    fill: r.bad ? "#ef4444" : "#22c55e",
+  }));
+  const limitData = d.limitBars.map((g) => ({
+    name: short(g.name),
+    value: g.oran,
+    fill: g.oran >= 90 ? "#ef4444" : g.oran >= 75 ? "#f59e0b" : "#0d9488",
   }));
 
   return (
@@ -107,7 +117,7 @@ export function ExecutiveDashboard() {
         </div>
 
         <div className="exec-print flex w-[1480px] flex-col gap-2 bg-slate-100 p-3 shadow-[0_10px_40px_rgba(2,12,40,0.25)]">
-          {/* ---------------- Header ---------------- */}
+          {/* Header */}
           <header className="flex items-center justify-between rounded-lg bg-[#0b2545] px-4 py-2.5">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1 rounded-md bg-white px-2 py-1">
@@ -124,7 +134,7 @@ export function ExecutiveDashboard() {
             <div className="text-right text-[11px] text-slate-300">Son Güncelleme: 20.05.2025 09:30</div>
           </header>
 
-          {/* ---------------- Filtre çubuğu (snapshot, görsel) ---------------- */}
+          {/* Filtre çubuğu */}
           <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-1.5">
             <FilterPill icon label="Tarih Aralığı" value="01.01.2025 - 20.05.2025" wide />
             {FILTERS.map((f) => (
@@ -132,7 +142,7 @@ export function ExecutiveDashboard() {
             ))}
           </div>
 
-          {/* ---------------- KPI satırı ---------------- */}
+          {/* KPI satırı */}
           <div className="grid grid-cols-8 gap-2">
             {d.kpis.map((k) => (
               <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2" key={k.label}>
@@ -143,9 +153,7 @@ export function ExecutiveDashboard() {
                   <span className="font-extrabold text-[20px] text-slate-800 leading-none tabular-nums">{k.value}</span>
                   {k.unit ? <span className="text-[9px] text-slate-400">{k.unit}</span> : null}
                 </div>
-                <div
-                  className={`mt-0.5 font-bold text-[10px] ${k.up ? "text-emerald-600" : "text-red-500"}`}
-                >
+                <div className={`mt-0.5 font-bold text-[10px] ${k.up ? "text-emerald-600" : "text-red-500"}`}>
                   {k.up ? "▲" : "▼"} {k.delta}
                 </div>
                 <div className="mt-1">
@@ -155,42 +163,34 @@ export function ExecutiveDashboard() {
             ))}
           </div>
 
-          {/* ---------------- Üst grid: 1 / 2 / 3 ---------------- */}
+          {/* Üst grid: 1 / 2 / 3 */}
           <div className="grid grid-cols-3 gap-2">
             {/* 1. HACİM ANALİZİ */}
             <Section accent="#1d4ed8" no={1} title="HACİM ANALİZİ">
-              <div className="mb-1 flex items-center justify-between font-semibold text-[9px] text-slate-400 uppercase">
+              <div className="flex items-center justify-between font-semibold text-[9px] text-slate-400 uppercase">
                 <span>Top Bayi — Kredi Tutarı (Mn)</span>
                 <span>Adet</span>
               </div>
-              <div className="flex flex-col gap-1">
-                {d.topBayi.map((b) => (
-                  <div className="flex items-center gap-1.5" key={b.name}>
-                    <span className="w-20 shrink-0 truncate text-[9.5px] text-slate-600">{b.name}</span>
-                    <div className="relative h-3.5 flex-1 rounded bg-slate-100">
-                      <div
-                        className="flex h-full items-center justify-end rounded bg-[#1d4ed8] pr-1 font-bold text-[8px] text-white"
-                        style={{ width: `${Math.max((b.hacim / d.hacimMaxBayi) * 100, 14)}%` }}
-                      >
-                        {fmtMn(b.hacim, 0)}
-                      </div>
-                    </div>
-                    <span className="w-9 shrink-0 text-right font-semibold text-[9.5px] text-slate-500 tabular-nums">
+              <div className="flex">
+                <div className="min-w-0 flex-1">
+                  <HBars data={topBayiData} format={(v) => fmtMn(v * 1_000_000, 0)} height={138} labelWidth={74} />
+                </div>
+                <div className="flex w-8 flex-col justify-around py-1 text-right">
+                  {d.topBayi.map((b) => (
+                    <span className="font-semibold text-[8.5px] text-slate-500 tabular-nums" key={b.name}>
                       {b.adet}
                     </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-              <div className="mt-2 font-semibold text-[9px] text-slate-400 uppercase">
-                Hacim Dağılımı (Kredi Tutarı)
-              </div>
+              <div className="mt-1 font-semibold text-[9px] text-slate-400 uppercase">Hacim Dağılımı (Kredi Tutarı)</div>
               <div className="mt-1 grid grid-cols-3 gap-1.5">
                 {d.dagilim.map((col) => (
                   <div key={col.title}>
                     <div className="mb-0.5 font-bold text-[8.5px] text-slate-500">{col.title}</div>
                     <TreemapMini
                       data={col.rows.map((r) => ({ name: r.name, pct: r.pct, value: r.pct }))}
-                      height={76}
+                      height={74}
                     />
                   </div>
                 ))}
@@ -199,119 +199,144 @@ export function ExecutiveDashboard() {
 
             {/* 2. DÖNÜŞÜM ANALİZİ */}
             <Section accent="#0891b2" no={2} title="DÖNÜŞÜM ANALİZİ (FUNNEL)">
-              <div className="flex flex-col items-center gap-1">
-                {d.funnel.map((s, i) => (
-                  <div className="flex w-full items-center gap-2" key={s.label}>
-                    <span className="w-20 shrink-0 text-right font-semibold text-[9px] text-slate-500">{s.label}</span>
-                    <div className="flex flex-1 justify-center">
-                      <div
-                        className="flex h-6 items-center justify-center rounded font-bold text-[10px] text-white tabular-nums"
-                        style={{
-                          width: `${100 - i * 15}%`,
-                          background: i < 2 ? "#0e7490" : i < 4 ? "#0891b2" : "#10b981",
-                        }}
-                      >
-                        {s.value.toLocaleString("tr-TR")}
-                      </div>
-                    </div>
-                    <span className="w-10 shrink-0 font-bold text-[9.5px] text-slate-600 tabular-nums">{fmtPct(s.pct, 1)}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <div className="mb-0.5 flex justify-end font-semibold text-[8px] text-slate-400 uppercase">
+                    Dönüşüm Oranı
                   </div>
-                ))}
+                  <FunnelViz data={funnelData} height={132} />
+                </div>
+                <div>
+                  <div className="font-semibold text-[9px] text-slate-400 uppercase">Hacim Kayıp Analizi (Mn)</div>
+                  <WaterfallChart height={132} steps={d.waterfall} />
+                </div>
               </div>
-              <div className="mt-2 font-semibold text-[9px] text-slate-400 uppercase">Hacim Kayıp Analizi (Mn)</div>
-              <WaterfallChart height={94} steps={d.waterfall} />
-              <div className="mt-1.5 font-semibold text-[9px] text-slate-400 uppercase">Dönüşüm Oranları Trendi</div>
-              <div className="h-[78px]">
-                <ResponsiveContainer height="100%" width="100%">
-                  <LineChart data={d.trend} margin={{ top: 6, right: 6, left: -22, bottom: 0 }}>
-                    <CartesianGrid stroke="#eef2f7" vertical={false} />
-                    <XAxis axisLine={false} dataKey="ay" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} axisLine={false} width={28} />
-                    <Line dataKey="onay" dot={false} name="Onay" stroke="#2563eb" strokeWidth={1.6} />
-                    <Line dataKey="kullandirim" dot={false} name="Kullandırım" stroke="#16a34a" strokeWidth={1.6} />
-                    <Line dataKey="tahsilat" dot={false} name="Tahsilat" stroke="#f59e0b" strokeWidth={1.6} />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="mt-1 grid grid-cols-2 gap-2">
+                <div>
+                  <div className="font-semibold text-[9px] text-slate-400 uppercase">Dönüşüm Oranları Trendi</div>
+                  <ResponsiveContainer height={104} width="100%">
+                    <LineChart data={d.trend} margin={{ top: 6, right: 6, left: -24, bottom: 0 }}>
+                      <CartesianGrid stroke="#eef2f7" vertical={false} />
+                      <XAxis axisLine={false} dataKey="ay" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} />
+                      <YAxis axisLine={false} tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} width={30} />
+                      <Legend iconSize={6} wrapperStyle={{ fontSize: 7.5 }} />
+                      <Line dataKey="onay" dot={{ r: 1.5 }} name="Onay" stroke="#2563eb" strokeWidth={1.5} />
+                      <Line dataKey="kullandirim" dot={{ r: 1.5 }} name="Kullandırım" stroke="#0891b2" strokeWidth={1.5} />
+                      <Line dataKey="aktif" dot={{ r: 1.5 }} name="Aktif" stroke="#16a34a" strokeWidth={1.5} />
+                      <Line dataKey="tahsilat" dot={{ r: 1.5 }} name="Tahsilat" stroke="#f59e0b" strokeWidth={1.5} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <div className="font-semibold text-[9px] text-slate-400 uppercase">En Büyük Kayıplar (Bayi)</div>
+                  <table className="mt-1 w-full">
+                    <thead>
+                      <tr className="text-[8px] text-slate-400">
+                        <th className="text-left font-semibold">Bayi</th>
+                        <th className="text-right font-semibold">Onay</th>
+                        <th className="text-right font-semibold">Kull.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {d.kayiplar.map((k) => (
+                        <tr className="border-slate-100 border-t" key={k.bayi}>
+                          <td className="py-0.5 text-[9px] text-slate-600">{short(k.bayi)}</td>
+                          <td className="py-0.5 text-right font-semibold text-[9px] text-red-500 tabular-nums">
+                            {fmtPct(k.onay, 1)} ▼
+                          </td>
+                          <td className="py-0.5 text-right font-semibold text-[9px] text-red-500 tabular-nums">
+                            {fmtPct(k.kullandirim, 1)} ▼
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </Section>
 
             {/* 3. KARLILIK ANALİZİ */}
             <Section accent="#7c3aed" no={3} title="KARLILIK ANALİZİ">
-              <div className="font-semibold text-[9px] text-slate-400 uppercase">Net Karlılık Kırılımı (Mn)</div>
-              <WaterfallChart height={118} steps={karlilikSteps} />
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <div className="font-semibold text-[9px] text-slate-400 uppercase">Faiz vs Net Karlılık</div>
-                  <div className="h-[96px]">
-                    <ResponsiveContainer height="100%" width="100%">
-                      <ScatterChart margin={{ top: 6, right: 6, left: -24, bottom: -6 }}>
-                        <CartesianGrid stroke="#eef2f7" />
-                        <XAxis dataKey="faiz" domain={[2, 4]} tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} type="number" />
-                        <YAxis dataKey="net" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} width={26} />
-                        <ZAxis dataKey="hacim" range={[20, 130]} type="number" />
-                        <Scatter data={d.scatter}>
-                          {d.scatter.map((s) => (
-                            <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.75} key={s.name} />
-                          ))}
-                        </Scatter>
-                      </ScatterChart>
-                    </ResponsiveContainer>
+                  <div className="font-semibold text-[9px] text-slate-400 uppercase">Net Karlılık Kırılımı (Mn)</div>
+                  <KarlilikBars height={150} rows={d.karlilik} />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-[9px] text-slate-400 uppercase">Faiz vs Net Karlılık</span>
+                    <span className="flex gap-1.5 text-[7px] text-slate-500">
+                      <Dot c="#16a34a" t="Yüksek" />
+                      <Dot c="#f59e0b" t="Orta" />
+                      <Dot c="#ef4444" t="Düşük" />
+                    </span>
                   </div>
+                  <ResponsiveContainer height={132} width="100%">
+                    <ScatterChart margin={{ top: 8, right: 8, left: -22, bottom: 2 }}>
+                      <CartesianGrid stroke="#eef2f7" />
+                      <XAxis
+                        dataKey="faiz"
+                        domain={faizDomain}
+                        tick={{ fill: "#94a3b8", fontSize: 8 }}
+                        tickFormatter={(v) => `%${v.toFixed(1)}`}
+                        tickLine={false}
+                        type="number"
+                      />
+                      <YAxis dataKey="net" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} width={26} />
+                      <ZAxis dataKey="hacim" range={[30, 200]} type="number" />
+                      <Scatter data={d.scatter}>
+                        {d.scatter.map((s) => (
+                          <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.78} key={s.name} />
+                        ))}
+                      </Scatter>
+                    </ScatterChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {d.etkinlik.map((e) => (
-                    <div className="rounded border border-slate-100 bg-slate-50 px-1.5 py-1" key={e.label}>
-                      <div className="text-[8px] text-slate-500 leading-tight">{e.label}</div>
-                      <div className="font-bold text-[13px] text-slate-800 tabular-nums">{e.value}</div>
-                      <div className={`text-[8px] font-semibold ${e.up ? "text-emerald-600" : "text-red-500"}`}>
-                        {e.up ? "▲" : "▼"} {e.delta}
-                      </div>
+              </div>
+              <div className="mt-1 font-semibold text-[9px] text-slate-400 uppercase">Karlılık Etkinlik Göstergeleri</div>
+              <div className="mt-1 grid grid-cols-4 gap-1.5">
+                {d.etkinlik.map((e) => (
+                  <div className="rounded border border-slate-100 bg-slate-50 px-1.5 py-1 text-center" key={e.label}>
+                    <div className="text-[7.5px] text-slate-500 leading-tight">{e.label}</div>
+                    <div className="font-bold text-[14px] text-slate-800 tabular-nums">{e.value}</div>
+                    <div className={`text-[8px] font-semibold ${e.up ? "text-emerald-600" : "text-red-500"}`}>
+                      {e.up ? "▲" : "▼"} {e.delta}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </Section>
           </div>
 
-          {/* ---------------- Alt grid: 4 / 5 / 6 ---------------- */}
+          {/* Alt grid: 4 / 5 / 6 */}
           <div className="grid grid-cols-3 gap-2">
             {/* 4. RİSK ANALİZİ */}
             <Section accent="#dc2626" no={4} title="RİSK ANALİZİ">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <div className="mb-1 font-semibold text-[9px] text-slate-400 uppercase">Risk KPI (Hedef vs Gerç.)</div>
-                  <div className="flex flex-col gap-1.5">
-                    {d.riskKpi.map((r) => (
-                      <div key={r.label}>
-                        <div className="flex items-center justify-between text-[9px]">
-                          <span className="text-slate-600">{r.label}</span>
-                          <span className={`font-bold tabular-nums ${r.bad ? "text-red-500" : "text-emerald-600"}`}>
-                            {fmtPct(r.gercek, r.unit === "%" ? 1 : 0)}
-                          </span>
-                        </div>
-                        <div className="relative mt-0.5 h-2 rounded-full bg-slate-100">
-                          <div
-                            className={`h-full rounded-full ${r.bad ? "bg-red-500" : "bg-emerald-500"}`}
-                            style={{ width: `${Math.min((r.gercek / (r.hedef * 1.6)) * 100, 100)}%` }}
-                          />
-                          <span
-                            className="absolute top-[-1px] h-3 w-0.5 bg-slate-700"
-                            style={{ left: `${Math.min((r.hedef / (r.hedef * 1.6)) * 100, 100)}%` }}
-                          />
-                        </div>
-                        <div className="text-right text-[7.5px] text-slate-400">Hedef {r.hedef}{r.unit}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <div className="mb-0.5 font-semibold text-[9px] text-slate-400 uppercase">Risk KPI (Hedef vs Gerç.)</div>
+                  <ResponsiveContainer height={140} width="100%">
+                    <BarChart data={riskData} layout="vertical" margin={{ top: 2, right: 30, left: 2, bottom: 2 }}>
+                      <XAxis domain={[0, 160]} hide type="number" />
+                      <YAxis axisLine={false} dataKey="name" tick={{ fill: "#475569", fontSize: 8 }} tickLine={false} type="category" width={62} />
+                      <ReferenceLine
+                        label={{ value: "Hedef", position: "top", fill: "#475569", fontSize: 7 }}
+                        stroke="#475569"
+                        strokeDasharray="2 2"
+                        x={100}
+                      />
+                      <Bar dataKey="value" isAnimationActive={false} radius={[0, 3, 3, 0]}>
+                        {riskData.map((r) => (
+                          <Cell fill={r.fill} key={r.name} />
+                        ))}
+                        <LabelList dataKey="actual" position="right" style={{ fill: "#334155", fontSize: 8, fontWeight: 700 }} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
                 <div>
                   <div className="mb-0.5 font-semibold text-[9px] text-slate-400 uppercase">NPL — Bölge Heatmap</div>
-                  <TurkeyChoropleth
-                    legendHigh="Kritik"
-                    legendLow="İyi"
-                    ratesByRegion={d.nplByRegion}
-                    shades={NPL_SHADES}
-                  />
+                  <TurkeyChoropleth legendHigh="Kritik" legendLow="İyi" ratesByRegion={d.nplByRegion} shades={NPL_SHADES} />
                 </div>
               </div>
             </Section>
@@ -319,31 +344,16 @@ export function ExecutiveDashboard() {
             {/* 5. PENETRASYON & LİMİT */}
             <Section accent="#0d9488" no={5} title="PENETRASYON & LİMİT KULLANIMI">
               <div className="grid grid-cols-[auto_1fr] gap-2">
-                <div className="flex flex-col justify-center gap-1.5 pr-2">
+                <div className="flex flex-col justify-center gap-1.5 pr-1">
                   <Gauge color="#16a34a" label="Kredi Penet." sub={fmtPct(d.krediPenet, 1)} value={d.krediPenet} />
                   <Gauge color="#2563eb" label="Sigorta Penet." sub={fmtPct(d.sigortaPenet, 1)} value={d.sigortaPenet} />
                 </div>
                 <div>
-                  <div className="mb-1 font-semibold text-[9px] text-slate-400 uppercase">Grup Limit Kullanımı (Mn)</div>
-                  <div className="flex flex-col gap-1">
-                    {d.limitBars.map((g) => (
-                      <div key={g.name}>
-                        <div className="flex items-center justify-between text-[8.5px]">
-                          <span className="truncate text-slate-600">{g.name}</span>
-                          <span className="font-bold text-slate-700 tabular-nums">{fmtPct(g.oran, 0)}</span>
-                        </div>
-                        <div className="h-2.5 overflow-hidden rounded bg-slate-100">
-                          <div
-                            className={`h-full ${g.oran >= 90 ? "bg-red-500" : g.oran >= 75 ? "bg-amber-500" : "bg-[#0d9488]"}`}
-                            style={{ width: `${g.oran}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <div className="font-semibold text-[9px] text-slate-400 uppercase">Grup Limit Kullanımı</div>
+                  <HBars data={limitData} format={(v) => fmtPct(v, 0)} height={116} labelWidth={78} />
                 </div>
               </div>
-              <div className="mt-2 rounded border border-slate-100">
+              <div className="mt-1 rounded border border-slate-100">
                 <div className="bg-slate-50 px-2 py-0.5 font-bold text-[8.5px] text-slate-500 uppercase">
                   Limiti %85 Üzeri Kullanan Gruplar
                 </div>
@@ -361,7 +371,7 @@ export function ExecutiveDashboard() {
 
             {/* 6. EXECUTIVE ALERTS & SKORLAR */}
             <Section accent="#0f172a" no={6} title="EXECUTIVE ALERTS & BAYİ SKORLARI">
-              <div className="grid grid-cols-[1.3fr_1fr] gap-2">
+              <div className="grid grid-cols-[1.25fr_1fr] gap-2">
                 <div className="flex flex-col gap-1">
                   {d.alerts.map((a) => {
                     const Icon = a.sev === "danger" ? AlertTriangle : a.sev === "warn" ? ShieldAlert : Info;
@@ -377,29 +387,21 @@ export function ExecutiveDashboard() {
                     );
                   })}
                 </div>
-                <div className="grid grid-rows-2 gap-1.5">
+                <div className="flex flex-col gap-1">
                   <div>
                     <div className="mb-0.5 font-bold text-[8.5px] text-slate-500 uppercase">Bayi Health Score</div>
-                    <div className="flex flex-col gap-0.5">
-                      {d.healthScores.map((s) => (
-                        <ScoreRow key={s.name} name={s.name} score={s.score} />
-                      ))}
-                    </div>
+                    <ScoreBars data={d.healthScores} height={92} />
                   </div>
                   <div>
                     <div className="mb-0.5 font-bold text-[8.5px] text-slate-500 uppercase">Opportunity Score</div>
-                    <div className="flex flex-col gap-0.5">
-                      {d.oppScores.map((s) => (
-                        <ScoreRow key={s.name} name={s.name} score={s.score} />
-                      ))}
-                    </div>
+                    <ScoreBars data={d.oppScores} height={92} />
                   </div>
                 </div>
               </div>
             </Section>
           </div>
 
-          {/* ---------------- Footer ---------------- */}
+          {/* Footer */}
           <div className="px-1 text-[8px] text-slate-400">
             Not: Tüm oranlar seçili filtrelere göre hesaplanmıştır. yp: yüzde puan | NPL: Takipteki Krediler Oranı
             (≥90 gün) | KT: Kanuni Takip Oranı | FPD 30+: İlk Taksit Gecikme Oranı · Veri kaynağı: production-loans,
@@ -408,6 +410,15 @@ export function ExecutiveDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+function Dot({ c, t }: { c: string; t: string }) {
+  return (
+    <span className="flex items-center gap-0.5">
+      <span className="size-1.5 rounded-full" style={{ background: c }} />
+      {t}
+    </span>
   );
 }
 
@@ -433,4 +444,3 @@ function FilterPill({
     </div>
   );
 }
-
