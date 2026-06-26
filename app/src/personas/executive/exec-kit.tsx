@@ -696,11 +696,13 @@ interface TreeCellProps {
   height?: number;
   name?: string;
   pct?: number;
+  depth?: number;
 }
 
 /** Tek lacivert renk; pay büyüdükçe opaklık artar (Marka/Distribütör mantığı). */
-function TreeCell({ x = 0, y = 0, width = 0, height = 0, name = "", pct = 0 }: TreeCellProps) {
-  if (width <= 0 || height <= 0) {
+function TreeCell({ x = 0, y = 0, width = 0, height = 0, name = "", pct = 0, depth = 1 }: TreeCellProps) {
+  // Recharts kök düğümü (depth 0) tüm alanı kaplar — onu çizme, yalnız yapraklar.
+  if (width <= 0 || height <= 0 || depth === 0) {
     return null;
   }
   const opacity = Math.max(0.3, Math.min(0.95, 0.3 + (pct / 60) * 0.65));
