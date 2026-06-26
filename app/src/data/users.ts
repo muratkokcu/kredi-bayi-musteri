@@ -48,16 +48,6 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
     password: "demo1234",
   },
   {
-    id: "u-raporlama",
-    role: "raporlama",
-    name: "Selin Demir",
-    title: "Raporlama Uzmanı",
-    org: "Banka",
-    email: "raporlama@demo.com",
-    initials: "SD",
-    password: "demo1234",
-  },
-  {
     id: "u-bayi",
     role: "bayi",
     name: "Mehmet Kaya",
@@ -74,6 +64,16 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
     title: "Müşteri",
     email: "musteri@demo.com",
     initials: "EY",
+    password: "demo1234",
+  },
+  {
+    id: "u-raporlama",
+    role: "raporlama",
+    name: "Selin Demir",
+    title: "Raporlama Uzmanı",
+    org: "Banka",
+    email: "raporlama@demo.com",
+    initials: "SD",
     password: "demo1234",
   },
   {
