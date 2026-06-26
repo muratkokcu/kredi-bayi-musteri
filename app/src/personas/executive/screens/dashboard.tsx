@@ -54,6 +54,7 @@ import {
 const NPL_SHADES = ["#dcfce7", "#fde68a", "#fb923c", "#ef4444", "#b91c1c"];
 const SCATTER_FILL: Record<string, string> = { high: "#16a34a", mid: "#f59e0b", low: "#ef4444" };
 const FUNNEL_COLORS = ["#0c4a6e", "#0369a1", "#0891b2", "#0d9488", "#10b981"];
+const NAVY = ["#1e3a8a", "#1d4ed8", "#3b82f6", "#94a3b8"];
 const ALL = "Tümü";
 
 const short = (s: string) => s.split(" ")[0];
@@ -235,15 +236,39 @@ export function ExecutiveDashboard() {
               </div>
               <div className="mt-1 font-semibold text-[9px] text-slate-400 uppercase">Hacim Dağılımı (Kredi Tutarı)</div>
               <div className="mt-1 grid grid-cols-3 gap-1.5">
-                {d.dagilim.map((col) => (
-                  <div key={col.title}>
-                    <div className="mb-0.5 font-bold text-[8.5px] text-slate-500">{col.title}</div>
-                    <TreemapMini
-                      data={col.rows.map((r) => ({ name: r.name, pct: r.pct, value: r.pct }))}
-                      height={74}
-                    />
-                  </div>
-                ))}
+                {d.dagilim.map((col, ci) =>
+                  ci < 2 ? (
+                    <div key={col.title}>
+                      <div className="mb-0.5 font-bold text-[8.5px] text-slate-500">{col.title}</div>
+                      <div className="flex flex-col gap-0.5">
+                        {col.rows.map((r, i) => (
+                          <div
+                            className="relative h-7 rounded-sm px-1.5 py-0.5"
+                            key={r.name}
+                            style={{ background: NAVY[Math.min(i, NAVY.length - 1)] }}
+                          >
+                            <span className="block truncate text-[8px] text-white">{r.name}</span>
+                            <span className="absolute right-1.5 bottom-0.5 font-bold text-[8.5px] text-white tabular-nums">
+                              {fmtPct(r.pct, 1)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={col.title}>
+                      <div className="mb-0.5 font-bold text-[8.5px] text-slate-500">{col.title}</div>
+                      <TreemapMini
+                        data={col.rows.map((r) => ({
+                          name: r.name === "Diğer" ? "Diğer Bayiler" : short(r.name),
+                          pct: r.pct,
+                          value: r.pct,
+                        }))}
+                        height={116}
+                      />
+                    </div>
+                  )
+                )}
               </div>
             </Section>
 
