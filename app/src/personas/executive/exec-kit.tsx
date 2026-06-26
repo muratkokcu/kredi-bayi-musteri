@@ -228,7 +228,7 @@ export function computeExec(
   const dagilim = [
     { title: "MARKA", rows: dist((l) => l.marka, 3) },
     { title: "DİSTRİBÜTÖR", rows: dist((l) => l.distributor, 3) },
-    { title: "BAYİ", rows: dist((l) => l.bayi, 4) },
+    { title: "BAYİ", rows: dist((l) => l.bayi, 3) },
   ];
 
   // --- funnel
@@ -713,12 +713,12 @@ function TreeCell({ x = 0, y = 0, width = 0, height = 0, name = "", pct = 0, dep
     <g>
       <rect fill="#1d4ed8" fillOpacity={opacity} height={height} stroke="#fff" strokeWidth={1} width={width} x={x} y={y} />
       {showName ? (
-        <text fill={txt} fontSize={7} fontWeight={400} x={x + 3} y={y + 10}>
+        <text fill={txt} style={{ fontSize: 7, fontWeight: 400 }} x={x + 3} y={y + 10}>
           {name}
         </text>
       ) : null}
       {showPct ? (
-        <text fill={txt} fontSize={7.5} fontWeight={400} x={x + 3} y={showName ? y + 19 : y + 11}>
+        <text fill={txt} style={{ fontSize: 7.5, fontWeight: 400 }} x={x + 3} y={showName ? y + 19 : y + 11}>
           %{trNum(pct, 1)}
         </text>
       ) : null}
