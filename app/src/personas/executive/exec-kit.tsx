@@ -360,11 +360,20 @@ export function computeExec(
     })
     .sort((a, b) => b.toplam - a.toplam);
   const limitBars = limitByGrup.slice(0, 5);
-  const limitAsiri = limitByGrup
+  // %85+ tablo: her grubun en yüksek kullanımlı tekil limit satırı (gerçekten dolan limitler)
+  const grupMaxRow = new Map<string, { limit: number; oran: number }>();
+  for (const l of limits) {
+    const o = pct(l.kullanilanLimit, l.toplamLimit);
+    const prevRow = grupMaxRow.get(l.grupAdi);
+    if (!prevRow || o > prevRow.oran) {
+      grupMaxRow.set(l.grupAdi, { limit: l.kullanilanLimit, oran: o });
+    }
+  }
+  const limitAsiri = [...grupMaxRow.entries()]
+    .map(([name, v]) => ({ name, limit: v.limit, oran: v.oran, up: v.oran >= 90 }))
     .filter((g) => g.oran >= 85)
     .sort((a, b) => b.oran - a.oran)
-    .slice(0, 4)
-    .map((g) => ({ name: g.name, limit: g.kullanilan, oran: g.oran, up: g.oran >= 90 }));
+    .slice(0, 5);
 
   // --- bayi skorları
   const healthScores = topBayi

@@ -406,14 +406,14 @@ export function ExecutiveDashboard() {
                     <Gauge
                       color="#16a34a"
                       delta={`${tr1(Math.abs(d.krediPenetDelta))} yp`}
-                      label="Kredi Penetrasyonu"
+                      label="Kredi"
                       up={d.krediPenetDelta >= 0}
                       value={d.krediPenet}
                     />
                     <Gauge
                       color="#2563eb"
                       delta={`${tr1(Math.abs(d.sigortaPenetDelta))} yp`}
-                      label="Sigorta Penetrasyonu"
+                      label="Sigorta"
                       up={d.sigortaPenetDelta >= 0}
                       value={d.sigortaPenet}
                     />
@@ -437,7 +437,7 @@ export function ExecutiveDashboard() {
                 <div className="flex flex-col">
                   <div className="font-semibold text-[9px] text-slate-400 uppercase">Limit Kullanımı (Mn)</div>
                   <ResponsiveContainer height={120} width="100%">
-                    <BarChart data={limitStack} margin={{ top: 14, right: 4, left: -24, bottom: 0 }}>
+                    <BarChart data={limitStack} margin={{ top: 14, right: 6, left: 6, bottom: 0 }}>
                       <XAxis axisLine={false} dataKey="name" tick={{ fill: "#64748b", fontSize: 8 }} tickLine={false} />
                       <YAxis hide />
                       <Legend iconSize={6} wrapperStyle={{ fontSize: 7 }} />
