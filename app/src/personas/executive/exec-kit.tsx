@@ -716,7 +716,7 @@ function TreeCell({ x = 0, y = 0, width = 0, height = 0, name = "", pct = 0 }: T
         </text>
       ) : null}
       {showPct ? (
-        <text fill={txt} fontSize={7.5} fontWeight={600} x={x + 3} y={showName ? y + 19 : y + 11}>
+        <text fill={txt} fontSize={7.5} fontWeight={400} x={x + 3} y={showName ? y + 19 : y + 11}>
           %{trNum(pct, 1)}
         </text>
       ) : null}

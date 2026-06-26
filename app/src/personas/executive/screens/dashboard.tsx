@@ -248,7 +248,7 @@ export function ExecutiveDashboard() {
                             style={{ background: NAVY[Math.min(i, NAVY.length - 1)] }}
                           >
                             <span className="block truncate text-[8px] text-white">{r.name}</span>
-                            <span className="absolute right-1.5 bottom-0.5 font-bold text-[8.5px] text-white tabular-nums">
+                            <span className="absolute right-1.5 bottom-0.5 font-medium text-[8.5px] text-white tabular-nums">
                               {fmtPct(r.pct, 1)}
                             </span>
                           </div>
