@@ -238,7 +238,7 @@ export function ExecutiveDashboard() {
                   {k.up ? "▲" : "▼"} {k.delta}
                 </div>
                 <div className="mt-1">
-                  <Sparkline color={k.accent} data={k.spark} />
+                  <Sparkline color={k.accent} data={k.spark} prev={k.sparkPrev} />
                 </div>
               </div>
             ))}
@@ -259,7 +259,7 @@ export function ExecutiveDashboard() {
                 <div className="flex w-[46px] flex-col justify-around py-1">
                   {d.topBayi.map((b) => (
                     <div className="flex justify-center" key={b.name}>
-                      <MiniSpark data={b.aylik} trend={b.trend} />
+                      <MiniSpark data={b.aylik} prev={b.aylikPrev} trend={b.trend} />
                     </div>
                   ))}
                 </div>
@@ -640,21 +640,24 @@ export function ExecutiveDashboard() {
   );
 }
 
-/** 12-ay mini sparkline; momentuma göre renk + bayinin kendi ortalamasına kesikli baz çizgisi (karşılaştırma). */
-function MiniSpark({ data, trend }: { data: number[]; trend: "up" | "down" | "flat" }) {
+/** 12-ay mini sparkline: bu yıl (renkli) + geçen yıl gölge (kesikli gri) — YoY karşılaştırma. */
+function MiniSpark({ data, prev, trend }: { data: number[]; prev?: number[]; trend: "up" | "down" | "flat" }) {
   const w = 44;
   const h = 14;
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  const all = prev ? [...data, ...prev] : data;
+  const min = Math.min(...all);
+  const max = Math.max(...all);
   const span = max - min || 1;
   const y = (v: number) => h - 1 - ((v - min) / span) * (h - 2);
-  const pts = data.map((v, i) => `${(i / (data.length - 1)) * (w - 1) + 0.5},${y(v).toFixed(1)}`).join(" ");
-  const mean = data.reduce((a, b) => a + b, 0) / (data.length || 1);
+  const line = (arr: number[]) =>
+    arr.map((v, i) => `${(i / (arr.length - 1)) * (w - 1) + 0.5},${y(v).toFixed(1)}`).join(" ");
   const color = trend === "up" ? "#16a34a" : trend === "down" ? "#ef4444" : "#94a3b8";
   return (
     <svg aria-hidden="true" height={h} viewBox={`0 0 ${w} ${h}`} width={w}>
-      <line stroke="#cbd5e1" strokeDasharray="2 2" strokeWidth={0.5} x1={0} x2={w} y1={y(mean)} y2={y(mean)} />
-      <polyline fill="none" points={pts} stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} />
+      {prev ? (
+        <polyline fill="none" points={line(prev)} stroke="#cbd5e1" strokeDasharray="2 2" strokeWidth={0.9} />
+      ) : null}
+      <polyline fill="none" points={line(data)} stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} />
     </svg>
   );
 }

@@ -6,13 +6,14 @@
 import type { ComponentType, ReactNode } from "react";
 import {
   Area,
-  AreaChart,
   Bar,
   BarChart,
   Cell,
+  ComposedChart,
   Funnel,
   FunnelChart,
   LabelList,
+  Line,
   PolarAngleAxis,
   RadialBar,
   RadialBarChart,
@@ -69,7 +70,7 @@ export interface WaterfallStep {
 
 export interface ExecData {
   kpis: ExecKpi[];
-  topBayi: { name: string; hacim: number; adet: number; aylik: number[]; trend: "up" | "down" | "flat" }[];
+  topBayi: { name: string; hacim: number; adet: number; aylik: number[]; aylikPrev: number[]; trend: "up" | "down" | "flat" }[];
   hacimMaxBayi: number;
   bayiMomentum: { up: number; down: number; flat: number };
   dagilim: { title: string; rows: { name: string; pct: number }[] }[];
@@ -102,6 +103,7 @@ export interface ExecKpi {
   up: boolean;
   accent: string;
   spark: number[];
+  sparkPrev: number[]; // geçen yıl (2024) gölge serisi — YoY karşılaştırma
   flat?: boolean; // delta nötr
 }
 
@@ -174,7 +176,7 @@ export function computeExec(
   const netPrev = sum(prev, (l) => (l.krediTutari * (l.faiz / 100) * l.vade) / 12 * 0.45) - sum(prev, (l) => l.tesvik);
   const netYoY = yoy(netCur, netPrev);
 
-  // --- aylık sparkline serileri
+  // --- aylık sparkline serileri (bu yıl 2025 = spark, geçen yıl 2024 = sparkPrev → YoY)
   const byMonth = (rows: ProductionLoan[], f: (l: ProductionLoan) => number, agg: "sum" | "avg") => {
     const g: number[][] = Array.from({ length: 12 }, () => []);
     for (const l of rows) {
@@ -184,35 +186,45 @@ export function computeExec(
       arr.length ? (agg === "sum" ? arr.reduce((a, b) => a + b, 0) : arr.reduce((a, b) => a + b, 0) / arr.length) : 0
     );
   };
-  const sparkHacim = byMonth(loans, (l) => l.krediTutari, "sum");
-  const sparkAdet = Array.from({ length: 12 }, (_, i) => loans.filter((l) => l.ay === i + 1).length);
-  const sparkFaiz = byMonth(loans, (l) => l.faiz, "avg");
-  const sparkVade = byMonth(loans, (l) => l.vade, "avg");
-  const sparkTicket = sparkHacim.map((h, i) => (sparkAdet[i] ? h / sparkAdet[i] : 0));
-  const sparkOnay = Array.from({ length: 12 }, (_, i) => {
-    const mm = apps.filter((a) => a.ay === i + 1);
-    return pct(mm.filter((a) => a.durum !== "Ret").length, mm.length);
-  });
-  const sparkPenet = Array.from({ length: 12 }, (_, i) => {
-    const mm = apps.filter((a) => a.ay === i + 1);
-    return pct(mm.filter((a) => a.durum === "Kullandırım").length, mm.length);
-  });
+  const adetMonth = (rows: ProductionLoan[]) =>
+    Array.from({ length: 12 }, (_, i) => rows.filter((l) => l.ay === i + 1).length);
+  const appRateMonth = (rows: Application[], pr: (a: Application) => boolean) =>
+    Array.from({ length: 12 }, (_, i) => {
+      const mm = rows.filter((a) => a.ay === i + 1);
+      return pct(mm.filter(pr).length, mm.length);
+    });
+  const sHacim = byMonth(cur, (l) => l.krediTutari, "sum");
+  const sHacimP = byMonth(prev, (l) => l.krediTutari, "sum");
+  const sAdet = adetMonth(cur);
+  const sAdetP = adetMonth(prev);
+  const sTicket = sHacim.map((h, i) => (sAdet[i] ? h / sAdet[i] : 0));
+  const sTicketP = sHacimP.map((h, i) => (sAdetP[i] ? h / sAdetP[i] : 0));
+  const sFaiz = byMonth(cur, (l) => l.faiz, "avg");
+  const sFaizP = byMonth(prev, (l) => l.faiz, "avg");
+  const sVade = byMonth(cur, (l) => l.vade, "avg");
+  const sVadeP = byMonth(prev, (l) => l.vade, "avg");
+  const sOnay = appRateMonth(appCur, (a) => a.durum !== "Ret");
+  const sOnayP = appRateMonth(appPrev, (a) => a.durum !== "Ret");
+  const sPenet = appRateMonth(appCur, (a) => a.durum === "Kullandırım");
+  const sPenetP = appRateMonth(appPrev, (a) => a.durum === "Kullandırım");
+  const sNet = sHacim.map((h) => h * 0.04);
+  const sNetP = sHacimP.map((h) => h * 0.04);
 
   const kpis: ExecKpi[] = [
-    { label: "AÇILAN KREDİ TUTARI", ...fmtBig(hacim), delta: `${trNum(Math.abs(hacimYoY), 1)}%`, up: hacimYoY >= 0, accent: "#2563eb", spark: sparkHacim },
-    { label: "KREDİ ADEDİ", value: fmtAdet(adet), unit: "Adet", delta: `${trNum(Math.abs(adetYoY), 1)}%`, up: adetYoY >= 0, accent: "#1d4ed8", spark: sparkAdet },
-    { label: "ORTALAMA TICKET", value: trNum(ticket), unit: "TL", delta: `${trNum(Math.abs(ticketYoY), 1)}%`, up: ticketYoY >= 0, accent: "#0d9488", spark: sparkTicket },
-    { label: "ORTALAMA FAİZ", value: fmtPct(ortFaiz, 2), unit: "", delta: `${trNum(faizYoY, 2)} yp`, up: faizYoY <= 0, accent: "#7c3aed", spark: sparkFaiz },
-    { label: "ORTALAMA VADE", value: trNum(ortVade, 0), unit: "Ay", delta: `${trNum(vadeYoY, 0)} Ay`, up: vadeYoY >= 0, accent: "#4f46e5", spark: sparkVade },
-    { label: "PENETRASYON", value: fmtPct(krediPenet, 1), unit: "", delta: `${trNum(penetYoY, 1)} yp`, up: penetYoY >= 0, accent: "#16a34a", spark: sparkPenet },
-    { label: "ONAY ORANI", value: fmtPct(onayOran, 1), unit: "", delta: `${trNum(onayYoY, 1)} yp`, up: onayYoY >= 0, accent: "#ea580c", spark: sparkOnay },
-    { label: "NET KARLILIK", value: fmtMn(net, 1), unit: "Milyon TL", delta: `${trNum(Math.abs(netYoY), 1)}%`, up: netYoY >= 0, accent: "#15803d", spark: sparkHacim.map((h) => h * 0.04) },
+    { label: "AÇILAN KREDİ TUTARI", ...fmtBig(hacim), delta: `${trNum(Math.abs(hacimYoY), 1)}%`, up: hacimYoY >= 0, accent: "#2563eb", spark: sHacim, sparkPrev: sHacimP },
+    { label: "KREDİ ADEDİ", value: fmtAdet(adet), unit: "Adet", delta: `${trNum(Math.abs(adetYoY), 1)}%`, up: adetYoY >= 0, accent: "#1d4ed8", spark: sAdet, sparkPrev: sAdetP },
+    { label: "ORTALAMA TICKET", value: trNum(ticket), unit: "TL", delta: `${trNum(Math.abs(ticketYoY), 1)}%`, up: ticketYoY >= 0, accent: "#0d9488", spark: sTicket, sparkPrev: sTicketP },
+    { label: "ORTALAMA FAİZ", value: fmtPct(ortFaiz, 2), unit: "", delta: `${trNum(faizYoY, 2)} yp`, up: faizYoY <= 0, accent: "#7c3aed", spark: sFaiz, sparkPrev: sFaizP },
+    { label: "ORTALAMA VADE", value: trNum(ortVade, 0), unit: "Ay", delta: `${trNum(vadeYoY, 0)} Ay`, up: vadeYoY >= 0, accent: "#4f46e5", spark: sVade, sparkPrev: sVadeP },
+    { label: "PENETRASYON", value: fmtPct(krediPenet, 1), unit: "", delta: `${trNum(penetYoY, 1)} yp`, up: penetYoY >= 0, accent: "#16a34a", spark: sPenet, sparkPrev: sPenetP },
+    { label: "ONAY ORANI", value: fmtPct(onayOran, 1), unit: "", delta: `${trNum(onayYoY, 1)} yp`, up: onayYoY >= 0, accent: "#ea580c", spark: sOnay, sparkPrev: sOnayP },
+    { label: "NET KARLILIK", value: fmtMn(net, 1), unit: "Milyon TL", delta: `${trNum(Math.abs(netYoY), 1)}%`, up: netYoY >= 0, accent: "#15803d", spark: sNet, sparkPrev: sNetP },
   ];
 
   // --- Top bayi (+ 12-ay hacim serisi & momentum: son çeyrek vs önceki — Bayi Karlılık mantığı)
-  const bayiSeries = (name: string): number[] => {
+  const bayiSeries = (rows: ProductionLoan[], name: string): number[] => {
     const m = Array.from({ length: 12 }, () => 0);
-    for (const l of loans) {
+    for (const l of rows) {
       if (l.bayi === name) {
         m[l.ay - 1] += l.krediTutari;
       }
@@ -229,12 +241,13 @@ export function computeExec(
   };
   const topBayi = groupSum(loans, (l) => l.bayi, (l) => l.krediTutari)
     .map((b) => {
-      const aylik = bayiSeries(b.name);
+      const aylik = bayiSeries(cur, b.name);
       return {
         name: b.name,
         hacim: b.value,
         adet: loans.filter((l) => l.bayi === b.name).length,
         aylik,
+        aylikPrev: bayiSeries(prev, b.name),
         trend: trendOf(aylik),
       };
     })
@@ -481,12 +494,23 @@ export function Section({
   );
 }
 
-/** Mini sparkline (KPI kartı altı) — Recharts AreaChart. */
-export function Sparkline({ data, color }: { data: number[]; color: string }) {
-  const rows = data.map((v, i) => ({ i, v }));
+/** Mini sparkline — bu yıl (alan) + geçen yıl gölge çizgisi (Recharts ComposedChart). */
+export function Sparkline({ data, prev, color }: { data: number[]; prev?: number[]; color: string }) {
+  const rows = data.map((v, i) => ({ i, v, p: prev?.[i] ?? null }));
   return (
     <ResponsiveContainer height={22} width="100%">
-      <AreaChart data={rows} margin={{ top: 1, right: 0, bottom: 0, left: 0 }}>
+      <ComposedChart data={rows} margin={{ top: 1, right: 0, bottom: 0, left: 0 }}>
+        {prev ? (
+          <Line
+            dataKey="p"
+            dot={false}
+            isAnimationActive={false}
+            stroke="#cbd5e1"
+            strokeDasharray="2 2"
+            strokeWidth={1}
+            type="monotone"
+          />
+        ) : null}
         <Area
           dataKey="v"
           dot={false}
@@ -497,7 +521,7 @@ export function Sparkline({ data, color }: { data: number[]; color: string }) {
           strokeWidth={1.4}
           type="monotone"
         />
-      </AreaChart>
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }
