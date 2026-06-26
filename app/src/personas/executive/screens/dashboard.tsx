@@ -509,11 +509,11 @@ export function ExecutiveDashboard() {
                 <div className="flex flex-col gap-1">
                   <div>
                     <div className="mb-0.5 font-bold text-[8.5px] text-slate-500 uppercase">Bayi Health Score</div>
-                    <ScoreBars data={d.healthScores} height={92} />
+                    <ScoreBars data={d.healthScores.map((s) => ({ name: short(s.name), score: s.score }))} height={92} />
                   </div>
                   <div>
                     <div className="mb-0.5 font-bold text-[8.5px] text-slate-500 uppercase">Opportunity Score</div>
-                    <ScoreBars data={d.oppScores} height={92} />
+                    <ScoreBars data={d.oppScores.map((s) => ({ name: short(s.name), score: s.score }))} height={92} />
                   </div>
                 </div>
               </div>
