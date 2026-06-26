@@ -4,6 +4,16 @@
  * risk-watch, limits) türetilir; ekran (dashboard.tsx) bunları yerleştirir.
  */
 import type { ReactNode } from "react";
+import {
+  Bar,
+  BarChart,
+  Cell,
+  LabelList,
+  ResponsiveContainer,
+  Treemap,
+  XAxis,
+  YAxis,
+} from "recharts";
 import type { Application } from "@/data/applications";
 import type { LimitRow } from "@/data/limits";
 import type { ProductionLoan } from "@/data/production-loans";
@@ -43,13 +53,19 @@ const groupSum = <T,>(xs: T[], key: (x: T) => string, val: (x: T) => number) => 
 };
 
 // ------------------------------------------------------------------- tipler
+export interface WaterfallStep {
+  label: string;
+  value: number;
+  type: "total" | "up" | "down";
+}
+
 export interface ExecData {
   kpis: ExecKpi[];
   topBayi: { name: string; hacim: number; adet: number }[];
   hacimMaxBayi: number;
   dagilim: { title: string; rows: { name: string; pct: number }[] }[];
   funnel: { label: string; value: number; pct: number }[];
-  waterfall: { label: string; value: number; type: "total" | "down" }[];
+  waterfall: WaterfallStep[];
   trend: { ay: string; onay: number; kullandirim: number; tahsilat: number }[];
   kayiplar: { bayi: string; onay: number; kullandirim: number }[];
   karlilik: { label: string; value: number; net?: boolean }[];
@@ -435,6 +451,102 @@ export function Gauge({ value, label, sub, color }: { value: number; label: stri
       <span className="mt-0.5 text-center font-semibold text-[9.5px] text-slate-500 uppercase leading-tight">{label}</span>
       <span className="text-[9px] text-emerald-600">{sub}</span>
     </div>
+  );
+}
+
+/** Recharts waterfall — şeffaf taban barı + üstüne renkli delta (yüzen efekt). */
+export function WaterfallChart({
+  steps,
+  height = 110,
+  divisor = 1_000_000,
+  decimals = 0,
+}: {
+  steps: WaterfallStep[];
+  height?: number;
+  divisor?: number;
+  decimals?: number;
+}) {
+  let cum = 0;
+  const rows = steps.map((s) => {
+    if (s.type === "total") {
+      cum = s.value;
+      return { name: s.label, base: 0, bar: Math.abs(s.value), disp: s.value, fill: "#1e3a8a" };
+    }
+    const start = cum;
+    cum += s.value;
+    return {
+      name: s.label,
+      base: Math.min(start, cum),
+      bar: Math.abs(s.value),
+      disp: s.value,
+      fill: s.value >= 0 ? "#22c55e" : "#ef4444",
+    };
+  });
+  return (
+    <ResponsiveContainer height={height} width="100%">
+      <BarChart data={rows} margin={{ top: 14, right: 4, left: 4, bottom: 0 }}>
+        <XAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "#64748b", fontSize: 7.5 }} tickLine={false} />
+        <YAxis hide />
+        <Bar dataKey="base" fill="transparent" isAnimationActive={false} stackId="w" />
+        <Bar dataKey="bar" isAnimationActive={false} radius={[2, 2, 0, 0]} stackId="w">
+          {rows.map((r) => (
+            <Cell fill={r.fill} key={r.name} />
+          ))}
+          <LabelList
+            dataKey="disp"
+            formatter={(v) => trNum(Number(v) / divisor, decimals)}
+            position="top"
+            style={{ fill: "#475569", fontSize: 8, fontWeight: 700 }}
+          />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// --------------------------------------------------------------- TreemapMini
+const TM_PALETTE = ["#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#cbd5e1"];
+
+interface TreeCellProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  name?: string;
+  pct?: number;
+  index?: number;
+}
+
+function TreeCell({ x = 0, y = 0, width = 0, height = 0, name = "", pct = 0, index = 0 }: TreeCellProps) {
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+  const color = TM_PALETTE[index % TM_PALETTE.length];
+  const show = width > 26 && height > 12;
+  return (
+    <g>
+      <rect fill={color} height={height} stroke="#fff" strokeWidth={1} width={width} x={x} y={y} />
+      {show ? (
+        <text fill="#fff" fontSize={7.5} fontWeight={600} x={x + 3} y={y + 11}>
+          {name} %{trNum(pct, 1)}
+        </text>
+      ) : null}
+    </g>
+  );
+}
+
+/** Ağaç haritası (kredi tutarı payı). data: {name, value, pct}. */
+export function TreemapMini({
+  data,
+  height = 80,
+}: {
+  data: { name: string; value: number; pct: number }[];
+  height?: number;
+}) {
+  return (
+    <ResponsiveContainer height={height} width="100%">
+      <Treemap content={<TreeCell />} data={data} dataKey="value" isAnimationActive={false} stroke="#fff" />
+    </ResponsiveContainer>
   );
 }
 

@@ -32,10 +32,25 @@ import {
   ScoreRow,
   Section,
   Sparkline,
+  TreemapMini,
+  WaterfallChart,
+  type WaterfallStep,
 } from "../exec-kit";
 
 const NPL_SHADES = ["#dcfce7", "#fde68a", "#fb923c", "#ef4444", "#b91c1c"];
 const SCATTER_FILL: Record<string, string> = { high: "#16a34a", mid: "#f59e0b", low: "#ef4444" };
+
+/** Net karlılık kırılımındaki uzun etiketler waterfall ekseninde kısaltılır. */
+const KAR_SHORT: Record<string, string> = {
+  "Faiz Geliri": "Faiz",
+  "Dosya Masrafı": "Dosya",
+  "Komisyon Geliri": "Komisyon",
+  "Teşvik / İskonto": "Teşvik",
+  "Sigorta Maliyeti": "Sigorta",
+  "Ekspertiz Maliyeti": "Eksper.",
+  "Diğer Maliyetler": "Diğer",
+  "NET KARLILIK": "NET",
+};
 
 const FILTERS = [
   "Bölge", "İl", "Distribütör", "Marka", "Bayi", "Sektör", "Bireysel / Ticari",
@@ -60,6 +75,12 @@ export function ExecutiveDashboard() {
       </div>
     );
   }
+
+  const karlilikSteps: WaterfallStep[] = d.karlilik.map((k) => ({
+    label: KAR_SHORT[k.label] ?? k.label,
+    value: k.value,
+    type: k.net ? "total" : k.value >= 0 ? "up" : "down",
+  }));
 
   return (
     <div className="exec-shell min-h-screen overflow-auto bg-slate-200 py-5 print:bg-white print:py-0">
@@ -160,19 +181,17 @@ export function ExecutiveDashboard() {
                   </div>
                 ))}
               </div>
-              <div className="mt-2 font-semibold text-[9px] text-slate-400 uppercase">Hacim Dağılımı</div>
-              <div className="mt-1 grid grid-cols-3 gap-2">
+              <div className="mt-2 font-semibold text-[9px] text-slate-400 uppercase">
+                Hacim Dağılımı (Kredi Tutarı)
+              </div>
+              <div className="mt-1 grid grid-cols-3 gap-1.5">
                 {d.dagilim.map((col) => (
                   <div key={col.title}>
-                    <div className="mb-1 font-bold text-[8.5px] text-slate-500">{col.title}</div>
-                    <div className="flex flex-col gap-0.5">
-                      {col.rows.map((r) => (
-                        <div className="flex items-center justify-between gap-1" key={r.name}>
-                          <span className="truncate text-[8.5px] text-slate-600">{r.name}</span>
-                          <span className="font-semibold text-[8.5px] text-slate-700 tabular-nums">{fmtPct(r.pct, 1)}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <div className="mb-0.5 font-bold text-[8.5px] text-slate-500">{col.title}</div>
+                    <TreemapMini
+                      data={col.rows.map((r) => ({ name: r.name, pct: r.pct, value: r.pct }))}
+                      height={76}
+                    />
                   </div>
                 ))}
               </div>
@@ -200,7 +219,7 @@ export function ExecutiveDashboard() {
                 ))}
               </div>
               <div className="mt-2 font-semibold text-[9px] text-slate-400 uppercase">Hacim Kayıp Analizi (Mn)</div>
-              <Waterfall steps={d.waterfall} />
+              <WaterfallChart height={94} steps={d.waterfall} />
               <div className="mt-1.5 font-semibold text-[9px] text-slate-400 uppercase">Dönüşüm Oranları Trendi</div>
               <div className="h-[78px]">
                 <ResponsiveContainer height="100%" width="100%">
@@ -219,7 +238,7 @@ export function ExecutiveDashboard() {
             {/* 3. KARLILIK ANALİZİ */}
             <Section accent="#7c3aed" no={3} title="KARLILIK ANALİZİ">
               <div className="font-semibold text-[9px] text-slate-400 uppercase">Net Karlılık Kırılımı (Mn)</div>
-              <DivergingBars rows={d.karlilik} />
+              <WaterfallChart height={118} steps={karlilikSteps} />
               <div className="mt-1.5 grid grid-cols-2 gap-2">
                 <div>
                   <div className="font-semibold text-[9px] text-slate-400 uppercase">Faiz vs Net Karlılık</div>
@@ -415,71 +434,3 @@ function FilterPill({
   );
 }
 
-/** Mini waterfall (hacim kaybı). */
-function Waterfall({ steps }: { steps: { label: string; value: number; type: "total" | "down" }[] }) {
-  const maxV = Math.max(...steps.map((s) => Math.abs(s.value)));
-  let running = 0;
-  const H = 60;
-  return (
-    <div className="flex h-[72px] items-end justify-between gap-1">
-      {steps.map((s) => {
-        const mag = (Math.abs(s.value) / maxV) * H;
-        let topOffset = 0;
-        if (s.type === "total") {
-          running = s.value;
-          topOffset = H - mag;
-        } else {
-          const before = running;
-          running += s.value; // value negatif
-          topOffset = H - (before / maxV) * H;
-        }
-        const color = s.type === "total" ? "#1e3a8a" : "#ef4444";
-        return (
-          <div className="flex flex-1 flex-col items-center" key={s.label}>
-            <span className="mb-0.5 font-semibold text-[7.5px] text-slate-500 tabular-nums">
-              {(s.value / 1_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 0 })}
-            </span>
-            <div className="flex w-full items-end justify-center" style={{ height: H }}>
-              <div className="w-5 rounded-sm" style={{ height: mag, marginTop: topOffset, background: color }} />
-            </div>
-            <span className="mt-0.5 whitespace-pre text-center text-[7px] text-slate-400 leading-tight">{s.label}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Net karlılık kırılımı — merkezden iki yöne (yeşil + / kırmızı −). */
-function DivergingBars({ rows }: { rows: { label: string; value: number; net?: boolean }[] }) {
-  const maxV = Math.max(...rows.map((r) => Math.abs(r.value)));
-  return (
-    <div className="mt-1 flex flex-col gap-[3px]">
-      {rows.map((r) => {
-        const w = (Math.abs(r.value) / maxV) * 50;
-        const pos = r.value >= 0;
-        return (
-          <div className={`flex items-center gap-1 ${r.net ? "border-slate-200 border-t pt-1" : ""}`} key={r.label}>
-            <span className={`w-[88px] shrink-0 truncate text-[8.5px] ${r.net ? "font-bold text-slate-800" : "text-slate-600"}`}>
-              {r.label}
-            </span>
-            <div className="relative h-3 flex-1">
-              <div className="absolute top-0 bottom-0 left-1/2 w-px bg-slate-200" />
-              <div
-                className="absolute top-0 h-full rounded-sm"
-                style={{
-                  left: pos ? "50%" : `${50 - w}%`,
-                  width: `${w}%`,
-                  background: r.net ? "#15803d" : pos ? "#22c55e" : "#ef4444",
-                }}
-              />
-            </div>
-            <span className={`w-10 shrink-0 text-right text-[8.5px] tabular-nums ${r.net ? "font-bold text-slate-800" : "text-slate-600"}`}>
-              {(r.value / 1_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
