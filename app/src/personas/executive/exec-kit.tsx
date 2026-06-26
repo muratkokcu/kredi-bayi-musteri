@@ -73,7 +73,7 @@ export interface ExecData {
   topBayi: { name: string; hacim: number; adet: number; aylik: number[]; aylikPrev: number[]; trend: "up" | "down" | "flat" }[];
   hacimMaxBayi: number;
   bayiMomentum: { up: number; down: number; flat: number };
-  dagilim: { title: string; rows: { name: string; pct: number }[] }[];
+  dagilim: { title: string; rows: { name: string; pct: number; delta: number }[] }[];
   funnel: { label: string; value: number; pct: number }[];
   waterfall: WaterfallStep[];
   trend: { ay: string; onay: number; kullandirim: number; aktif: number; tahsilat: number }[];
@@ -259,13 +259,19 @@ export function computeExec(
   }
 
   // --- hacim dağılımı
+  const curTot = sum(cur, (l) => l.krediTutari) || 1;
+  const prevTot = sum(prev, (l) => l.krediTutari) || 1;
   const dist = (key: (l: ProductionLoan) => string, top: number) => {
     const g = groupSum(loans, key, (l) => l.krediTutari).sort((a, b) => b.value - a.value);
     const head = g.slice(0, top);
     const rest = g.slice(top).reduce((a, x) => a + x.value, 0);
-    const rows = head.map((x) => ({ name: x.name, pct: pct(x.value, hacim) }));
+    // pay değişimi (yp): 2025 payı − 2024 payı → kategori pay kazanıyor mu kaybediyor mu
+    const shareDelta = (name: string) =>
+      pct(sum(cur.filter((l) => key(l) === name), (l) => l.krediTutari), curTot) -
+      pct(sum(prev.filter((l) => key(l) === name), (l) => l.krediTutari), prevTot);
+    const rows = head.map((x) => ({ name: x.name, pct: pct(x.value, hacim), delta: shareDelta(x.name) }));
     if (rest > 0) {
-      rows.push({ name: "Diğer", pct: pct(rest, hacim) });
+      rows.push({ name: "Diğer", pct: pct(rest, hacim), delta: 0 });
     }
     return rows;
   };

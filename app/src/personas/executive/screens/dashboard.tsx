@@ -298,7 +298,12 @@ export function ExecutiveDashboard() {
                             style={{ background: NAVY[Math.min(i, NAVY.length - 1)] }}
                           >
                             <span className="block truncate text-[8px] text-white">{r.name}</span>
-                            <span className="absolute right-1.5 bottom-0.5 font-medium text-[8.5px] text-white tabular-nums">
+                            <span className="absolute right-1.5 bottom-0.5 flex items-center gap-0.5 font-medium text-[8.5px] text-white tabular-nums">
+                              {r.delta > 0.3 ? (
+                                <span className="text-emerald-300" title="Pay artıyor (vs geçen yıl)">▲</span>
+                              ) : r.delta < -0.3 ? (
+                                <span className="text-red-300" title="Pay azalıyor (vs geçen yıl)">▼</span>
+                              ) : null}
                               {fmtPct(r.pct, 1)}
                             </span>
                           </div>
