@@ -578,7 +578,7 @@ function FilterSelect({
     >
       <span className="shrink-0 font-semibold text-[9px] text-slate-400 uppercase">{label}</span>
       <Select onValueChange={onChange} value={value}>
-        <SelectTrigger className="ml-auto h-4 min-w-0 gap-1 border-0 bg-transparent p-0 font-semibold text-[10px] text-slate-700 shadow-none focus:ring-0 [&>svg]:size-3 [&>svg]:shrink-0 [&>svg]:text-slate-400">
+        <SelectTrigger className="ml-auto h-4! min-w-0 gap-1 border-0 bg-transparent p-0! font-semibold text-[10px] text-slate-700 shadow-none focus:ring-0 [&>svg]:size-3 [&>svg]:shrink-0 [&>svg]:text-slate-400">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="max-h-64">
