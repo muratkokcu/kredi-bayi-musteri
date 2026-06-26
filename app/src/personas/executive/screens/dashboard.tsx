@@ -143,29 +143,21 @@ export function ExecutiveDashboard() {
   }));
 
   return (
-    <div className="min-h-screen overflow-auto bg-white py-5 print:min-h-0 print:py-0">
+    <div className="min-h-screen overflow-auto bg-white print:min-h-0">
       {/* biome-ignore lint/style/noUnusedTemplateLiteral: print stylesheet */}
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 4mm; }
           html, body { background: #fff !important; }
-          .exec-print { zoom: 0.735; box-shadow: none !important; }
+          .exec-print { width: 1480px; zoom: 0.735; box-shadow: none !important; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}</style>
 
-      <button
-        className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg bg-[#0b2545] px-4 py-2 font-semibold text-[13px] text-white shadow-lg hover:bg-[#13315c] print:hidden"
-        onClick={() => window.print()}
-        type="button"
-      >
-        <Printer size={15} /> PDF / Yazdır (A4 Yatay)
-      </button>
-
-      <div className="mx-auto w-fit print:w-full">
-        <div className="exec-print flex w-[1480px] flex-col gap-2 bg-white p-3">
+      <div className="w-full">
+        <div className="exec-print flex w-full flex-col gap-2 bg-white">
           {/* Header */}
-          <header className="flex items-center justify-between rounded-lg bg-[#0b2545] px-4 py-2.5">
+          <header className="flex items-center justify-between bg-[#0b2545] px-4 py-2.5">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1 rounded-md bg-white px-2 py-1">
                 <span className="font-extrabold text-[15px] text-[#0b2545] italic tracking-tight">QUICK</span>
@@ -178,7 +170,16 @@ export function ExecutiveDashboard() {
                 <div className="font-medium text-[11px] text-sky-200 tracking-wide">OTO KREDİ FİNANSMAN</div>
               </div>
             </div>
-            <div className="text-right text-[11px] text-slate-300">Son Güncelleme: 20.05.2025 09:30</div>
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] text-slate-300">Son Güncelleme: 20.05.2025 09:30</span>
+              <button
+                className="flex items-center gap-1.5 rounded-md border border-white/25 bg-white/10 px-2.5 py-1.5 font-semibold text-[11px] text-white hover:bg-white/20 print:hidden"
+                onClick={() => window.print()}
+                type="button"
+              >
+                <Printer size={13} /> PDF / Yazdır
+              </button>
+            </div>
           </header>
 
           {/* Filtre çubuğu — fonksiyonel */}
