@@ -290,7 +290,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Aylık Üretim — Gerçekleşen vs Hedef">
           <ResponsiveContainer height="100%" width="100%">
-            <ComposedChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+            <ComposedChart data={aylik} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
               <XAxis
                 axisLine={false}
@@ -364,7 +364,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
 
         <ChartCard title="Bölge Kırılımı — Hacim">
           <ResponsiveContainer height="100%" width="100%">
-            <BarChart data={bolgeDag} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+            <BarChart data={bolgeDag} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
               <XAxis
                 axisLine={false}

@@ -258,7 +258,7 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Aylık Penetrasyon (QF & Sigorta)">
           <ResponsiveContainer height="100%" width="100%">
-            <LineChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+            <LineChart data={aylik} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
               <XAxis
                 axisLine={false}
@@ -295,7 +295,7 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
 
         <ChartCard title="Aylık Toplam vs Kredili Satış">
           <ResponsiveContainer height="100%" width="100%">
-            <ComposedChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+            <ComposedChart data={aylik} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
               <XAxis
                 axisLine={false}

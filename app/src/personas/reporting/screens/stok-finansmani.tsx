@@ -253,7 +253,7 @@ function Body({ rows }: { rows: StockLoan[] }) {
 
       <ChartCard className="mt-5" title="Aylık Açılan Spot Kredi">
         <ResponsiveContainer height="100%" width="100%">
-          <BarChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+          <BarChart data={aylik} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
             <CartesianGrid stroke="var(--color-line)" vertical={false} />
             <XAxis axisLine={false} dataKey="ay" tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickLine={false} />
             <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickFormatter={formatTRYCompact} tickLine={false} width={60} />

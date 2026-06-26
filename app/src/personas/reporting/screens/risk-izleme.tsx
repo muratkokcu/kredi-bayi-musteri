@@ -206,7 +206,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Gecikme Gün Kovaları">
           <ResponsiveContainer height="100%" width="100%">
-            <BarChart data={bucketDag} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+            <BarChart data={bucketDag} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
               <XAxis axisLine={false} dataKey="ay" tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickLine={false} />
               <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickLine={false} width={32} />
@@ -232,7 +232,7 @@ function Body({ rows }: { rows: RiskContract[] }) {
 
       <ChartCard className="mt-5" title="Bölge Bazında NPL Oranı">
         <ResponsiveContainer height="100%" width="100%">
-          <BarChart data={bolgeNpl} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+          <BarChart data={bolgeNpl} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
             <CartesianGrid stroke="var(--color-line)" vertical={false} />
             <XAxis axisLine={false} dataKey="name" tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickLine={false} />
             <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickFormatter={(v) => `%${v}`} tickLine={false} width={40} />

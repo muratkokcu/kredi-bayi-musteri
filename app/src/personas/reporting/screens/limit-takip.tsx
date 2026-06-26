@@ -209,7 +209,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Limit Türü — Toplam vs Kullanılan">
           <ResponsiveContainer height="100%" width="100%">
-            <BarChart data={byTur} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+            <BarChart data={byTur} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
               <XAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "var(--color-ink-muted)", fontSize: 10 }} tickLine={false} />
               <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickFormatter={formatTRYCompact} tickLine={false} width={60} />

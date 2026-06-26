@@ -351,7 +351,7 @@ function Body({ rows }: { rows: Application[] }) {
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ChartCard title="Aylık Başvuru vs Kullandırım">
           <ResponsiveContainer height="100%" width="100%">
-            <ComposedChart data={aylik} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+            <ComposedChart data={aylik} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
               <XAxis
                 axisLine={false}
