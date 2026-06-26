@@ -108,6 +108,7 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
   const [danisman, setDanisman] = useState(ALL);
   const [sektorMuduru, setSektorMuduru] = useState(ALL);
   const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [il, setIl] = useState(ALL);
   const [ilce, setIlce] = useState(ALL);
 
   const opts = useMemo(
@@ -120,6 +121,7 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
       danisman: uniq(rows.map((r) => r.danisman)),
       sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
       bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
+      il: uniq(rows.map((r) => r.il)),
       ilce: uniq(rows.map((r) => r.ilce)),
     }),
     [rows]
@@ -137,9 +139,10 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
           (danisman === ALL || r.danisman === danisman) &&
           (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
           (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi) &&
+          (il === ALL || r.il === il) &&
           (ilce === ALL || r.ilce === ilce)
       ),
-    [rows, yil, distributor, bolge, bayi, altSektor, danisman, sektorMuduru, bolgeYoneticisi, ilce]
+    [rows, yil, distributor, bolge, bayi, altSektor, danisman, sektorMuduru, bolgeYoneticisi, il, ilce]
   );
 
   const k = useMemo(() => {
@@ -195,6 +198,7 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
     setDanisman(ALL);
     setSektorMuduru(ALL);
     setBolgeYoneticisi(ALL);
+    setIl(ALL);
     setIlce(ALL);
   };
 
@@ -227,6 +231,7 @@ function Body({ rows }: { rows: DealerSalesRow[] }) {
           { key: "danisman", label: "Danışman", value: danisman, options: opts.danisman, onChange: setDanisman },
           { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
           { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+          { key: "il", label: "İl", value: il, options: opts.il, onChange: setIl, width: 120 },
           { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce },
         ]}
         onReset={reset}

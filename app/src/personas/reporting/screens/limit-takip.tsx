@@ -23,7 +23,7 @@ import { ReportingShell } from "../reporting-shell";
 
 const SHELL_PROPS = {
   breadcrumb: ["Raporlar", "Limit Takip"],
-  subtitle: "Grup/firma limitleri — tahsis, kullanım ve garantörlük.",
+  subtitle: "Grup/firma limitleri — tahsis, kullanım ve Şahsi Kefalet.",
   title: "Limit Takip",
 } as const;
 
@@ -39,6 +39,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
   const [altSektor, setAltSektor] = useState(ALL);
   const [sektorMuduru, setSektorMuduru] = useState(ALL);
   const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [il, setIl] = useState(ALL);
   const [ilce, setIlce] = useState(ALL);
   const [garantorluk, setGarantorluk] = useState(ALL);
 
@@ -53,6 +54,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
       altSektor: uniq(rows.map((r) => r.altSektor)),
       sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
       bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
+      il: uniq(rows.map((r) => r.il)),
       ilce: uniq(rows.map((r) => r.ilce)),
       garantorluk: uniq(rows.map((r) => r.garantorluk)),
     }),
@@ -72,10 +74,11 @@ function Body({ rows }: { rows: LimitRow[] }) {
           (altSektor === ALL || r.altSektor === altSektor) &&
           (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
           (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi) &&
+          (il === ALL || r.il === il) &&
           (ilce === ALL || r.ilce === ilce) &&
           (garantorluk === ALL || r.garantorluk === garantorluk)
       ),
-    [rows, yil, distributor, bolge, bayi, grup, limitTuru, altSektor, sektorMuduru, bolgeYoneticisi, ilce, garantorluk]
+    [rows, yil, distributor, bolge, bayi, grup, limitTuru, altSektor, sektorMuduru, bolgeYoneticisi, il, ilce, garantorluk]
   );
 
   const k = useMemo(() => {
@@ -142,6 +145,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
     setAltSektor(ALL);
     setSektorMuduru(ALL);
     setBolgeYoneticisi(ALL);
+    setIl(ALL);
     setIlce(ALL);
     setGarantorluk(ALL);
   };
@@ -152,7 +156,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
         "Grup", "Distribütör", "Bölge", "İl", "İlçe", "Bayi", "Alt Sektör",
         "Sektör Müdürü", "Bölge Yöneticisi", "Limit Türü", "Toplam Limit",
         "Kullanılan Limit", "Kullanılabilir Limit", "Revize Tarihi",
-        "Garantörlük", "Garantörlük Tutarı",
+        "Şahsi Kefalet", "Şahsi Kefalet Tutarı",
       ],
       f.map((r) => [
         r.grupAdi, r.distributor, r.bolge, r.il, r.ilce, r.bayi, r.altSektor,
@@ -175,8 +179,9 @@ function Body({ rows }: { rows: LimitRow[] }) {
           { key: "altSektor", label: "Alt Sektör", value: altSektor, options: opts.altSektor, onChange: setAltSektor },
           { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
           { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+          { key: "il", label: "İl", value: il, options: opts.il, onChange: setIl, width: 120 },
           { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce },
-          { key: "garantorluk", label: "Garantörlük", value: garantorluk, options: opts.garantorluk, onChange: setGarantorluk, width: 120 },
+          { key: "garantorluk", label: "Şahsi Kefalet", value: garantorluk, options: opts.garantorluk, onChange: setGarantorluk, width: 120 },
         ]}
         onReset={reset}
         right={
@@ -282,7 +287,7 @@ function Body({ rows }: { rows: LimitRow[] }) {
                 <SortTh align="right" k="kullanilanLimit" label="Kullanılan" sort={detSort} />
                 <SortTh align="right" k="kullanilabilirLimit" label="Kullanılabilir" sort={detSort} />
                 <SortTh k="revizeTarihi" label="Revize" sort={detSort} />
-                <SortTh k="garantorluk" label="Garantörlük" sort={detSort} />
+                <SortTh k="garantorluk" label="Şahsi Kefalet" sort={detSort} />
               </tr>
             </thead>
             <tbody>

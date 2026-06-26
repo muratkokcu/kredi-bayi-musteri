@@ -88,6 +88,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
   const [danisman, setDanisman] = useState(ALL);
   const [sektorMuduru, setSektorMuduru] = useState(ALL);
   const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [il, setIl] = useState(ALL);
   const [ilce, setIlce] = useState(ALL);
 
   const opts = useMemo(
@@ -102,6 +103,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       danisman: uniq(rows.map((r) => r.danisman)),
       sektorMuduru: uniq(rows.map((r) => r.sektorMuduru)),
       bolgeYoneticisi: uniq(rows.map((r) => r.bolgeYoneticisi)),
+      il: uniq(rows.map((r) => r.il)),
       ilce: uniq(rows.map((r) => r.ilce)),
     }),
     [rows]
@@ -121,6 +123,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           (danisman === ALL || r.danisman === danisman) &&
           (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
           (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi) &&
+          (il === ALL || r.il === il) &&
           (ilce === ALL || r.ilce === ilce)
       ),
     [
@@ -135,6 +138,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
       danisman,
       sektorMuduru,
       bolgeYoneticisi,
+      il,
       ilce,
     ]
   );
@@ -216,6 +220,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
     setDanisman(ALL);
     setSektorMuduru(ALL);
     setBolgeYoneticisi(ALL);
+    setIl(ALL);
     setIlce(ALL);
   };
 
@@ -253,6 +258,7 @@ function ProductionBody({ rows }: { rows: ProductionLoan[] }) {
           { key: "danisman", label: "Danışman", value: danisman, options: opts.danisman, onChange: setDanisman },
           { key: "sektorMuduru", label: "Sektör Müdürü", value: sektorMuduru, options: opts.sektorMuduru, onChange: setSektorMuduru },
           { key: "bolgeYoneticisi", label: "Bölge Yöneticisi", value: bolgeYoneticisi, options: opts.bolgeYoneticisi, onChange: setBolgeYoneticisi },
+          { key: "il", label: "İl", value: il, options: opts.il, onChange: setIl, width: 120 },
           { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce },
         ]}
         onReset={reset}

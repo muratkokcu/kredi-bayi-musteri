@@ -19,6 +19,7 @@ export interface MissingDoc {
   evrakTuru: string;
   hataTuru: string;
   il: string;
+  ilce: string;
   musteriTedarikci: string;
   sektorMuduru: string;
   sozlesmeNo: string;
@@ -134,6 +135,7 @@ function generate(): MissingDoc[] {
       evrakTuru: pick(r, cfg.evrak),
       hataTuru: weighted(r, HATA, HATA_W),
       il,
+      ilce: o.ilce,
       musteriTedarikci: partyFor(tur, r, bayi),
       sektorMuduru: o.sektorMuduru,
       sozlesmeNo: `SZ-${300000 + i}`,

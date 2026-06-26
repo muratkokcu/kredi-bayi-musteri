@@ -35,6 +35,17 @@ function countBy(rows: MissingDoc[], key: "hataTuru" | "evrakTuru" | "bayi") {
   return [...m.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 }
 
+/** Uzun evrak adlarını grafik ekseninde kısaltır (tekrar eden "Sözleşmesi" vb. atılır). */
+function kisaltEvrak(s: string): string {
+  return s
+    .replace(/ Sözleşmesi$/, "")
+    .replace(/ Sözleşme$/, "")
+    .replace(/ Evrakı$/, "")
+    .replace(/ Taahhütnamesi$/, " Taahhüt")
+    .replace(/ Aydınlatma Metni$/, " Aydınlatma")
+    .replace(/ Protokolü$/, " Protokol");
+}
+
 function Body({ rows }: { rows: MissingDoc[] }) {
   const [tur, setTur] = useState(ALL);
   const [sozlesmeTuru, setSozlesmeTuru] = useState(ALL);
@@ -46,6 +57,8 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const [danisman, setDanisman] = useState(ALL);
   const [sektorMuduru, setSektorMuduru] = useState(ALL);
   const [bolgeYoneticisi, setBolgeYoneticisi] = useState(ALL);
+  const [il, setIl] = useState(ALL);
+  const [ilce, setIlce] = useState(ALL);
 
   const opts = useMemo(
     () => ({
@@ -53,6 +66,8 @@ function Body({ rows }: { rows: MissingDoc[] }) {
       sozlesmeTuru: uniq(rows.map((r) => r.sozlesmeTuru)),
       distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
+      il: uniq(rows.map((r) => r.il)),
+      ilce: uniq(rows.map((r) => r.ilce)),
       bayi: uniq(rows.map((r) => r.bayi)),
       hata: uniq(rows.map((r) => r.hataTuru)),
       altSektor: uniq(rows.map((r) => r.altSektor)),
@@ -71,6 +86,8 @@ function Body({ rows }: { rows: MissingDoc[] }) {
           (sozlesmeTuru === ALL || r.sozlesmeTuru === sozlesmeTuru) &&
           (distributor === ALL || r.distributor === distributor) &&
           (bolge === ALL || r.bolge === bolge) &&
+          (il === ALL || r.il === il) &&
+          (ilce === ALL || r.ilce === ilce) &&
           (bayi === ALL || r.bayi === bayi) &&
           (hata === ALL || r.hataTuru === hata) &&
           (altSektor === ALL || r.altSektor === altSektor) &&
@@ -78,7 +95,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
           (sektorMuduru === ALL || r.sektorMuduru === sektorMuduru) &&
           (bolgeYoneticisi === ALL || r.bolgeYoneticisi === bolgeYoneticisi)
       ),
-    [rows, tur, sozlesmeTuru, distributor, bolge, bayi, hata, altSektor, danisman, sektorMuduru, bolgeYoneticisi]
+    [rows, tur, sozlesmeTuru, distributor, bolge, il, ilce, bayi, hata, altSektor, danisman, sektorMuduru, bolgeYoneticisi]
   );
 
   const hataDag = useMemo(() => countBy(f, "hataTuru"), [f]);
@@ -110,6 +127,8 @@ function Body({ rows }: { rows: MissingDoc[] }) {
     setDanisman(ALL);
     setSektorMuduru(ALL);
     setBolgeYoneticisi(ALL);
+    setIl(ALL);
+    setIlce(ALL);
   };
   const exportCsv = () =>
     downloadCsv(
@@ -125,6 +144,8 @@ function Body({ rows }: { rows: MissingDoc[] }) {
           { key: "tur", label: "Tür", value: tur, options: opts.tur, onChange: setTur, width: 140 },
           { key: "bolge", label: "Bölge", value: bolge, options: opts.bolge, onChange: setBolge },
           { key: "bayi", label: "Bayi", value: bayi, options: opts.bayi, onChange: setBayi },
+          { key: "il", label: "İl", value: il, options: opts.il, onChange: setIl, width: 120 },
+          { key: "ilce", label: "İlçe", value: ilce, options: opts.ilce, onChange: setIlce, width: 120 },
           { key: "sozlesmeTuru", label: "Sözleşme Türü", value: sozlesmeTuru, options: opts.sozlesmeTuru, onChange: setSozlesmeTuru, width: 150 },
           { key: "hata", label: "Hata Türü", value: hata, options: opts.hata, onChange: setHata, width: 170 },
           { key: "distributor", label: "Distribütör", value: distributor, options: opts.distributor, onChange: setDistributor },
@@ -184,7 +205,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={evrakDag} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
             <CartesianGrid stroke="var(--color-line)" vertical={false} />
-            <XAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "var(--color-ink-muted)", fontSize: 10 }} tickLine={false} />
+            <XAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "var(--color-ink-muted)", fontSize: 10 }} tickFormatter={kisaltEvrak} tickLine={false} />
             <YAxis axisLine={false} tick={{ fill: "var(--color-ink-muted)", fontSize: 11 }} tickLine={false} width={32} />
             <Tooltip formatter={(v) => `${formatNumber(Number(v) || 0)} kayıt`} />
             <Bar dataKey="value" fill="var(--color-bank)" radius={[4, 4, 0, 0]}>
