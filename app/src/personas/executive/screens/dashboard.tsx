@@ -241,7 +241,7 @@ export function ExecutiveDashboard() {
                   {k.up ? "▲" : "▼"} {k.delta}
                 </div>
                 <div className="mt-1">
-                  <Sparkline color={k.accent} data={k.spark} prev={k.sparkPrev} />
+                  <Sparkline color={k.accent} data={k.spark} />
                 </div>
               </div>
             ))}
@@ -262,7 +262,7 @@ export function ExecutiveDashboard() {
                 <div className="flex w-[46px] flex-col justify-around py-1">
                   {d.topBayi.map((b) => (
                     <div className="flex justify-center" key={b.name}>
-                      <MiniSpark data={b.aylik} prev={b.aylikPrev} trend={b.trend} />
+                      <MiniSpark data={b.aylik} trend={b.trend} />
                     </div>
                   ))}
                 </div>
