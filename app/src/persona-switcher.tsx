@@ -24,7 +24,7 @@ export function PersonaSwitcher() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-1 rounded-full border border-line-strong bg-surface/95 p-1 shadow-[0_8px_24px_rgba(15,23,42,0.16)] backdrop-blur">
+    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-1 rounded-full border border-line-strong bg-surface/95 p-1 shadow-[0_8px_24px_rgba(15,23,42,0.16)] backdrop-blur print:hidden">
       <span className="px-2 font-semibold text-[10px] text-ink-muted uppercase tracking-wide">
         Demo
       </span>

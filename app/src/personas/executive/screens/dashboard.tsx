@@ -62,24 +62,22 @@ export function ExecutiveDashboard() {
   }
 
   return (
-    <div className="min-h-screen overflow-auto bg-slate-200 py-5">
-      {/* eslint-disable-next-line react/no-unknown-property */}
+    <div className="exec-shell min-h-screen overflow-auto bg-slate-200 py-5 print:bg-white print:py-0">
+      {/* biome-ignore lint/style/noUnusedTemplateLiteral: print stylesheet */}
       <style>{`
         @media print {
-          @page { size: A4 landscape; margin: 0; }
+          @page { size: A4 landscape; margin: 4mm; }
           html, body { background: #fff !important; }
-          body * { visibility: hidden; }
-          .exec-print, .exec-print * { visibility: visible; }
-          .exec-print { position: absolute; left: 0; top: 0; transform: scale(0.757); transform-origin: top left; box-shadow: none !important; }
-          .exec-noprint { display: none !important; }
-          .exec-print { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .exec-shell { min-height: 0 !important; }
+          .exec-print { zoom: 0.735; box-shadow: none !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}</style>
 
-      <div className="mx-auto w-fit">
-        <div className="mb-2 flex justify-end">
+      <div className="mx-auto w-fit print:w-full">
+        <div className="mb-2 flex justify-end print:hidden">
           <button
-            className="exec-noprint flex items-center gap-2 rounded-lg bg-[#0b2545] px-4 py-2 font-semibold text-[13px] text-white shadow hover:bg-[#13315c]"
+            className="flex items-center gap-2 rounded-lg bg-[#0b2545] px-4 py-2 font-semibold text-[13px] text-white shadow hover:bg-[#13315c]"
             onClick={() => window.print()}
             type="button"
           >
@@ -87,10 +85,7 @@ export function ExecutiveDashboard() {
           </button>
         </div>
 
-        <div
-          className="exec-print flex w-[1480px] flex-col gap-2 bg-slate-100 p-3 shadow-[0_10px_40px_rgba(2,12,40,0.25)]"
-          style={{ ["-webkit-print-color-adjust" as string]: "exact" }}
-        >
+        <div className="exec-print flex w-[1480px] flex-col gap-2 bg-slate-100 p-3 shadow-[0_10px_40px_rgba(2,12,40,0.25)]">
           {/* ---------------- Header ---------------- */}
           <header className="flex items-center justify-between rounded-lg bg-[#0b2545] px-4 py-2.5">
             <div className="flex items-center gap-3">
