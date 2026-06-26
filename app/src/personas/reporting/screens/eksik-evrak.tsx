@@ -50,7 +50,7 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const opts = useMemo(
     () => ({
       tur: uniq(rows.map((r) => r.tur)),
-      sozlesmeTuru: uniq(rows.map((r) => r.sozlesmeTuru)).filter((x) => x !== "—"),
+      sozlesmeTuru: uniq(rows.map((r) => r.sozlesmeTuru)),
       distributor: uniq(rows.map((r) => r.distributor)),
       bolge: uniq(rows.map((r) => r.bolge)),
       bayi: uniq(rows.map((r) => r.bayi)),
@@ -89,8 +89,10 @@ function Body({ rows }: { rows: MissingDoc[] }) {
   const k = useMemo(
     () => ({
       toplam: f.length,
-      tuketici: f.filter((r) => r.tur === "Tüketici/Bayi").length,
-      stok: f.filter((r) => r.tur === "Stok/Filo").length,
+      tuketici: f.filter((r) => r.tur === "Tüketici").length,
+      bayi: f.filter((r) => r.tur === "Bayi").length,
+      stok: f.filter((r) => r.tur === "Stok").length,
+      filo: f.filter((r) => r.tur === "Filo").length,
       enSikHata: hataDag[0]?.name ?? "—",
       etkilenenBayi: new Set(f.map((r) => r.bayi)).size,
     }),
@@ -146,8 +148,10 @@ function Body({ rows }: { rows: MissingDoc[] }) {
       <KpiStrip
         items={[
           { label: "Toplam Eksik Evrak", value: formatNumber(k.toplam), sub: "Filtreli" },
-          { label: "Tüketici / Bayi", value: formatNumber(k.tuketici), sub: "Kayıt" },
-          { label: "Stok / Filo", value: formatNumber(k.stok), sub: "Kayıt" },
+          { label: "Tüketici", value: formatNumber(k.tuketici), sub: "Kayıt" },
+          { label: "Bayi", value: formatNumber(k.bayi), sub: "Kayıt" },
+          { label: "Stok", value: formatNumber(k.stok), sub: "Kayıt" },
+          { label: "Filo", value: formatNumber(k.filo), sub: "Kayıt" },
           { label: "En Sık Hata", value: k.enSikHata, sub: "Tür" },
           { label: "Etkilenen Bayi", value: formatNumber(k.etkilenenBayi), sub: "Adet" },
         ]}
