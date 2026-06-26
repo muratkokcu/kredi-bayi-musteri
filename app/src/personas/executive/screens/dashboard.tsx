@@ -142,7 +142,7 @@ export function ExecutiveDashboard() {
   }));
 
   return (
-    <div className="min-h-screen overflow-auto bg-slate-200 py-5 print:min-h-0 print:bg-white print:py-0">
+    <div className="min-h-screen overflow-auto bg-white py-5 print:min-h-0 print:py-0">
       {/* biome-ignore lint/style/noUnusedTemplateLiteral: print stylesheet */}
       <style>{`
         @media print {
@@ -162,7 +162,7 @@ export function ExecutiveDashboard() {
       </button>
 
       <div className="mx-auto w-fit print:w-full">
-        <div className="exec-print flex w-[1480px] flex-col gap-2 bg-slate-100 p-3 shadow-[0_10px_40px_rgba(2,12,40,0.25)]">
+        <div className="exec-print flex w-[1480px] flex-col gap-2 bg-white p-3">
           {/* Header */}
           <header className="flex items-center justify-between rounded-lg bg-[#0b2545] px-4 py-2.5">
             <div className="flex items-center gap-3">
