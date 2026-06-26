@@ -250,16 +250,29 @@ export function ExecutiveDashboard() {
             <Section accent="#1d4ed8" icon={BarChart3} title="HACİM ANALİZİ">
               <div className="flex items-center justify-between font-semibold text-[9px] text-slate-400 uppercase">
                 <span>Top Bayi — Kredi Tutarı (Mn)</span>
-                <span>Adet</span>
+                <span>Adet · Trend</span>
               </div>
               <div className="flex">
                 <div className="min-w-0 flex-1">
                   <HBars data={topBayiData} format={(v) => fmtMn(v * 1_000_000, 0)} height={138} labelWidth={74} />
                 </div>
-                <div className="flex w-8 flex-col justify-around py-1 text-right">
+                <div className="flex w-7 flex-col justify-around py-1 text-right">
                   {d.topBayi.map((b) => (
                     <span className="font-semibold text-[8.5px] text-slate-500 tabular-nums" key={b.name}>
                       {b.adet}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex w-3.5 flex-col items-center justify-around py-1">
+                  {d.topBayi.map((b) => (
+                    <span
+                      className={`font-bold text-[10px] leading-none ${
+                        b.trend === "up" ? "text-emerald-600" : b.trend === "down" ? "text-red-500" : "text-slate-300"
+                      }`}
+                      key={b.name}
+                      title={b.trend === "up" ? "Yükselen (momentum)" : b.trend === "down" ? "Düşüşte (momentum)" : "Sabit"}
+                    >
+                      {b.trend === "up" ? "▲" : b.trend === "down" ? "▼" : "—"}
                     </span>
                   ))}
                 </div>
@@ -545,6 +558,12 @@ export function ExecutiveDashboard() {
 
             {/* 6. EXECUTIVE ALERTS & SKORLAR */}
             <Section accent="#0f172a" icon={Bell} title="YÖNETİCİ UYARILARI & BAYİ SKORLARI">
+              <div className="mb-1.5 flex items-center gap-3 rounded-md bg-slate-50 px-2 py-1 text-[9px]">
+                <span className="font-bold text-slate-500 uppercase tracking-wide">Bayi Momentum (Son Çeyrek)</span>
+                <span className="font-bold text-emerald-600">▲ {d.bayiMomentum.up} Yükselen</span>
+                <span className="font-bold text-red-500">▼ {d.bayiMomentum.down} Düşüşte</span>
+                <span className="font-bold text-slate-400">— {d.bayiMomentum.flat} Sabit</span>
+              </div>
               <div className="grid grid-cols-[1.35fr_1fr_1fr] gap-2">
                 {/* Executive Alerts */}
                 <div>

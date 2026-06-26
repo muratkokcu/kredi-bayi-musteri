@@ -69,8 +69,9 @@ export interface WaterfallStep {
 
 export interface ExecData {
   kpis: ExecKpi[];
-  topBayi: { name: string; hacim: number; adet: number }[];
+  topBayi: { name: string; hacim: number; adet: number; trend: "up" | "down" | "flat" }[];
   hacimMaxBayi: number;
+  bayiMomentum: { up: number; down: number; flat: number };
   dagilim: { title: string; rows: { name: string; pct: number }[] }[];
   funnel: { label: string; value: number; pct: number }[];
   waterfall: WaterfallStep[];
@@ -208,11 +209,34 @@ export function computeExec(
     { label: "NET KARLILIK", value: fmtMn(net, 1), unit: "Milyon TL", delta: `${trNum(Math.abs(netYoY), 1)}%`, up: netYoY >= 0, accent: "#15803d", spark: sparkHacim.map((h) => h * 0.04) },
   ];
 
-  // --- Top bayi
+  // --- Top bayi (+ bayi momentumu: son çeyrek ort. vs önceki çeyrek — Bayi Karlılık ile aynı mantık)
+  const bayiTrend = (name: string): "up" | "down" | "flat" => {
+    const m = Array.from({ length: 12 }, () => 0);
+    for (const l of loans) {
+      if (l.bayi === name) {
+        m[l.ay - 1] += l.krediTutari;
+      }
+    }
+    const prior = (m[6] + m[7] + m[8]) / 3;
+    if (prior === 0) {
+      return "flat";
+    }
+    const ch = (m[9] + m[10] + m[11]) / 3 / prior - 1;
+    return ch > 0.05 ? "up" : ch < -0.05 ? "down" : "flat";
+  };
   const topBayi = groupSum(loans, (l) => l.bayi, (l) => l.krediTutari)
-    .map((b) => ({ name: b.name, hacim: b.value, adet: loans.filter((l) => l.bayi === b.name).length }))
+    .map((b) => ({
+      name: b.name,
+      hacim: b.value,
+      adet: loans.filter((l) => l.bayi === b.name).length,
+      trend: bayiTrend(b.name),
+    }))
     .sort((a, b) => b.hacim - a.hacim);
   const hacimMaxBayi = Math.max(...topBayi.map((b) => b.hacim), 1);
+  const bayiMomentum = { up: 0, down: 0, flat: 0 };
+  for (const b of topBayi) {
+    bayiMomentum[b.trend] += 1;
+  }
 
   // --- hacim dağılımı
   const dist = (key: (l: ProductionLoan) => string, top: number) => {
@@ -416,7 +440,7 @@ export function computeExec(
   ];
 
   return {
-    kpis, topBayi, hacimMaxBayi, dagilim, funnel, waterfall, trend, kayiplar,
+    kpis, topBayi, hacimMaxBayi, bayiMomentum, dagilim, funnel, waterfall, trend, kayiplar,
     karlilik, scatter, etkinlik, riskKpi, nplByRegion, krediPenet, sigortaPenet,
     krediPenetDelta: penetYoY, sigortaPenetDelta: sigortaYoY, penetTrend,
     limitBars, limitAsiri, alerts, healthScores, oppScores,
