@@ -136,10 +136,8 @@ export function ExecutiveDashboard() {
     fill: FUNNEL_COLORS[i],
   }));
   const topBayiData = d.topBayi.map((b) => ({ name: short(b.name), value: b.hacim / 1_000_000 }));
-  const fx = d.scatter.map((s) => s.faiz);
-  const faizDomain: [number, number] = fx.length
-    ? [Math.min(...fx) - 0.1, Math.max(...fx) + 0.1]
-    : [2, 4];
+  const rx = d.scatter.map((s) => s.risk);
+  const riskDomain: [number, number] = [0, (rx.length ? Math.max(...rx) : 8) * 1.15 || 10];
   const riskData = d.riskKpi.map((r) => ({
     name: r.label,
     value: (r.gercek / r.hedef) * 100,
@@ -398,11 +396,11 @@ export function ExecutiveDashboard() {
                 </div>
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[9px] text-slate-400 uppercase">Faiz vs Net Karlılık</span>
+                    <span className="font-semibold text-[9px] text-slate-400 uppercase">Risk × Getiri (Bayi)</span>
                     <span className="flex gap-1.5 text-[7px] text-slate-500">
-                      <Dot c="#16a34a" t="Yüksek" />
-                      <Dot c="#f59e0b" t="Orta" />
-                      <Dot c="#ef4444" t="Düşük" />
+                      <Dot c="#16a34a" t="İdeal" />
+                      <Dot c="#f59e0b" t="İzle" />
+                      <Dot c="#ef4444" t="Riskli" />
                     </span>
                   </div>
                   <div className="text-[7px] text-slate-400">Net Karlılık (Mn)</div>
@@ -410,25 +408,29 @@ export function ExecutiveDashboard() {
                     <ScatterChart margin={{ top: 2, right: 8, left: -14, bottom: 14 }}>
                       <CartesianGrid stroke="#eef2f7" />
                       <XAxis
-                        dataKey="faiz"
-                        domain={faizDomain}
-                        label={{ value: "Ortalama Faiz (%)", position: "insideBottom", offset: -8, fontSize: 7.5, fill: "#94a3b8" }}
+                        dataKey="risk"
+                        domain={riskDomain}
+                        label={{ value: "NPL / Gecikme (%)", position: "insideBottom", offset: -8, fontSize: 7.5, fill: "#94a3b8" }}
                         tick={{ fill: "#94a3b8", fontSize: 8 }}
-                        tickFormatter={(v) => `%${v.toFixed(1)}`}
+                        tickFormatter={(v) => `%${v.toFixed(0)}`}
                         tickLine={false}
                         type="number"
                       />
                       <YAxis dataKey="net" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} width={26} />
                       <ZAxis dataKey="hacim" range={[16, 120]} type="number" />
+                      <ReferenceLine stroke="#cbd5e1" strokeDasharray="3 3" x={d.scatterMed.risk} />
+                      <ReferenceLine stroke="#cbd5e1" strokeDasharray="3 3" y={d.scatterMed.net} />
                       <Tooltip content={<ScatterTip />} cursor={{ stroke: "#94a3b8", strokeDasharray: "3 3" }} />
                       <Scatter data={d.scatter}>
                         {d.scatter.map((s) => (
-                          <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.68} key={s.name} stroke="#fff" strokeWidth={0.7} />
+                          <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.7} key={s.name} stroke="#fff" strokeWidth={0.7} />
                         ))}
                       </Scatter>
                     </ScatterChart>
                   </ResponsiveContainer>
-                  <div className="text-[7px] text-slate-400 italic">*Balon büyüklüğü: Kredi Tutarı</div>
+                  <div className="text-[7px] text-slate-400 italic">
+                    *Balon: Kredi Tutarı · sol-üst çeyrek = düşük risk/yüksek getiri
+                  </div>
                 </div>
               </div>
               <div className="mt-1 font-semibold text-[9px] text-slate-400 uppercase">Karlılık Etkinlik Göstergeleri</div>
@@ -679,22 +681,23 @@ function ScatterTip({
   payload,
 }: {
   active?: boolean;
-  payload?: { payload: { name: string; faiz: number; net: number; hacim: number; tier: string } }[];
+  payload?: { payload: { name: string; risk: number; net: number; hacim: number; tier: string } }[];
 }) {
   if (!active || !payload?.length) {
     return null;
   }
   const p = payload[0].payload;
-  const tierLabel = p.tier === "high" ? "Yüksek" : p.tier === "mid" ? "Orta" : "Düşük";
+  const tierLabel =
+    p.tier === "high" ? "İdeal (düşük risk / yüksek getiri)" : p.tier === "low" ? "Riskli (yüksek risk / düşük getiri)" : "İzle (orta)";
   return (
     <div className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[8.5px] shadow-md">
       <div className="font-bold text-slate-700">{p.name}</div>
       <div className="flex items-center gap-1 text-slate-500">
         <span className="size-1.5 rounded-full" style={{ background: SCATTER_FILL[p.tier] }} />
-        {tierLabel} karlılık
+        {tierLabel}
       </div>
       <div className="mt-0.5 text-slate-500">
-        Ort. Faiz: <b className="text-slate-700">%{p.faiz.toFixed(2)}</b>
+        Risk (NPL): <b className="text-slate-700">%{p.risk.toFixed(1)}</b>
       </div>
       <div className="text-slate-500">
         Net Karlılık: <b className="text-slate-700">{p.net.toFixed(1)} Mn</b>

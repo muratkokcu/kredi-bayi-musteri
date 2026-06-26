@@ -79,7 +79,8 @@ export interface ExecData {
   trend: { ay: string; onay: number; kullandirim: number; aktif: number; tahsilat: number }[];
   kayiplar: { bayi: string; onay: number; kullandirim: number }[];
   karlilik: { label: string; value: number; net?: boolean }[];
-  scatter: { name: string; faiz: number; net: number; hacim: number; tier: string }[];
+  scatter: { name: string; risk: number; net: number; hacim: number; tier: string }[];
+  scatterMed: { risk: number; net: number };
   etkinlik: { label: string; value: string; delta: string; up: boolean }[];
   riskKpi: { label: string; hedef: number; gercek: number; unit: string; bad: boolean }[];
   nplByRegion: Record<Bolge, number>;
@@ -351,31 +352,32 @@ export function computeExec(
     { label: "NET KARLILIK", value: net, net: true },
   ];
 
-  // --- scatter (bayi × segment: faiz vs net karlılık) — zengin nokta dağılımı, tier göreli
-  const segMenu = [...new Set(loans.map((l) => l.segment))];
-  const scatterRaw: { name: string; faiz: number; net: number; hacim: number; ratio: number }[] = [];
-  for (const b of topBayi) {
-    for (const seg of segMenu) {
-      const ls = loans.filter((l) => l.bayi === b.name && l.segment === seg);
-      if (ls.length < 3) {
-        continue;
-      }
-      const f = avg(ls, (l) => l.faiz);
-      const hac = sum(ls, (l) => l.krediTutari);
-      const n =
-        (sum(ls, (l) => (l.krediTutari * (l.faiz / 100) * l.vade) / 12 * 0.45) -
-          sum(ls, (l) => l.tesvik)) /
-        1_000_000;
-      scatterRaw.push({ name: `${b.name} · ${seg}`, faiz: f, net: n, hacim: hac, ratio: pct(n * 1_000_000, hac) });
-    }
-  }
-  const ranked = [...scatterRaw].sort((a, b) => b.ratio - a.ratio).map((r) => r.name);
-  const third = Math.ceil(ranked.length / 3) || 1;
-  const scatter = scatterRaw.map((s) => {
-    const rank = ranked.indexOf(s.name);
-    const tier = rank < third ? "high" : rank < third * 2 ? "mid" : "low";
-    return { name: s.name, faiz: s.faiz, net: s.net, hacim: s.hacim, tier };
+  // --- scatter: Risk × Getiri (bayi) — X: NPL/gecikme oranı, Y: net karlılık (Mn), boyut: hacim
+  const scatterRaw = topBayi.map((b) => {
+    const ls = loans.filter((l) => l.bayi === b.name);
+    const n =
+      (sum(ls, (l) => (l.krediTutari * (l.faiz / 100) * l.vade) / 12 * 0.45) -
+        sum(ls, (l) => l.tesvik)) /
+      1_000_000;
+    const rr = risks.filter((r) => r.bayi === b.name);
+    const bal = sum(rr, (r) => r.kalanBakiye) || 1;
+    const risk = pct(sum(rr.filter((r) => r.gecikmeGun >= 90), (r) => r.kalanBakiye), bal);
+    return { name: b.name, risk, net: n, hacim: b.hacim };
   });
+  const median = (xs: number[]) => {
+    const s = [...xs].sort((a, b) => a - b);
+    const m = Math.floor(s.length / 2);
+    return s.length === 0 ? 0 : s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  const medRisk = median(scatterRaw.map((s) => s.risk));
+  const medNet = median(scatterRaw.map((s) => s.net));
+  const scatter = scatterRaw.map((s) => {
+    // çeyrek: düşük risk + yüksek getiri = ideal(high); yüksek risk + düşük getiri = riskli(low); diğer = orta(mid)
+    const tier =
+      s.risk <= medRisk && s.net >= medNet ? "high" : s.risk > medRisk && s.net < medNet ? "low" : "mid";
+    return { name: s.name, risk: s.risk, net: s.net, hacim: s.hacim, tier };
+  });
+  const scatterMed = { risk: medRisk, net: medNet };
 
   // --- etkinlik göstergeleri
   const etkinlik = [
@@ -467,7 +469,7 @@ export function computeExec(
 
   return {
     kpis, topBayi, hacimMaxBayi, bayiMomentum, dagilim, funnel, waterfall, trend, kayiplar,
-    karlilik, scatter, etkinlik, riskKpi, nplByRegion, krediPenet, sigortaPenet,
+    karlilik, scatter, scatterMed, etkinlik, riskKpi, nplByRegion, krediPenet, sigortaPenet,
     krediPenetDelta: penetYoY, sigortaPenetDelta: sigortaYoY, penetTrend,
     limitBars, limitAsiri, alerts, healthScores, oppScores,
   };
