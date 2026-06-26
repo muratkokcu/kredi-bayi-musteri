@@ -343,11 +343,11 @@ export function computeExec(
   const karlilik: ExecData["karlilik"] = [
     { label: "Faiz Geliri", value: faizGeliri },
     { label: "Dosya Masrafı", value: dosyaGeliri },
-    { label: "Komisyon Geliri", value: komisyon },
-    { label: "Teşvik / İskonto", value: -tesvik },
-    { label: "Sigorta Maliyeti", value: -sigortaMaliyet },
-    { label: "Ekspertiz Maliyeti", value: -ekspertizMaliyet },
-    { label: "Diğer Maliyetler", value: -diger },
+    { label: "Komisyon", value: komisyon },
+    { label: "Teşvik", value: -tesvik },
+    { label: "Sigorta", value: -sigortaMaliyet },
+    { label: "Ekspertiz", value: -ekspertizMaliyet },
+    { label: "Diğer", value: -diger },
     { label: "NET KARLILIK", value: net, net: true },
   ];
 

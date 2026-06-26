@@ -31,6 +31,7 @@ import {
   ResponsiveContainer,
   Scatter,
   ScatterChart,
+  Tooltip,
   XAxis,
   YAxis,
   ZAxis,
@@ -419,6 +420,7 @@ export function ExecutiveDashboard() {
                       />
                       <YAxis dataKey="net" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} width={26} />
                       <ZAxis dataKey="hacim" range={[16, 120]} type="number" />
+                      <Tooltip content={<ScatterTip />} cursor={{ stroke: "#94a3b8", strokeDasharray: "3 3" }} />
                       <Scatter data={d.scatter}>
                         {d.scatter.map((s) => (
                           <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.68} key={s.name} stroke="#fff" strokeWidth={0.7} />
@@ -669,6 +671,38 @@ function MiniSpark({ data, prev, trend }: { data: number[]; prev?: number[]; tre
       ) : null}
       <polyline fill="none" points={line(data)} stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} />
     </svg>
+  );
+}
+
+function ScatterTip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: { name: string; faiz: number; net: number; hacim: number; tier: string } }[];
+}) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+  const p = payload[0].payload;
+  const tierLabel = p.tier === "high" ? "Yüksek" : p.tier === "mid" ? "Orta" : "Düşük";
+  return (
+    <div className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[8.5px] shadow-md">
+      <div className="font-bold text-slate-700">{p.name}</div>
+      <div className="flex items-center gap-1 text-slate-500">
+        <span className="size-1.5 rounded-full" style={{ background: SCATTER_FILL[p.tier] }} />
+        {tierLabel} karlılık
+      </div>
+      <div className="mt-0.5 text-slate-500">
+        Ort. Faiz: <b className="text-slate-700">%{p.faiz.toFixed(2)}</b>
+      </div>
+      <div className="text-slate-500">
+        Net Karlılık: <b className="text-slate-700">{p.net.toFixed(1)} Mn</b>
+      </div>
+      <div className="text-slate-500">
+        Kredi Tutarı: <b className="text-slate-700">{Math.round(p.hacim / 1_000_000)} Mn</b>
+      </div>
+    </div>
   );
 }
 
