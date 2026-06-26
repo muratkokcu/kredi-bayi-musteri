@@ -301,18 +301,26 @@ export function computeExec(
     { label: "NET KARLILIK", value: net, net: true },
   ];
 
-  // --- scatter (bayi: faiz vs net karlılık) — tier göreli sıralamayla (renk çeşitliliği)
-  const scatterRaw = topBayi.map((b) => {
-    const ls = loans.filter((l) => l.bayi === b.name);
-    const f = avg(ls, (l) => l.faiz);
-    const n =
-      (sum(ls, (l) => (l.krediTutari * (l.faiz / 100) * l.vade) / 12 * 0.45) -
-        sum(ls, (l) => l.tesvik)) /
-      1_000_000;
-    return { name: b.name, faiz: f, net: n, hacim: b.hacim, ratio: pct(n * 1_000_000, b.hacim) };
-  });
+  // --- scatter (bayi × segment: faiz vs net karlılık) — zengin nokta dağılımı, tier göreli
+  const segMenu = [...new Set(loans.map((l) => l.segment))];
+  const scatterRaw: { name: string; faiz: number; net: number; hacim: number; ratio: number }[] = [];
+  for (const b of topBayi) {
+    for (const seg of segMenu) {
+      const ls = loans.filter((l) => l.bayi === b.name && l.segment === seg);
+      if (ls.length < 3) {
+        continue;
+      }
+      const f = avg(ls, (l) => l.faiz);
+      const hac = sum(ls, (l) => l.krediTutari);
+      const n =
+        (sum(ls, (l) => (l.krediTutari * (l.faiz / 100) * l.vade) / 12 * 0.45) -
+          sum(ls, (l) => l.tesvik)) /
+        1_000_000;
+      scatterRaw.push({ name: `${b.name} · ${seg}`, faiz: f, net: n, hacim: hac, ratio: pct(n * 1_000_000, hac) });
+    }
+  }
   const ranked = [...scatterRaw].sort((a, b) => b.ratio - a.ratio).map((r) => r.name);
-  const third = Math.ceil(ranked.length / 3);
+  const third = Math.ceil(ranked.length / 3) || 1;
   const scatter = scatterRaw.map((s) => {
     const rank = ranked.indexOf(s.name);
     const tier = rank < third ? "high" : rank < third * 2 ? "mid" : "low";

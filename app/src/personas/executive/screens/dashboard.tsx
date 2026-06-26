@@ -324,26 +324,34 @@ export function ExecutiveDashboard() {
                       <Dot c="#ef4444" t="Düşük" />
                     </span>
                   </div>
-                  <ResponsiveContainer height={132} width="100%">
-                    <ScatterChart margin={{ top: 8, right: 8, left: -22, bottom: 2 }}>
+                  <ResponsiveContainer height={128} width="100%">
+                    <ScatterChart margin={{ top: 6, right: 6, left: 2, bottom: 14 }}>
                       <CartesianGrid stroke="#eef2f7" />
                       <XAxis
                         dataKey="faiz"
                         domain={faizDomain}
+                        label={{ value: "Ortalama Faiz (%)", position: "insideBottom", offset: -8, fontSize: 7.5, fill: "#94a3b8" }}
                         tick={{ fill: "#94a3b8", fontSize: 8 }}
                         tickFormatter={(v) => `%${v.toFixed(1)}`}
                         tickLine={false}
                         type="number"
                       />
-                      <YAxis dataKey="net" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} width={26} />
-                      <ZAxis dataKey="hacim" range={[30, 200]} type="number" />
+                      <YAxis
+                        dataKey="net"
+                        label={{ value: "Net Karlılık (Mn)", angle: -90, position: "insideLeft", offset: 12, fontSize: 7.5, fill: "#94a3b8", style: { textAnchor: "middle" } }}
+                        tick={{ fill: "#94a3b8", fontSize: 8 }}
+                        tickLine={false}
+                        width={34}
+                      />
+                      <ZAxis dataKey="hacim" range={[24, 170]} type="number" />
                       <Scatter data={d.scatter}>
                         {d.scatter.map((s) => (
-                          <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.78} key={s.name} />
+                          <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.72} key={s.name} />
                         ))}
                       </Scatter>
                     </ScatterChart>
                   </ResponsiveContainer>
+                  <div className="text-[7px] text-slate-400 italic">*Balon büyüklüğü: Kredi Tutarı</div>
                 </div>
               </div>
               <div className="mt-1 font-semibold text-[9px] text-slate-400 uppercase">Karlılık Etkinlik Göstergeleri</div>
