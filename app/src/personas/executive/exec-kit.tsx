@@ -584,7 +584,7 @@ export function HBars({
     <ResponsiveContainer height={height} width="100%">
       <BarChart data={data} layout="vertical" margin={{ top: 2, right: 34, left: 2, bottom: 2 }}>
         <XAxis hide type="number" />
-        <YAxis axisLine={false} dataKey="name" tick={{ fill: "#475569", fontSize: 8.5 }} tickLine={false} type="category" width={labelWidth} />
+        <YAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "#475569", fontSize: 8.5 }} tickLine={false} type="category" width={labelWidth} />
         <Bar dataKey="value" fill={barColor} isAnimationActive={false} radius={[0, 3, 3, 0]}>
           {data.map((r) => (
             <Cell fill={r.fill ?? barColor} key={r.name} />
@@ -618,7 +618,7 @@ export function KarlilikBars({
     <ResponsiveContainer height={height} width="100%">
       <BarChart data={data} layout="vertical" margin={{ top: 2, right: 30, left: 2, bottom: 2 }}>
         <XAxis hide type="number" />
-        <YAxis axisLine={false} dataKey="label" tick={{ fill: "#475569", fontSize: 8 }} tickLine={false} type="category" width={86} />
+        <YAxis axisLine={false} dataKey="label" interval={0} tick={{ fill: "#475569", fontSize: 8 }} tickLine={false} type="category" width={86} />
         <ReferenceLine stroke="#cbd5e1" x={0} />
         <Bar dataKey="value" isAnimationActive={false} radius={2}>
           {data.map((r) => (
@@ -737,7 +737,7 @@ export function ScoreBars({ data, height }: { data: { name: string; score: numbe
     <ResponsiveContainer height={height} width="100%">
       <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 20, left: 2, bottom: 0 }}>
         <XAxis domain={[0, 100]} hide type="number" />
-        <YAxis axisLine={false} dataKey="name" tick={{ fill: "#64748b", fontSize: 8 }} tickLine={false} type="category" width={58} />
+        <YAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "#64748b", fontSize: 8 }} tickLine={false} type="category" width={58} />
         <Bar dataKey="score" isAnimationActive={false} radius={[0, 3, 3, 0]}>
           {rows.map((r) => (
             <Cell fill={r.fill} key={r.name} />
