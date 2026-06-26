@@ -433,7 +433,7 @@ export function Section({
   children,
   className,
 }: {
-  icon: ComponentType<{ size?: number; className?: string }>;
+  icon: ComponentType<{ size?: number; className?: string; color?: string }>;
   title: string;
   accent: string;
   children: ReactNode;
@@ -441,13 +441,8 @@ export function Section({
 }) {
   return (
     <div className={`flex flex-col rounded-lg border border-slate-200 bg-white ${className ?? ""}`}>
-      <div className="flex items-center gap-2 border-slate-100 border-b px-3 py-1.5">
-        <span
-          className="flex size-[18px] items-center justify-center rounded"
-          style={{ background: accent }}
-        >
-          <Icon className="text-white" size={11} />
-        </span>
+      <div className="flex items-center gap-1.5 border-slate-100 border-b px-3 py-1.5">
+        <Icon color={accent} size={14} />
         <span className="font-bold text-[11.5px] text-slate-700 tracking-wide">{title}</span>
       </div>
       <div className="min-h-0 flex-1 p-2.5">{children}</div>

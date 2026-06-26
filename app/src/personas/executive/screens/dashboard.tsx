@@ -177,7 +177,7 @@ export function ExecutiveDashboard() {
               </span>
               <div className="leading-tight">
                 <div className="font-bold text-[17px] text-white tracking-wide">
-                  EXECUTIVE DEALER PERFORMANCE DASHBOARD
+                  ÜST YÖNETİM BAYİ PERFORMANS PANOSU
                 </div>
                 <div className="font-medium text-[11px] text-sky-200 tracking-wide">OTO KREDİ FİNANSMAN</div>
               </div>
@@ -528,11 +528,11 @@ export function ExecutiveDashboard() {
             </Section>
 
             {/* 6. EXECUTIVE ALERTS & SKORLAR */}
-            <Section accent="#0f172a" icon={Bell} title="EXECUTIVE ALERTS & BAYİ SKORLARI">
+            <Section accent="#0f172a" icon={Bell} title="YÖNETİCİ UYARILARI & BAYİ SKORLARI">
               <div className="grid grid-cols-[1.35fr_1fr_1fr] gap-2">
                 {/* Executive Alerts */}
                 <div>
-                  <div className="mb-1 font-bold text-[9px] text-slate-500 uppercase tracking-wide">Executive Alerts</div>
+                  <div className="mb-1 font-bold text-[9px] text-slate-500 uppercase tracking-wide">Yönetici Uyarıları</div>
                   <div className="flex flex-col gap-1">
                     {d.alerts.map((a) => {
                       const Icon = a.sev === "ok" ? CheckCircle2 : AlertTriangle;
@@ -612,7 +612,7 @@ function FilterSelect({
   const active = value !== ALL;
   return (
     <div
-      className={`flex min-w-0 flex-1 items-center gap-1 rounded-md border px-2 py-0.5 ${
+      className={`flex min-w-0 flex-1 items-center gap-1 rounded-sm border px-2 py-0.5 ${
         active ? "border-[#0b2545] bg-[#0b2545]/5" : "border-slate-200 bg-slate-50"
       }`}
     >
@@ -646,7 +646,7 @@ function FilterPill({
   wide?: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 ${wide ? "" : "flex-1"}`}>
+    <div className={`flex items-center gap-1.5 rounded-sm border border-slate-200 bg-slate-50 px-2 py-0.5 ${wide ? "" : "flex-1"}`}>
       <span className="font-semibold text-[9px] text-slate-400 uppercase">{label}</span>
       <span className="ml-auto flex items-center gap-1 font-semibold text-[10px] text-slate-700">
         {icon ? <Calendar className="text-slate-400" size={11} /> : null}
