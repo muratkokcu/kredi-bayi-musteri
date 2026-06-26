@@ -154,6 +154,9 @@ export function ExecutiveDashboard() {
     oran: g.oran,
   }));
 
+  const avgHealth = Math.round(d.healthScores.reduce((a, s) => a + s.score, 0) / (d.healthScores.length || 1));
+  const avgOpp = Math.round(d.oppScores.reduce((a, s) => a + s.score, 0) / (d.oppScores.length || 1));
+
   // Denetim izi: anlık görüntü hangi filtre bağlamında üretildi (PDF'te kayıt altına alınır).
   const aktifFiltreler = (
     [
@@ -602,8 +605,9 @@ export function ExecutiveDashboard() {
 
                 {/* Bayi Health Score */}
                 <div className="flex flex-col rounded-md border border-slate-200">
-                  <div className="border-slate-100 border-b bg-slate-50 px-2 py-0.5 font-bold text-[8.5px] text-slate-500 uppercase">
-                    Bayi Health Score (0-100)
+                  <div className="flex items-center justify-between border-slate-100 border-b bg-slate-50 px-2 py-0.5 font-bold text-[8.5px] text-slate-500 uppercase">
+                    <span>Bayi Health Score (0-100)</span>
+                    <span className="font-semibold text-slate-400">Ort {avgHealth}</span>
                   </div>
                   <div className="flex-1 p-1.5">
                     <ScoreBars data={d.healthScores.map((s) => ({ name: short(s.name), score: s.score }))} height={114} />
@@ -612,8 +616,9 @@ export function ExecutiveDashboard() {
 
                 {/* Opportunity Score */}
                 <div className="flex flex-col rounded-md border border-slate-200">
-                  <div className="border-slate-100 border-b bg-slate-50 px-2 py-0.5 font-bold text-[8.5px] text-slate-500 uppercase">
-                    Opportunity Score (0-100)
+                  <div className="flex items-center justify-between border-slate-100 border-b bg-slate-50 px-2 py-0.5 font-bold text-[8.5px] text-slate-500 uppercase">
+                    <span>Opportunity Score (0-100)</span>
+                    <span className="font-semibold text-slate-400">Ort {avgOpp}</span>
                   </div>
                   <div className="flex-1 p-1.5">
                     <ScoreBars data={d.oppScores.map((s) => ({ name: short(s.name), score: s.score }))} height={114} />

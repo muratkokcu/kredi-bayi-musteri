@@ -807,7 +807,7 @@ export function ScoreBars({ data, height }: { data: { name: string; score: numbe
   const avg = rows.reduce((a, r) => a + r.score, 0) / (rows.length || 1);
   return (
     <ResponsiveContainer height={height} width="100%">
-      <BarChart data={rows} layout="vertical" margin={{ top: 7, right: 20, left: 2, bottom: 0 }}>
+      <BarChart data={rows} layout="vertical" margin={{ top: 2, right: 20, left: 2, bottom: 0 }}>
         <XAxis domain={[0, 100]} hide type="number" />
         <YAxis axisLine={false} dataKey="name" interval={0} tick={{ fill: "#64748b", fontSize: 8 }} tickLine={false} type="category" width={58} />
         <Bar dataKey="score" isAnimationActive={false} radius={[0, 3, 3, 0]}>
@@ -816,12 +816,7 @@ export function ScoreBars({ data, height }: { data: { name: string; score: numbe
           ))}
           <LabelList dataKey="score" position="right" style={{ fill: "#334155", fontSize: 8, fontWeight: 700 }} />
         </Bar>
-        <ReferenceLine
-          label={{ value: `Ort ${Math.round(avg)}`, position: "top", fontSize: 6.5, fill: "#475569" }}
-          stroke="#475569"
-          strokeDasharray="3 2"
-          x={avg}
-        />
+        <ReferenceLine stroke="#94a3b8" strokeDasharray="3 2" x={avg} />
       </BarChart>
     </ResponsiveContainer>
   );
