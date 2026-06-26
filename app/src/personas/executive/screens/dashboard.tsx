@@ -250,7 +250,7 @@ export function ExecutiveDashboard() {
             <Section accent="#1d4ed8" icon={BarChart3} title="HACİM ANALİZİ">
               <div className="flex items-center justify-between font-semibold text-[9px] text-slate-400 uppercase">
                 <span>Top Bayi — Kredi Tutarı (Mn)</span>
-                <span>Adet · Trend</span>
+                <span>Adet · Tr · Son 12 Ay</span>
               </div>
               <div className="flex">
                 <div className="min-w-0 flex-1">
@@ -274,6 +274,13 @@ export function ExecutiveDashboard() {
                     >
                       {b.trend === "up" ? "▲" : b.trend === "down" ? "▼" : "—"}
                     </span>
+                  ))}
+                </div>
+                <div className="flex w-[46px] flex-col justify-around py-1">
+                  {d.topBayi.map((b) => (
+                    <div className="flex justify-center" key={b.name}>
+                      <MiniSpark data={b.aylik} trend={b.trend} />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -630,6 +637,25 @@ export function ExecutiveDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** 12-ay mini sparkline; momentuma göre renk + bayinin kendi ortalamasına kesikli baz çizgisi (karşılaştırma). */
+function MiniSpark({ data, trend }: { data: number[]; trend: "up" | "down" | "flat" }) {
+  const w = 44;
+  const h = 14;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const span = max - min || 1;
+  const y = (v: number) => h - 1 - ((v - min) / span) * (h - 2);
+  const pts = data.map((v, i) => `${(i / (data.length - 1)) * (w - 1) + 0.5},${y(v).toFixed(1)}`).join(" ");
+  const mean = data.reduce((a, b) => a + b, 0) / (data.length || 1);
+  const color = trend === "up" ? "#16a34a" : trend === "down" ? "#ef4444" : "#94a3b8";
+  return (
+    <svg aria-hidden="true" height={h} viewBox={`0 0 ${w} ${h}`} width={w}>
+      <line stroke="#cbd5e1" strokeDasharray="2 2" strokeWidth={0.5} x1={0} x2={w} y1={y(mean)} y2={y(mean)} />
+      <polyline fill="none" points={pts} stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} />
+    </svg>
   );
 }
 

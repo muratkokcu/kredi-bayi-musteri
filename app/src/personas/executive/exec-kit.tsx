@@ -69,7 +69,7 @@ export interface WaterfallStep {
 
 export interface ExecData {
   kpis: ExecKpi[];
-  topBayi: { name: string; hacim: number; adet: number; trend: "up" | "down" | "flat" }[];
+  topBayi: { name: string; hacim: number; adet: number; aylik: number[]; trend: "up" | "down" | "flat" }[];
   hacimMaxBayi: number;
   bayiMomentum: { up: number; down: number; flat: number };
   dagilim: { title: string; rows: { name: string; pct: number }[] }[];
@@ -209,14 +209,17 @@ export function computeExec(
     { label: "NET KARLILIK", value: fmtMn(net, 1), unit: "Milyon TL", delta: `${trNum(Math.abs(netYoY), 1)}%`, up: netYoY >= 0, accent: "#15803d", spark: sparkHacim.map((h) => h * 0.04) },
   ];
 
-  // --- Top bayi (+ bayi momentumu: son çeyrek ort. vs önceki çeyrek — Bayi Karlılık ile aynı mantık)
-  const bayiTrend = (name: string): "up" | "down" | "flat" => {
+  // --- Top bayi (+ 12-ay hacim serisi & momentum: son çeyrek vs önceki — Bayi Karlılık mantığı)
+  const bayiSeries = (name: string): number[] => {
     const m = Array.from({ length: 12 }, () => 0);
     for (const l of loans) {
       if (l.bayi === name) {
         m[l.ay - 1] += l.krediTutari;
       }
     }
+    return m;
+  };
+  const trendOf = (m: number[]): "up" | "down" | "flat" => {
     const prior = (m[6] + m[7] + m[8]) / 3;
     if (prior === 0) {
       return "flat";
@@ -225,12 +228,16 @@ export function computeExec(
     return ch > 0.05 ? "up" : ch < -0.05 ? "down" : "flat";
   };
   const topBayi = groupSum(loans, (l) => l.bayi, (l) => l.krediTutari)
-    .map((b) => ({
-      name: b.name,
-      hacim: b.value,
-      adet: loans.filter((l) => l.bayi === b.name).length,
-      trend: bayiTrend(b.name),
-    }))
+    .map((b) => {
+      const aylik = bayiSeries(b.name);
+      return {
+        name: b.name,
+        hacim: b.value,
+        adet: loans.filter((l) => l.bayi === b.name).length,
+        aylik,
+        trend: trendOf(aylik),
+      };
+    })
     .sort((a, b) => b.hacim - a.hacim);
   const hacimMaxBayi = Math.max(...topBayi.map((b) => b.hacim), 1);
   const bayiMomentum = { up: 0, down: 0, flat: 0 };
