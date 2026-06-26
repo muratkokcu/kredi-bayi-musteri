@@ -4,7 +4,19 @@
  * (production-loans, applications, risk-watch, limits) türetilir; tüm grafikler
  * Recharts ile çizilir.
  */
-import { AlertTriangle, Calendar, CheckCircle2, ChevronDown, Printer } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  Bell,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  Coins,
+  Filter,
+  Printer,
+  ShieldAlert,
+  Target,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   Bar,
@@ -160,7 +172,7 @@ export function ExecutiveDashboard() {
           <header className="flex items-center justify-between bg-[#0b2545] px-4 py-2.5">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1 rounded-md bg-white px-2 py-1">
-                <span className="font-extrabold text-[15px] text-[#0b2545] italic tracking-tight">QUICK</span>
+                <span className="font-extrabold text-[15px] text-[#0b2545] italic tracking-tight">KREDİ</span>
                 <span className="font-bold text-[10px] text-[#ea580c] uppercase">Finans</span>
               </span>
               <div className="leading-tight">
@@ -194,6 +206,7 @@ export function ExecutiveDashboard() {
             <FilterSelect label="Bireysel / Ticari" onChange={setTip} options={opts.tip} value={tip} />
           </div>
 
+          <div className="flex flex-col gap-2 px-3 pb-2">
           {/* KPI satırı */}
           <div className="grid grid-cols-8 gap-2">
             {d.kpis.map((k) => (
@@ -218,7 +231,7 @@ export function ExecutiveDashboard() {
           {/* Üst grid: 1 / 2 / 3 */}
           <div className="grid grid-cols-3 gap-2">
             {/* 1. HACİM ANALİZİ */}
-            <Section accent="#1d4ed8" no={1} title="HACİM ANALİZİ">
+            <Section accent="#1d4ed8" icon={BarChart3} title="HACİM ANALİZİ">
               <div className="flex items-center justify-between font-semibold text-[9px] text-slate-400 uppercase">
                 <span>Top Bayi — Kredi Tutarı (Mn)</span>
                 <span>Adet</span>
@@ -274,7 +287,7 @@ export function ExecutiveDashboard() {
             </Section>
 
             {/* 2. DÖNÜŞÜM ANALİZİ */}
-            <Section accent="#0891b2" no={2} title="DÖNÜŞÜM ANALİZİ (FUNNEL)">
+            <Section accent="#0891b2" icon={Filter} title="DÖNÜŞÜM ANALİZİ (FUNNEL)">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <div className="mb-0.5 flex justify-end font-semibold text-[8px] text-slate-400 uppercase">
@@ -332,7 +345,7 @@ export function ExecutiveDashboard() {
             </Section>
 
             {/* 3. KARLILIK ANALİZİ */}
-            <Section accent="#7c3aed" no={3} title="KARLILIK ANALİZİ">
+            <Section accent="#7c3aed" icon={Coins} title="KARLILIK ANALİZİ">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <div className="font-semibold text-[9px] text-slate-400 uppercase">Net Karlılık Kırılımı (Mn)</div>
@@ -390,7 +403,7 @@ export function ExecutiveDashboard() {
           {/* Alt grid: 4 / 5 / 6 */}
           <div className="grid grid-cols-3 gap-2">
             {/* 4. RİSK ANALİZİ */}
-            <Section accent="#dc2626" no={4} title="RİSK ANALİZİ">
+            <Section accent="#dc2626" icon={ShieldAlert} title="RİSK ANALİZİ">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <div className="mb-0.5 font-semibold text-[9px] text-slate-400 uppercase">Risk KPI (Hedef vs Gerç.)</div>
@@ -421,7 +434,7 @@ export function ExecutiveDashboard() {
             </Section>
 
             {/* 5. PENETRASYON & LİMİT */}
-            <Section accent="#0d9488" no={5} title="PENETRASYON & LİMİT KULLANIMI">
+            <Section accent="#0d9488" icon={Target} title="PENETRASYON & LİMİT KULLANIMI">
               <div className="grid grid-cols-2 gap-2">
                 {/* Sol: penetrasyon */}
                 <div className="flex flex-col">
@@ -515,7 +528,7 @@ export function ExecutiveDashboard() {
             </Section>
 
             {/* 6. EXECUTIVE ALERTS & SKORLAR */}
-            <Section accent="#0f172a" no={6} title="EXECUTIVE ALERTS & BAYİ SKORLARI">
+            <Section accent="#0f172a" icon={Bell} title="EXECUTIVE ALERTS & BAYİ SKORLARI">
               <div className="grid grid-cols-[1.35fr_1fr_1fr] gap-2">
                 {/* Executive Alerts */}
                 <div>
@@ -564,10 +577,11 @@ export function ExecutiveDashboard() {
           </div>
 
           {/* Footer */}
-          <div className="px-1 text-[8px] text-slate-400">
+          <div className="text-[8px] text-slate-400">
             Not: Tüm oranlar seçili filtrelere göre hesaplanmıştır. yp: yüzde puan | NPL: Takipteki Krediler Oranı
             (≥90 gün) | KT: Kanuni Takip Oranı | FPD 30+: İlk Taksit Gecikme Oranı · Veri kaynağı: production-loans,
             applications, risk-watch, limits.
+          </div>
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@
  * Tüm metrikler mevcut veri setlerinden (production-loans, applications,
  * risk-watch, limits) türetilir; ekran (dashboard.tsx) bunları yerleştirir.
  */
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import {
   Area,
   AreaChart,
@@ -427,13 +427,13 @@ export function computeExec(
 
 /** Numaralı bölüm kartı. */
 export function Section({
-  no,
+  icon: Icon,
   title,
   accent,
   children,
   className,
 }: {
-  no: number;
+  icon: ComponentType<{ size?: number; className?: string }>;
   title: string;
   accent: string;
   children: ReactNode;
@@ -443,10 +443,10 @@ export function Section({
     <div className={`flex flex-col rounded-lg border border-slate-200 bg-white ${className ?? ""}`}>
       <div className="flex items-center gap-2 border-slate-100 border-b px-3 py-1.5">
         <span
-          className="flex size-4 items-center justify-center rounded font-bold text-[10px] text-white"
+          className="flex size-[18px] items-center justify-center rounded"
           style={{ background: accent }}
         >
-          {no}
+          <Icon className="text-white" size={11} />
         </span>
         <span className="font-bold text-[11.5px] text-slate-700 tracking-wide">{title}</span>
       </div>
