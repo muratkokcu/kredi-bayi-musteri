@@ -142,29 +142,26 @@ export function ExecutiveDashboard() {
   }));
 
   return (
-    <div className="exec-shell min-h-screen overflow-auto bg-slate-200 py-5 print:bg-white print:py-0">
+    <div className="min-h-screen overflow-auto bg-slate-200 py-5 print:min-h-0 print:bg-white print:py-0">
       {/* biome-ignore lint/style/noUnusedTemplateLiteral: print stylesheet */}
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 4mm; }
           html, body { background: #fff !important; }
-          .exec-shell { min-height: 0 !important; }
           .exec-print { zoom: 0.735; box-shadow: none !important; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}</style>
 
-      <div className="mx-auto w-fit print:w-full">
-        <div className="mb-2 flex justify-end print:hidden">
-          <button
-            className="flex items-center gap-2 rounded-lg bg-[#0b2545] px-4 py-2 font-semibold text-[13px] text-white shadow hover:bg-[#13315c]"
-            onClick={() => window.print()}
-            type="button"
-          >
-            <Printer size={15} /> PDF / Yazdır (A4 Yatay)
-          </button>
-        </div>
+      <button
+        className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg bg-[#0b2545] px-4 py-2 font-semibold text-[13px] text-white shadow-lg hover:bg-[#13315c] print:hidden"
+        onClick={() => window.print()}
+        type="button"
+      >
+        <Printer size={15} /> PDF / Yazdır (A4 Yatay)
+      </button>
 
+      <div className="mx-auto w-fit print:w-full">
         <div className="exec-print flex w-[1480px] flex-col gap-2 bg-slate-100 p-3 shadow-[0_10px_40px_rgba(2,12,40,0.25)]">
           {/* Header */}
           <header className="flex items-center justify-between rounded-lg bg-[#0b2545] px-4 py-2.5">
