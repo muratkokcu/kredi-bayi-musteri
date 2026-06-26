@@ -689,8 +689,6 @@ export function FunnelViz({
 }
 
 // --------------------------------------------------------------- TreemapMini
-const TM_PALETTE = ["#ec4899", "#f97316", "#3b82f6", "#14b8a6", "#8b5cf6", "#22c55e", "#ef4444", "#64748b"];
-
 interface TreeCellProps {
   x?: number;
   y?: number;
@@ -698,26 +696,27 @@ interface TreeCellProps {
   height?: number;
   name?: string;
   pct?: number;
-  index?: number;
 }
 
-function TreeCell({ x = 0, y = 0, width = 0, height = 0, name = "", pct = 0, index = 0 }: TreeCellProps) {
+/** Tek lacivert renk; pay büyüdükçe opaklık artar (Marka/Distribütör mantığı). */
+function TreeCell({ x = 0, y = 0, width = 0, height = 0, name = "", pct = 0 }: TreeCellProps) {
   if (width <= 0 || height <= 0) {
     return null;
   }
-  const color = TM_PALETTE[index % TM_PALETTE.length];
+  const opacity = Math.max(0.3, Math.min(0.95, 0.3 + (pct / 60) * 0.65));
+  const txt = opacity < 0.5 ? "#1e293b" : "#fff";
   const showName = width > 30 && height > 18;
   const showPct = width > 20 && height > 10;
   return (
     <g>
-      <rect fill={color} height={height} stroke="#fff" strokeWidth={1} width={width} x={x} y={y} />
+      <rect fill="#1d4ed8" fillOpacity={opacity} height={height} stroke="#fff" strokeWidth={1} width={width} x={x} y={y} />
       {showName ? (
-        <text fill="#fff" fontSize={7} fontWeight={600} x={x + 3} y={y + 10}>
+        <text fill={txt} fontSize={7} fontWeight={400} x={x + 3} y={y + 10}>
           {name}
         </text>
       ) : null}
       {showPct ? (
-        <text fill="#fff" fontSize={7.5} fontWeight={700} x={x + 3} y={showName ? y + 19 : y + 11}>
+        <text fill={txt} fontSize={7.5} fontWeight={600} x={x + 3} y={showName ? y + 19 : y + 11}>
           %{trNum(pct, 1)}
         </text>
       ) : null}
