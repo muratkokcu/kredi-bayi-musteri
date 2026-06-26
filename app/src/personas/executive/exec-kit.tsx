@@ -83,6 +83,9 @@ export interface ExecData {
   nplByRegion: Record<Bolge, number>;
   krediPenet: number;
   sigortaPenet: number;
+  krediPenetDelta: number;
+  sigortaPenetDelta: number;
+  penetTrend: { ay: string; kredi: number; sigorta: number }[];
   limitBars: { name: string; kullanilan: number; toplam: number; oran: number }[];
   limitAsiri: { name: string; limit: number; oran: number; up: boolean }[];
   alerts: { sev: "danger" | "warn" | "ok"; title: string; body: string }[];
@@ -154,6 +157,18 @@ export function computeExec(
   const penetYoY =
     pct(appCur.filter((a) => a.durum === "Kullandırım").length, appCur.length) -
     pct(appPrev.filter((a) => a.durum === "Kullandırım").length, appPrev.length);
+  const sigortaYoY =
+    pct(cur.filter((l) => l.sigorta).length, cur.length) -
+    pct(prev.filter((l) => l.sigorta).length, prev.length);
+  const penetTrend = [7, 8, 9, 10, 11, 12].map((m) => {
+    const aa = apps.filter((a) => a.ay === m);
+    const ll = loans.filter((l) => l.ay === m);
+    return {
+      ay: ["Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"][m - 7],
+      kredi: Math.round(pct(aa.filter((a) => a.durum === "Kullandırım").length, aa.length)),
+      sigorta: Math.round(pct(ll.filter((l) => l.sigorta).length, ll.length)),
+    };
+  });
   const netCur = sum(cur, (l) => (l.krediTutari * (l.faiz / 100) * l.vade) / 12 * 0.45) - sum(cur, (l) => l.tesvik);
   const netPrev = sum(prev, (l) => (l.krediTutari * (l.faiz / 100) * l.vade) / 12 * 0.45) - sum(prev, (l) => l.tesvik);
   const netYoY = yoy(netCur, netPrev);
@@ -386,6 +401,7 @@ export function computeExec(
   return {
     kpis, topBayi, hacimMaxBayi, dagilim, funnel, waterfall, trend, kayiplar,
     karlilik, scatter, etkinlik, riskKpi, nplByRegion, krediPenet, sigortaPenet,
+    krediPenetDelta: penetYoY, sigortaPenetDelta: sigortaYoY, penetTrend,
     limitBars, limitAsiri, alerts, healthScores, oppScores,
   };
 }
@@ -444,20 +460,28 @@ export function Sparkline({ data, color }: { data: number[]; color: string }) {
 }
 
 /** Yarım daire gösterge (penetrasyon) — Recharts RadialBarChart. */
-export function Gauge({ value, label, sub, color }: { value: number; label: string; sub: string; color: string }) {
+export function Gauge({
+  value,
+  label,
+  delta,
+  up,
+  color,
+}: {
+  value: number;
+  label: string;
+  delta: string;
+  up: boolean;
+  color: string;
+}) {
   const data = [{ value: Math.min(value, 100) }];
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-1 flex-col items-center">
+      <span className="mb-0.5 text-center font-semibold text-[8.5px] uppercase leading-tight" style={{ color }}>
+        {label}
+      </span>
       <div className="relative h-[46px] w-[92px]">
         <ResponsiveContainer height={46} width="100%">
-          <RadialBarChart
-            barSize={8}
-            data={data}
-            endAngle={0}
-            innerRadius="72%"
-            outerRadius="100%"
-            startAngle={180}
-          >
+          <RadialBarChart barSize={8} data={data} endAngle={0} innerRadius="72%" outerRadius="100%" startAngle={180}>
             <PolarAngleAxis angleAxisId={0} domain={[0, 100]} tick={false} type="number" />
             <RadialBar
               angleAxisId={0}
@@ -469,12 +493,14 @@ export function Gauge({ value, label, sub, color }: { value: number; label: stri
             />
           </RadialBarChart>
         </ResponsiveContainer>
-        <span className="absolute inset-x-0 bottom-0 text-center font-bold text-[13px] text-slate-800">
+        <span className="absolute inset-x-0 bottom-0 text-center font-bold text-[14px] text-slate-800">
           {fmtPct(value, 1)}
         </span>
       </div>
-      <span className="mt-0.5 text-center font-semibold text-[9.5px] text-slate-500 uppercase leading-tight">{label}</span>
-      <span className="text-[9px] text-emerald-600">{sub}</span>
+      <span className={`mt-0.5 font-bold text-[9px] ${up ? "text-emerald-600" : "text-red-500"}`}>
+        {up ? "▲" : "▼"} {delta}
+      </span>
+      <span className="text-[7.5px] text-slate-400">(Geçen yıla göre)</span>
     </div>
   );
 }

@@ -5,7 +5,7 @@
  * Recharts ile çizilir.
  */
 import { AlertTriangle, Calendar, ChevronDown, Info, Printer, ShieldAlert } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -23,6 +23,13 @@ import {
   YAxis,
   ZAxis,
 } from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useApplications } from "@/queries/applications";
 import { useLimits } from "@/queries/limits";
 import { useProductionLoans } from "@/queries/production-loans";
@@ -47,9 +54,10 @@ import {
 const NPL_SHADES = ["#dcfce7", "#fde68a", "#fb923c", "#ef4444", "#b91c1c"];
 const SCATTER_FILL: Record<string, string> = { high: "#16a34a", mid: "#f59e0b", low: "#ef4444" };
 const FUNNEL_COLORS = ["#0c4a6e", "#0369a1", "#0891b2", "#0d9488", "#10b981"];
-const FILTERS = ["Bölge", "İl", "Distribütör", "Marka", "Bayi", "Sektör", "Bireysel / Ticari"];
+const ALL = "Tümü";
 
 const short = (s: string) => s.split(" ")[0];
+const uniq = (xs: string[]) => [...new Set(xs)].sort((a, b) => a.localeCompare(b, "tr"));
 
 export function ExecutiveDashboard() {
   const loans = useProductionLoans();
@@ -57,11 +65,47 @@ export function ExecutiveDashboard() {
   const risks = useRiskContracts();
   const limits = useLimits();
 
+  const [bolge, setBolge] = useState(ALL);
+  const [il, setIl] = useState(ALL);
+  const [distributor, setDistributor] = useState(ALL);
+  const [marka, setMarka] = useState(ALL);
+  const [bayi, setBayi] = useState(ALL);
+  const [sektor, setSektor] = useState(ALL);
+  const [tip, setTip] = useState(ALL);
+
   const ready = loans.data && apps.data && risks.data && limits.data;
-  const d = useMemo(
-    () => (ready ? computeExec(loans.data!, apps.data!, risks.data!, limits.data!) : null),
-    [ready, loans.data, apps.data, risks.data, limits.data]
-  );
+
+  const opts = useMemo(() => {
+    const L = loans.data ?? [];
+    return {
+      bolge: uniq(L.map((l) => l.bolge)),
+      il: uniq(L.map((l) => l.il)),
+      distributor: uniq(L.map((l) => l.distributor)),
+      marka: uniq(L.map((l) => l.marka)),
+      bayi: uniq(L.map((l) => l.bayi)),
+      sektor: uniq(L.map((l) => l.altSektor)),
+      tip: ["Bireysel", "Ticari"],
+    };
+  }, [loans.data]);
+
+  const d = useMemo(() => {
+    if (!ready) {
+      return null;
+    }
+    const geo = (r: { bolge: string; il: string; distributor: string; bayi: string; altSektor: string }) =>
+      (bolge === ALL || r.bolge === bolge) &&
+      (il === ALL || r.il === il) &&
+      (distributor === ALL || r.distributor === distributor) &&
+      (bayi === ALL || r.bayi === bayi) &&
+      (sektor === ALL || r.altSektor === sektor);
+    const fL = loans.data!.filter(
+      (l) => geo(l) && (marka === ALL || l.marka === marka) && (tip === ALL || l.musteriTipi === tip)
+    );
+    const fA = apps.data!.filter((a) => geo(a) && (tip === ALL || a.musteriTipi === tip));
+    const fR = risks.data!.filter((r) => geo(r) && (tip === ALL || r.musteriTipi === tip));
+    const fLi = limits.data!.filter((l) => geo(l));
+    return computeExec(fL, fA, fR, fLi);
+  }, [ready, loans.data, apps.data, risks.data, limits.data, bolge, il, distributor, marka, bayi, sektor, tip]);
 
   if (!d) {
     return (
@@ -79,17 +123,22 @@ export function ExecutiveDashboard() {
   }));
   const topBayiData = d.topBayi.map((b) => ({ name: short(b.name), value: b.hacim / 1_000_000 }));
   const fx = d.scatter.map((s) => s.faiz);
-  const faizDomain: [number, number] = [Math.min(...fx) - 0.1, Math.max(...fx) + 0.1];
+  const faizDomain: [number, number] = fx.length
+    ? [Math.min(...fx) - 0.1, Math.max(...fx) + 0.1]
+    : [2, 4];
   const riskData = d.riskKpi.map((r) => ({
     name: r.label,
     value: (r.gercek / r.hedef) * 100,
     actual: fmtPct(r.gercek, r.unit === "%" ? 1 : 0),
     fill: r.bad ? "#ef4444" : "#22c55e",
   }));
-  const limitData = d.limitBars.map((g) => ({
+  const tr1 = (x: number) => x.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const limitStack = d.limitBars.map((g) => ({
     name: short(g.name),
-    value: g.oran,
-    fill: g.oran >= 90 ? "#ef4444" : g.oran >= 75 ? "#f59e0b" : "#0d9488",
+    kullanilan: g.kullanilan / 1_000_000,
+    bos: (g.toplam - g.kullanilan) / 1_000_000,
+    toplam: g.toplam / 1_000_000,
+    oran: g.oran,
   }));
 
   return (
@@ -134,12 +183,16 @@ export function ExecutiveDashboard() {
             <div className="text-right text-[11px] text-slate-300">Son Güncelleme: 20.05.2025 09:30</div>
           </header>
 
-          {/* Filtre çubuğu */}
+          {/* Filtre çubuğu — fonksiyonel */}
           <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-1.5">
             <FilterPill icon label="Tarih Aralığı" value="01.01.2025 - 20.05.2025" wide />
-            {FILTERS.map((f) => (
-              <FilterPill key={f} label={f} value="Tümü" />
-            ))}
+            <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
+            <FilterSelect label="İl" onChange={setIl} options={opts.il} value={il} />
+            <FilterSelect label="Distribütör" onChange={setDistributor} options={opts.distributor} value={distributor} />
+            <FilterSelect label="Marka" onChange={setMarka} options={opts.marka} value={marka} />
+            <FilterSelect label="Bayi" onChange={setBayi} options={opts.bayi} value={bayi} />
+            <FilterSelect label="Sektör" onChange={setSektor} options={opts.sektor} value={sektor} />
+            <FilterSelect label="Bireysel / Ticari" onChange={setTip} options={opts.tip} value={tip} />
           </div>
 
           {/* KPI satırı */}
@@ -343,29 +396,95 @@ export function ExecutiveDashboard() {
 
             {/* 5. PENETRASYON & LİMİT */}
             <Section accent="#0d9488" no={5} title="PENETRASYON & LİMİT KULLANIMI">
-              <div className="grid grid-cols-[auto_1fr] gap-2">
-                <div className="flex flex-col justify-center gap-1.5 pr-1">
-                  <Gauge color="#16a34a" label="Kredi Penet." sub={fmtPct(d.krediPenet, 1)} value={d.krediPenet} />
-                  <Gauge color="#2563eb" label="Sigorta Penet." sub={fmtPct(d.sigortaPenet, 1)} value={d.sigortaPenet} />
-                </div>
-                <div>
-                  <div className="font-semibold text-[9px] text-slate-400 uppercase">Grup Limit Kullanımı</div>
-                  <HBars data={limitData} format={(v) => fmtPct(v, 0)} height={116} labelWidth={78} />
-                </div>
-              </div>
-              <div className="mt-1 rounded border border-slate-100">
-                <div className="bg-slate-50 px-2 py-0.5 font-bold text-[8.5px] text-slate-500 uppercase">
-                  Limiti %85 Üzeri Kullanan Gruplar
-                </div>
-                {d.limitAsiri.map((g) => (
-                  <div className="flex items-center justify-between border-slate-100 border-t px-2 py-0.5 text-[9px]" key={g.name}>
-                    <span className="truncate text-slate-600">{g.name}</span>
-                    <span className="text-slate-500 tabular-nums">{fmtMn(g.limit, 0)} Mn</span>
-                    <span className={`font-bold tabular-nums ${g.up ? "text-red-500" : "text-amber-600"}`}>
-                      {g.up ? "▲" : "▼"} {fmtPct(g.oran, 0)}
-                    </span>
+              <div className="grid grid-cols-2 gap-2">
+                {/* Sol: penetrasyon */}
+                <div className="flex flex-col">
+                  <div className="text-center font-semibold text-[9px] text-slate-400 uppercase">
+                    Penetrasyon Göstergeleri
                   </div>
-                ))}
+                  <div className="mt-1 flex gap-1">
+                    <Gauge
+                      color="#16a34a"
+                      delta={`${tr1(Math.abs(d.krediPenetDelta))} yp`}
+                      label="Kredi Penetrasyonu"
+                      up={d.krediPenetDelta >= 0}
+                      value={d.krediPenet}
+                    />
+                    <Gauge
+                      color="#2563eb"
+                      delta={`${tr1(Math.abs(d.sigortaPenetDelta))} yp`}
+                      label="Sigorta Penetrasyonu"
+                      up={d.sigortaPenetDelta >= 0}
+                      value={d.sigortaPenet}
+                    />
+                  </div>
+                  <div className="mt-1.5 text-center font-semibold text-[9px] text-slate-400 uppercase">
+                    Penetrasyon Trendi
+                  </div>
+                  <ResponsiveContainer height={96} width="100%">
+                    <LineChart data={d.penetTrend} margin={{ top: 6, right: 6, left: -24, bottom: 0 }}>
+                      <CartesianGrid stroke="#eef2f7" vertical={false} />
+                      <XAxis axisLine={false} dataKey="ay" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} />
+                      <YAxis axisLine={false} tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} width={30} />
+                      <Legend iconSize={6} wrapperStyle={{ fontSize: 7.5 }} />
+                      <Line dataKey="kredi" dot={{ r: 1.6 }} name="Kredi Penet." stroke="#16a34a" strokeWidth={1.6} />
+                      <Line dataKey="sigorta" dot={{ r: 1.6 }} name="Sigorta Penet." stroke="#2563eb" strokeWidth={1.6} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Sağ: limit */}
+                <div className="flex flex-col">
+                  <div className="font-semibold text-[9px] text-slate-400 uppercase">Limit Kullanımı (Mn)</div>
+                  <ResponsiveContainer height={120} width="100%">
+                    <BarChart data={limitStack} margin={{ top: 14, right: 4, left: -24, bottom: 0 }}>
+                      <XAxis axisLine={false} dataKey="name" tick={{ fill: "#64748b", fontSize: 8 }} tickLine={false} />
+                      <YAxis hide />
+                      <Legend iconSize={6} wrapperStyle={{ fontSize: 7 }} />
+                      <Bar dataKey="kullanilan" fill="#1e3a8a" isAnimationActive={false} name="Kullanılan Limit" stackId="l">
+                        <LabelList
+                          dataKey="oran"
+                          formatter={(v) => fmtPct(Number(v), 0)}
+                          position="inside"
+                          style={{ fill: "#fff", fontSize: 8, fontWeight: 700 }}
+                        />
+                      </Bar>
+                      <Bar dataKey="bos" fill="#cbd5e1" isAnimationActive={false} name="Boş Limit" radius={[2, 2, 0, 0]} stackId="l">
+                        <LabelList
+                          dataKey="toplam"
+                          formatter={(v) => Math.round(Number(v)).toLocaleString("tr-TR")}
+                          position="top"
+                          style={{ fill: "#334155", fontSize: 8, fontWeight: 700 }}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-1 rounded border border-slate-100">
+                    <div className="bg-slate-50 px-2 py-0.5 text-center font-bold text-[8px] text-slate-500 uppercase">
+                      Limiti %85 Üzeri Kullanan Gruplar
+                    </div>
+                    <table className="w-full">
+                      <thead>
+                        <tr className="text-[7.5px] text-slate-400">
+                          <th className="px-2 text-left font-semibold">Grup</th>
+                          <th className="px-2 text-right font-semibold">Kullanılan (Mn)</th>
+                          <th className="px-2 text-right font-semibold">Oran</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {d.limitAsiri.map((g) => (
+                          <tr className="border-slate-100 border-t" key={g.name}>
+                            <td className="truncate px-2 py-0.5 text-[8.5px] text-slate-600">{g.name}</td>
+                            <td className="px-2 py-0.5 text-right text-[8.5px] text-slate-500 tabular-nums">{fmtMn(g.limit, 0)}</td>
+                            <td className={`px-2 py-0.5 text-right font-bold text-[8.5px] tabular-nums ${g.up ? "text-red-500" : "text-amber-600"}`}>
+                              {fmtPct(g.oran, 0)} {g.up ? "▲" : "▼"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </Section>
 
@@ -419,6 +538,42 @@ function Dot({ c, t }: { c: string; t: string }) {
       <span className="size-1.5 rounded-full" style={{ background: c }} />
       {t}
     </span>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+}) {
+  const active = value !== ALL;
+  return (
+    <div
+      className={`flex min-w-0 flex-1 items-center gap-1 rounded-md border px-2 py-1 ${
+        active ? "border-[#0b2545] bg-[#0b2545]/5" : "border-slate-200 bg-slate-50"
+      }`}
+    >
+      <span className="shrink-0 font-semibold text-[9px] text-slate-400 uppercase">{label}</span>
+      <Select onValueChange={onChange} value={value}>
+        <SelectTrigger className="ml-auto h-5 min-w-0 gap-1 border-0 bg-transparent p-0 font-semibold text-[10px] text-slate-700 shadow-none focus:ring-0 [&>svg]:size-3 [&>svg]:shrink-0 [&>svg]:text-slate-400">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="max-h-64">
+          <SelectItem value={ALL}>Tümü</SelectItem>
+          {options.map((o) => (
+            <SelectItem key={o} value={o}>
+              {o}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 
