@@ -4,7 +4,7 @@
  * (production-loans, applications, risk-watch, limits) türetilir; tüm grafikler
  * Recharts ile çizilir.
  */
-import { AlertTriangle, Calendar, ChevronDown, Info, Printer, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Calendar, CheckCircle2, ChevronDown, Printer } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   Bar,
@@ -490,30 +490,47 @@ export function ExecutiveDashboard() {
 
             {/* 6. EXECUTIVE ALERTS & SKORLAR */}
             <Section accent="#0f172a" no={6} title="EXECUTIVE ALERTS & BAYİ SKORLARI">
-              <div className="grid grid-cols-[1.25fr_1fr] gap-2">
-                <div className="flex flex-col gap-1">
-                  {d.alerts.map((a) => {
-                    const Icon = a.sev === "danger" ? AlertTriangle : a.sev === "warn" ? ShieldAlert : Info;
-                    const c = a.sev === "danger" ? "#dc2626" : a.sev === "warn" ? "#d97706" : "#0d9488";
-                    return (
-                      <div className="flex gap-1.5" key={a.title}>
-                        <Icon className="mt-0.5 shrink-0" color={c} size={12} />
-                        <div className="leading-tight">
-                          <div className="font-semibold text-[9px] text-slate-700">{a.title}</div>
-                          <div className="text-[8px] text-slate-400">{a.body}</div>
+              <div className="grid grid-cols-[1.35fr_1fr_1fr] gap-2">
+                {/* Executive Alerts */}
+                <div>
+                  <div className="mb-1 font-bold text-[9px] text-slate-500 uppercase tracking-wide">Executive Alerts</div>
+                  <div className="flex flex-col gap-1">
+                    {d.alerts.map((a) => {
+                      const Icon = a.sev === "ok" ? CheckCircle2 : AlertTriangle;
+                      const c = a.sev === "danger" ? "#dc2626" : a.sev === "warn" ? "#d97706" : "#0d9488";
+                      const tint = a.sev === "danger" ? "#fee2e2" : a.sev === "warn" ? "#fef3c7" : "#ccfbf1";
+                      return (
+                        <div className="flex gap-1.5 rounded-md border border-slate-100 bg-slate-50/70 px-1.5 py-1" key={a.title}>
+                          <span className="flex size-4 shrink-0 items-center justify-center rounded" style={{ background: tint }}>
+                            <Icon color={c} size={10} />
+                          </span>
+                          <div className="leading-tight">
+                            <div className="font-semibold text-[8.5px] text-slate-700">{a.title}</div>
+                            <div className="text-[7.5px] text-slate-400">{a.body}</div>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <div>
-                    <div className="mb-0.5 font-bold text-[8.5px] text-slate-500 uppercase">Bayi Health Score</div>
-                    <ScoreBars data={d.healthScores.map((s) => ({ name: short(s.name), score: s.score }))} height={92} />
+                      );
+                    })}
                   </div>
-                  <div>
-                    <div className="mb-0.5 font-bold text-[8.5px] text-slate-500 uppercase">Opportunity Score</div>
-                    <ScoreBars data={d.oppScores.map((s) => ({ name: short(s.name), score: s.score }))} height={92} />
+                </div>
+
+                {/* Bayi Health Score */}
+                <div className="flex flex-col rounded-md border border-slate-200">
+                  <div className="border-slate-100 border-b bg-slate-50 px-2 py-0.5 font-bold text-[8.5px] text-slate-500 uppercase">
+                    Bayi Health Score (0-100)
+                  </div>
+                  <div className="flex-1 p-1.5">
+                    <ScoreBars data={d.healthScores.map((s) => ({ name: short(s.name), score: s.score }))} height={114} />
+                  </div>
+                </div>
+
+                {/* Opportunity Score */}
+                <div className="flex flex-col rounded-md border border-slate-200">
+                  <div className="border-slate-100 border-b bg-slate-50 px-2 py-0.5 font-bold text-[8.5px] text-slate-500 uppercase">
+                    Opportunity Score (0-100)
+                  </div>
+                  <div className="flex-1 p-1.5">
+                    <ScoreBars data={d.oppScores.map((s) => ({ name: short(s.name), score: s.score }))} height={114} />
                   </div>
                 </div>
               </div>
