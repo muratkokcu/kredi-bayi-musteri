@@ -313,7 +313,7 @@ export function ExecutiveDashboard() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <div className="font-semibold text-[9px] text-slate-400 uppercase">Net Karlılık Kırılımı (Mn)</div>
-                  <KarlilikBars height={150} rows={d.karlilik} />
+                  <KarlilikBars height={172} rows={d.karlilik} />
                 </div>
                 <div>
                   <div className="flex items-center justify-between">
@@ -324,8 +324,9 @@ export function ExecutiveDashboard() {
                       <Dot c="#ef4444" t="Düşük" />
                     </span>
                   </div>
-                  <ResponsiveContainer height={128} width="100%">
-                    <ScatterChart margin={{ top: 6, right: 6, left: 2, bottom: 14 }}>
+                  <div className="text-[7px] text-slate-400">Net Karlılık (Mn)</div>
+                  <ResponsiveContainer height={150} width="100%">
+                    <ScatterChart margin={{ top: 2, right: 8, left: -14, bottom: 14 }}>
                       <CartesianGrid stroke="#eef2f7" />
                       <XAxis
                         dataKey="faiz"
@@ -336,17 +337,11 @@ export function ExecutiveDashboard() {
                         tickLine={false}
                         type="number"
                       />
-                      <YAxis
-                        dataKey="net"
-                        label={{ value: "Net Karlılık (Mn)", angle: -90, position: "insideLeft", offset: 12, fontSize: 7.5, fill: "#94a3b8", style: { textAnchor: "middle" } }}
-                        tick={{ fill: "#94a3b8", fontSize: 8 }}
-                        tickLine={false}
-                        width={34}
-                      />
-                      <ZAxis dataKey="hacim" range={[24, 170]} type="number" />
+                      <YAxis dataKey="net" tick={{ fill: "#94a3b8", fontSize: 8 }} tickLine={false} width={26} />
+                      <ZAxis dataKey="hacim" range={[16, 120]} type="number" />
                       <Scatter data={d.scatter}>
                         {d.scatter.map((s) => (
-                          <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.72} key={s.name} />
+                          <Cell fill={SCATTER_FILL[s.tier]} fillOpacity={0.68} key={s.name} stroke="#fff" strokeWidth={0.7} />
                         ))}
                       </Scatter>
                     </ScatterChart>
