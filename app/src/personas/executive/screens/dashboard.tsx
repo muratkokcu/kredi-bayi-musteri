@@ -184,7 +184,7 @@ export function ExecutiveDashboard() {
           </header>
 
           {/* Filtre çubuğu — fonksiyonel */}
-          <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-1.5">
+          <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-1">
             <FilterPill icon label="Tarih Aralığı" value="01.01.2025 - 20.05.2025" wide />
             <FilterSelect label="Bölge" onChange={setBolge} options={opts.bolge} value={bolge} />
             <FilterSelect label="İl" onChange={setIl} options={opts.il} value={il} />
@@ -572,13 +572,13 @@ function FilterSelect({
   const active = value !== ALL;
   return (
     <div
-      className={`flex min-w-0 flex-1 items-center gap-1 rounded-md border px-2 py-1 ${
+      className={`flex min-w-0 flex-1 items-center gap-1 rounded-md border px-2 py-0.5 ${
         active ? "border-[#0b2545] bg-[#0b2545]/5" : "border-slate-200 bg-slate-50"
       }`}
     >
       <span className="shrink-0 font-semibold text-[9px] text-slate-400 uppercase">{label}</span>
       <Select onValueChange={onChange} value={value}>
-        <SelectTrigger className="ml-auto h-5 min-w-0 gap-1 border-0 bg-transparent p-0 font-semibold text-[10px] text-slate-700 shadow-none focus:ring-0 [&>svg]:size-3 [&>svg]:shrink-0 [&>svg]:text-slate-400">
+        <SelectTrigger className="ml-auto h-4 min-w-0 gap-1 border-0 bg-transparent p-0 font-semibold text-[10px] text-slate-700 shadow-none focus:ring-0 [&>svg]:size-3 [&>svg]:shrink-0 [&>svg]:text-slate-400">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="max-h-64">
@@ -606,7 +606,7 @@ function FilterPill({
   wide?: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 ${wide ? "" : "flex-1"}`}>
+    <div className={`flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 ${wide ? "" : "flex-1"}`}>
       <span className="font-semibold text-[9px] text-slate-400 uppercase">{label}</span>
       <span className="ml-auto flex items-center gap-1 font-semibold text-[10px] text-slate-700">
         {icon ? <Calendar className="text-slate-400" size={11} /> : null}
