@@ -250,11 +250,18 @@ export function ExecutiveDashboard() {
             <Section accent="#1d4ed8" icon={BarChart3} title="HACİM ANALİZİ">
               <div className="flex items-center justify-between font-semibold text-[9px] text-slate-400 uppercase">
                 <span>Top Bayi — Kredi Tutarı (Mn)</span>
-                <span>Adet · Tr · Son 12 Ay</span>
+                <span>Trend · Adet · Yön</span>
               </div>
               <div className="flex">
                 <div className="min-w-0 flex-1">
                   <HBars data={topBayiData} format={(v) => fmtMn(v * 1_000_000, 0)} height={138} labelWidth={74} />
+                </div>
+                <div className="flex w-[46px] flex-col justify-around py-1">
+                  {d.topBayi.map((b) => (
+                    <div className="flex justify-center" key={b.name}>
+                      <MiniSpark data={b.aylik} trend={b.trend} />
+                    </div>
+                  ))}
                 </div>
                 <div className="flex w-7 flex-col justify-around py-1 text-right">
                   {d.topBayi.map((b) => (
@@ -274,13 +281,6 @@ export function ExecutiveDashboard() {
                     >
                       {b.trend === "up" ? "▲" : b.trend === "down" ? "▼" : "—"}
                     </span>
-                  ))}
-                </div>
-                <div className="flex w-[46px] flex-col justify-around py-1">
-                  {d.topBayi.map((b) => (
-                    <div className="flex justify-center" key={b.name}>
-                      <MiniSpark data={b.aylik} trend={b.trend} />
-                    </div>
                   ))}
                 </div>
               </div>
