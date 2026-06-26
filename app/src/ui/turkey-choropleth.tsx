@@ -12,16 +12,21 @@ const W = 760;
 const H = 340;
 
 // Light → dark green ramp (bank theme), low → high renewal rate.
-const SHADES = ["#e8f7f0", "#a7e0c4", "#5cc795", "#1ba86c", "#057048"];
+const GREEN_SHADES = ["#e8f7f0", "#a7e0c4", "#5cc795", "#1ba86c", "#057048"];
 
-function shadeFor(rate: number, min: number, max: number): string {
+function shadeFor(
+  rate: number,
+  min: number,
+  max: number,
+  shades: string[]
+): string {
   const span = max - min || 1;
   const t = (rate - min) / span;
   const idx = Math.min(
-    SHADES.length - 1,
-    Math.max(0, Math.floor(t * SHADES.length))
+    shades.length - 1,
+    Math.max(0, Math.floor(t * shades.length))
   );
-  return SHADES[idx];
+  return shades[idx];
 }
 
 /**
@@ -30,8 +35,16 @@ function shadeFor(rate: number, min: number, max: number): string {
  */
 export function TurkeyChoropleth({
   ratesByRegion,
+  shades = GREEN_SHADES,
+  unit = "%",
+  legendLow = "Düşük",
+  legendHigh = "Yüksek",
 }: {
   ratesByRegion: Record<Bolge, number>;
+  shades?: string[];
+  unit?: string;
+  legendLow?: string;
+  legendHigh?: string;
 }) {
   const { paths, min, max } = useMemo(() => {
     const fc = iller as unknown as ExtendedFeatureCollection;
@@ -82,7 +95,7 @@ export function TurkeyChoropleth({
         {paths.map((p) => (
           <path
             d={p.d}
-            fill={shadeFor(p.rate, min, max)}
+            fill={shadeFor(p.rate, min, max, shades)}
             key={p.name}
             onMouseEnter={() =>
               setInfo({ name: p.name, region: p.region, rate: p.rate })
@@ -102,21 +115,22 @@ export function TurkeyChoropleth({
             {info.name}
           </div>
           <div className="text-[10.5px] text-white/70 tabular-nums">
-            {info.region ?? "—"} · %{info.rate.toLocaleString("tr-TR")}
+            {info.region ?? "—"} · {unit}
+            {info.rate.toLocaleString("tr-TR")}
           </div>
         </div>
       ) : null}
 
       <div className="mt-3 flex items-center justify-center gap-2 text-[10.5px] text-ink-muted">
-        <span>Düşük</span>
-        {SHADES.map((c) => (
+        <span>{legendLow}</span>
+        {shades.map((c) => (
           <span
             className="size-3.5 rounded-[3px]"
             key={c}
             style={{ background: c }}
           />
         ))}
-        <span>Yüksek</span>
+        <span>{legendHigh}</span>
       </div>
     </div>
   );

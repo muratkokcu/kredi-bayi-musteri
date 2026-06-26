@@ -3,7 +3,7 @@
  * A real backend would replace src/services/auth + token handling; this file,
  * the context, guards and login UI stay the same.
  */
-export type Role = "banka" | "raporlama" | "bayi" | "musteri";
+export type Role = "banka" | "raporlama" | "bayi" | "musteri" | "executive";
 
 export interface User {
   email: string;
@@ -25,6 +25,7 @@ export const ROLE_HOME = {
   raporlama: "/raporlama/uretim-karlilik",
   bayi: "/bayi/ana-sayfa",
   musteri: "/musteri/ana-sayfa",
+  executive: "/executive",
 } as const;
 
 export const ROLE_LABEL: Record<Role, string> = {
@@ -32,6 +33,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   raporlama: "Raporlama",
   bayi: "Bayi",
   musteri: "Müşteri",
+  executive: "Genel Müdür",
 };
 
 export const DEMO_ACCOUNTS: DemoAccount[] = [
@@ -72,6 +74,16 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
     title: "Müşteri",
     email: "musteri@demo.com",
     initials: "EY",
+    password: "demo1234",
+  },
+  {
+    id: "u-executive",
+    role: "executive",
+    name: "Kerem Yönetim",
+    title: "Genel Müdür",
+    org: "QUICK Finans",
+    email: "executive@demo.com",
+    initials: "KY",
     password: "demo1234",
   },
 ];

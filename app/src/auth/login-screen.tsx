@@ -19,6 +19,7 @@ const ROLE_DOT: Record<Role, string> = {
   raporlama: "bg-bank-700",
   bayi: "bg-dealer",
   musteri: "bg-cust",
+  executive: "bg-[#0b2545]",
 };
 
 export function LoginScreen() {

@@ -8,6 +8,7 @@ const ROLES: { dot: string; role: Role }[] = [
   { role: "raporlama", dot: "bg-bank-700" },
   { role: "bayi", dot: "bg-dealer" },
   { role: "musteri", dot: "bg-cust" },
+  { role: "executive", dot: "bg-[#0b2545]" },
 ];
 
 /**

@@ -26,6 +26,13 @@ const LoginScreen = lazy(() =>
   import("./auth/login-screen").then((m) => ({ default: m.LoginScreen }))
 );
 
+/** Genel Müdür executive dashboard — shell'siz, tam ekran, tek sayfa. */
+const ExecutiveDashboard = lazy(() =>
+  import("./personas/executive/screens/dashboard").then((m) => ({
+    default: m.ExecutiveDashboard,
+  }))
+);
+
 const BankDashboard = lazy(() =>
   import("./personas/bank/screens/dashboard").then((m) => ({
     default: m.BankDashboard,
@@ -414,9 +421,17 @@ const subPages = [
   })
 );
 
+const executiveRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/executive",
+  beforeLoad: guard("executive"),
+  component: ExecutiveDashboard,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
+  executiveRoute,
   ...bankRoutes,
   ...reportingRoutes,
   ...dealerRoutes,
