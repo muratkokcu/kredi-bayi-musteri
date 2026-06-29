@@ -34,3 +34,11 @@ Thumbs.db
 
 # Office geçici/kilit dosyaları
 ~$*
+
+# Dahili dokümanlar / veri setleri / tasarım taslakları — repoya gitmez
+docs/
+scripts/
+design drafts/
+
+# Eski/kullanılmayan kök taksonomi kopyası (uygulama app/src/data/ içindekini kullanır)
+/arac-taksonomisi.json
